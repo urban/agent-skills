@@ -1,5 +1,5 @@
 ---
-name: denotational-design-light
+name: denotational-design
 description: "Apply a lightweight denotational-design pass before coding or reviewing abstractions: define domain meanings, semantic equality, operations, and laws before representation. Use when designing APIs, data types, DSLs, state models, refactors, or reviewing abstractions for representation leaks."
 ---
 
