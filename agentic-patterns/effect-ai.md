@@ -1,7 +1,5 @@
 # Effect AI patterns for agents
 
-These notes capture project patterns for using Effect's AI modules. They are based on `repos/effect/packages/effect/src/unstable/ai`, provider packages under `repos/effect/packages/ai`, AI docs under `repos/effect/ai-docs/src/71_ai`, tests under `repos/effect/packages/**/test`, and adjacent AI/tooling patterns in `repos/t3code`, `repos/executor`, and `repos/alchemy-effect`.
-
 ## First principles
 
 - Encapsulate AI behavior behind domain services. Application code should call methods like `scoreAnswer`, `generateThreadTitle`, or `draftFeedback`, not scatter `LanguageModel.generateText` calls through handlers.
@@ -18,8 +16,6 @@ These notes capture project patterns for using Effect's AI modules. They are bas
 ### Wrap model calls in a use-case service
 
 The docs in `repos/effect/ai-docs/src/71_ai/10_language-model.ts` define `AiWriter` as a `Context.Service` with domain methods that hide provider selection, prompts, structured output decoding, streaming, and error mapping. Follow the same shape for project features.
-
-Adapted pattern:
 
 ```ts
 import { Context, Effect, Layer, Schema, Stream } from "effect";
@@ -88,15 +84,13 @@ export class AssessmentAi extends Context.Service<
 Guidelines:
 
 - The service API should be stable and domain-shaped. Do not leak prompt strings, provider request bodies, raw `Response.Part` arrays, or provider-specific config unless that is the explicit domain.
-- Keep prompt construction pure when it is large or shared. `repos/t3code/apps/server/src/textGeneration/TextGenerationPrompts.ts` builds prompts and schemas in pure helpers, while provider modules execute them.
-- Keep post-processing in the service. `repos/t3code/apps/server/src/textGeneration/CodexTextGeneration.ts` decodes structured output, then sanitizes commit subjects, PR titles, branch names, and thread titles before returning domain values.
+- Keep prompt construction pure when it is large or shared. Build prompts and schemas in pure helpers, while provider modules execute them.
+- Keep post-processing in the service. Decode structured output, then sanitize domain values before returning them.
 - Use `Chat` only when conversation history is part of the behavior. For one-shot extraction or generation, use `LanguageModel.generateText` / `generateObject` directly.
 
 ### Separate provider routing from behavior
 
-`repos/t3code/apps/server/src/textGeneration/TextGeneration.ts` routes requests to a provider instance registry. The caller supplies a `modelSelection`, the router finds the configured provider instance, and the provider-specific closure owns execution.
-
-Adapted pattern:
+Route requests to a provider instance registry when provider selection is runtime-configurable. The caller supplies a `modelSelection`, the router finds the configured provider instance, and the provider-specific closure owns execution.
 
 ```ts
 export interface TextGenerationShape {
@@ -137,8 +131,6 @@ Guidelines:
 
 The Effect docs use provider client Layers and `captureRequirements` so model dependencies are pulled into the service Layer once.
 
-Adapted from `repos/effect/ai-docs/src/71_ai/10_language-model.ts`:
-
 ```ts
 import { Config, Effect, ExecutionPlan, Layer } from "effect";
 import { AnthropicClient, AnthropicLanguageModel } from "@effect/ai-anthropic";
@@ -173,8 +165,6 @@ Guidelines:
 ### Make tools their own module and Layer
 
 `repos/effect/ai-docs/src/71_ai/20_tools.ts` defines `Tool.make`, groups tools with `Toolkit.make`, and implements handlers through `Toolkit.toLayer`. This keeps tool schemas testable without the model and tool handlers swappable without prompt changes.
-
-Adapted pattern:
 
 ```ts
 import { Effect, Layer, Schema } from "effect";
@@ -218,8 +208,6 @@ Guidelines:
 
 `repos/effect/packages/effect/test/unstable/ai/utils.ts` provides a test helper that replaces `LanguageModel.LanguageModel` with `LanguageModel.make`. Copy this pattern for project tests.
 
-Adapted helper:
-
 ```ts
 import { Effect, Predicate, Stream } from "effect";
 import { dual } from "effect/Function";
@@ -252,7 +240,7 @@ Guidelines:
 
 - Test domain behavior through the service API.
 - Assert structured outputs, sanitization, tool calls/results, and error mapping.
-- Use fake provider responses, fake process binaries, or fake HTTP clients. `repos/t3code/apps/server/src/textGeneration/CodexTextGeneration.test.ts` uses a fake Codex binary; provider tests in `repos/effect/packages/ai/openai/test` use a mock HTTP client.
+- Use fake provider responses, fake process binaries, or fake HTTP clients. Provider tests in `repos/effect/packages/ai/openai/test` use a mock HTTP client.
 - For streaming and delayed tools, use `TestClock.adjust(...)` and latches rather than wall-clock sleeps. `LanguageModel.test.ts` verifies that streaming emits tool calls before delayed tool results and defers finish parts until tool results are emitted.
 
 ## Error handling patterns
@@ -267,8 +255,6 @@ The AI modules expose provider-agnostic `AiError.AiError`. Its `reason` is a typ
 Each reason has `isRetryable`, and some reasons carry `retryAfter` or HTTP/provider metadata. Provider packages map HTTP transport failures and status codes into these reasons in files such as `repos/effect/packages/ai/openai/src/internal/errors.ts` and `repos/effect/packages/ai/anthropic/src/internal/errors.ts`.
 
 ### Map AI errors at service boundaries
-
-Adapted from `AiWriterError.fromAiError` in the docs:
 
 ```ts
 export class VoiceAiError extends Schema.TaggedErrorClass<VoiceAiError>()("VoiceAiError", {
@@ -326,8 +312,6 @@ Guidelines:
 
 Use `"error"` for invariant violations, permission failures that must stop the operation, invalid handler outputs, and unexpected infrastructure failures. Use `"return"` for domain-level misses the assistant can handle, such as "candidate not found" or "inventory unavailable".
 
-Adapted pattern:
-
 ```ts
 const LookupRubric = Tool.make("LookupRubric", {
   description: "Find the scoring rubric for an assessment question.",
@@ -346,12 +330,6 @@ const LookupRubric = Tool.make("LookupRubric", {
 - For streaming text, filter `Response.TextDeltaPart` and map `delta`.
 - For chat, persist or export history through `Chat.export`, `Chat.exportJson`, and `Chat.fromJson` rather than inventing a parallel transcript format.
 - For agentic loops, let `Chat` maintain tool calls and tool results in history. The docs in `repos/effect/ai-docs/src/71_ai/30_chat.ts` loop until a generated response has no tool calls.
-
-## Adjacent repository patterns to carry forward
-
-- `repos/t3code`: AI text generation is provider-routed and domain-shaped. Prompt builders are pure, providers decode with `Schema.fromJsonString(...)`, outputs are sanitized, and tests use fake CLIs instead of real model calls.
-- `repos/executor`: tool behavior is schema-first and policy-gated. Static tools carry input/output schemas and approval annotations; policies combine user-authored rules and plugin defaults so invoke-time behavior is explicit.
-- `repos/alchemy-effect`: runtime AI Gateway access is wrapped in an Effect-native client with a typed tagged error. Bindings are resolved lazily from the runtime environment, while deploy-time policy is a separate Layer.
 
 ## What to avoid
 

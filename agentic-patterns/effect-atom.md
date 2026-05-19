@@ -1,7 +1,5 @@
 # Effect `Atom` patterns for agents
 
-These notes are based on `repos/effect/packages/effect/src/unstable/reactivity/*`, the Atom and atom-react tests, and Atom usage in `repos/executor` and `repos/t3code`.
-
 ## Core model
 
 - An Atom is a reactive value owned by an `AtomRegistry`.
@@ -16,14 +14,14 @@ These notes are based on `repos/effect/packages/effect/src/unstable/reactivity/*
 
 Components should read, render, and dispatch. Atom modules should own data loading, cache identity, reactivity keys, optimistic updates, refresh policy, and derived views.
 
-Adapted from `repos/executor/packages/react/src/api/atoms.tsx`:
+Example pattern:
 
 ```ts
 import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 
 export const sourcesAtom = (scopeId: ScopeId) =>
-  ExecutorApiClient.query("sources", "list", {
+  AppApiClient.query("sources", "list", {
     params: { scopeId },
     timeToLive: "30 seconds",
     reactivityKeys: [ReactivityKey.sources],
@@ -35,7 +33,7 @@ export const sourceAtom = (sourceId: SourceId, scopeId: ScopeId) =>
     (sources) => sources.find((source) => source.id === sourceId) ?? null,
   );
 
-export const removeSource = ExecutorApiClient.mutation("sources", "remove");
+export const removeSource = AppApiClient.mutation("sources", "remove");
 
 export const sourcesOptimisticAtom = Atom.family((scopeId: ScopeId) =>
   Atom.optimistic(sourcesAtom(scopeId)),
@@ -66,15 +64,15 @@ Follow this shape:
 
 Atoms that touch HTTP, RPC, storage, browser APIs, or cross-module state should depend on a service boundary rather than raw clients in React components.
 
-Adapted from `repos/executor/packages/react/src/api/client.tsx`:
+Example pattern:
 
 ```ts
 import * as AtomHttpApi from "effect/unstable/reactivity/AtomHttpApi";
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http";
 import * as Effect from "effect/Effect";
 
-const ExecutorApiClient = AtomHttpApi.Service<"ExecutorApiClient">()("ExecutorApiClient", {
-  api: ExecutorApi,
+const AppApiClient = AtomHttpApi.Service<"AppApiClient">()("AppApiClient", {
+  api: AppApi,
   httpClient: FetchHttpClient.layer,
   transformClient: HttpClient.mapRequest((request) => {
     const withBaseUrl = HttpClientRequest.prependUrl(request, getBaseUrl());
@@ -87,7 +85,7 @@ const ExecutorApiClient = AtomHttpApi.Service<"ExecutorApiClient">()("ExecutorAp
   transformResponse: (effect) => Effect.tapCause(effect, reportApiClientInfrastructureCause),
 });
 
-export { ExecutorApiClient };
+export { AppApiClient };
 ```
 
 Use this pattern because it gives agents a clean seam:
@@ -96,8 +94,6 @@ Use this pattern because it gives agents a clean seam:
 - Atom modules own query and mutation definitions.
 - Components own UI only.
 - Tests can replace layers through the registry instead of mocking atoms.
-
-Adapted from `repos/effect/packages/atom/react/test/index.test.tsx`:
 
 ```tsx
 class TheNumber extends Context.Service<TheNumber>()("TheNumber", {
@@ -132,8 +128,6 @@ render(
 - Use typed service errors for actionable cases. Decode, transport, and other infrastructure failures should be handled at the service boundary as non-actionable defects or reported via `Effect.tapCause`.
 - For mutations, prefer `promiseExit` so UI can branch on `Exit.isFailure(exit)` without throwing from event handlers.
 
-Example adapted from Effect docs/tests:
-
 ```tsx
 import * as Cause from "effect/Cause";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
@@ -149,7 +143,7 @@ function UsersPanel() {
 }
 ```
 
-Mutation example adapted from `repos/executor/packages/react/src/pages/sources.tsx`:
+Mutation example:
 
 ```tsx
 const detectSource = useAtomSet(detectSourceAtom, { mode: "promiseExit" });
@@ -167,7 +161,7 @@ if (Exit.isFailure(exit)) {
 useDetectedSource(exit.value);
 ```
 
-When one atom depends on the completed result of another async atom, use `get.result` and decide whether `waiting` should suspend the dependent computation. Adapted from `repos/effect/packages/effect/test/reactivity/Atom.test.ts`:
+When one atom depends on the completed result of another async atom, use `get.result` and decide whether `waiting` should suspend the dependent computation.
 
 ```ts
 const inner = Atom.make(Effect.succeed(1).pipe(Effect.delay("50 millis")));
@@ -179,7 +173,7 @@ const outer = Atom.make((get) => get.result(inner, { suspendOnWaiting: true }));
 
 - Put one `RegistryProvider` around the application or feature surface.
 - Use `useAtomValue(atom)` for reads, `useAtomSet(atom)` for writes, and `useAtomRefresh(atom)` for explicit refresh actions.
-- Use `useAtomValue(atom, selector)` for cheap selectors over local state, as in `repos/t3code/apps/web/src/rpc/serverState.ts`.
+- Use `useAtomValue(atom, selector)` for cheap selectors over local state.
 - Do not create atoms during render unless they are intentionally scoped to that component instance and memoized from stable dependencies.
 - Do not wrap `family(key)` in `useMemo`. Memoize the key if needed.
 
@@ -190,8 +184,6 @@ const outer = Atom.make((get) => get.result(inner, { suspendOnWaiting: true }));
 - Use fake timers or Effect `TestClock` for delayed effects and SWR behavior.
 - Seed values with `Atom.initialValue(atom, value)` or replace runtime services with `Atom.initialValue(runtime.layer, testLayer)`.
 - Assert `AsyncResult` states directly: `Initial`, `Success`, `Failure`, and `waiting`.
-
-Adapted from `repos/effect/packages/effect/test/reactivity/Atom.test.ts`:
 
 ```ts
 const count = Atom.make(Effect.succeed(1).pipe(Effect.delay("100 millis")), {

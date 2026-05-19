@@ -1,13 +1,5 @@
 # Effect Cluster patterns for agents
 
-These notes capture the project patterns for writing with Effect's Cluster modules. They are based on:
-
-- `repos/effect/ai-docs/src/80_cluster/10_entities.ts`
-- `repos/effect/packages/effect/src/unstable/cluster/*`
-- cluster tests in `repos/effect/packages/effect/test/cluster` and `repos/effect/packages/platform-node/test/cluster`
-- platform cluster layers in `repos/effect/packages/platform-node/src` and `repos/effect/packages/platform-bun/src`
-- a search of the other vendored repos. `repos/t3code` and `repos/executor` do not currently use Cluster modules. `repos/alchemy-effect` only recognizes `@effect/cluster` as a package name in bundle tooling, so the reusable implementation patterns come from the Effect repo itself.
-
 ## First principles
 
 - Treat Cluster as an actor/entity runtime for stateful, per-identity behavior. Do not use it as a generic RPC wrapper for stateless services.
@@ -23,8 +15,6 @@ These notes capture the project patterns for writing with Effect's Cluster modul
 ### Put per-entity state inside the entity layer
 
 `Entity.toLayer` builds behavior for an active entity. Keep in-memory state in the build effect so passivation and restart boundaries are clear.
-
-Adapted from `repos/effect/ai-docs/src/80_cluster/10_entities.ts`:
 
 ```ts
 import { Effect, Layer, Ref, Schema } from "effect";
@@ -112,8 +102,6 @@ A maintainable cluster feature normally has:
 5. domain service layer that uses the entity client,
 6. runner composition at the application edge.
 
-Adapted from `repos/effect/ai-docs/src/80_cluster/10_entities.ts` and `repos/effect/packages/effect/src/unstable/cluster/TestRunner.ts`:
-
 ```ts
 import { NodeClusterSocket } from "@effect/platform-node";
 import { Layer } from "effect";
@@ -134,8 +122,6 @@ Guidelines:
 - Use `ShardingConfig.layer(...)` in tests to make mailbox capacity, termination timeout, polling, and retry intervals deterministic.
 
 ### Test through public clients
-
-Adapted from `repos/effect/packages/effect/test/cluster/Entity.test.ts`:
 
 ```ts
 import { assert, it } from "@effect/vitest";
@@ -259,8 +245,6 @@ Adjust the domain error reasons to match the real service. Do not collapse all c
 
 The Effect tests show that entity defects can restart the entity when a `defectRetryPolicy` is configured. Use this for unexpected crashes, not expected validation.
 
-Adapted from `repos/effect/packages/effect/test/cluster/TestEntity.ts`:
-
 ```ts
 export const ResilientEntityLayer = Counter.toLayer(
   Effect.gen(function* () {
@@ -289,8 +273,6 @@ Guidelines:
 - Use `ClusterSchema.Uninterruptible` narrowly for operations that must not be interrupted on the client, server, or both.
 - Use `ClusterSchema.ShardGroup` when a feature needs a non-default shard group.
 
-Adapted from `repos/effect/packages/effect/test/cluster/TestEntity.ts`:
-
 ```ts
 export const StreamWithKey = Rpc.make("StreamWithKey", {
   success: RpcSchema.Stream(Schema.Number, Schema.Never),
@@ -310,8 +292,6 @@ export const DurableEntity = Entity.make("DurableEntity", [
 ## HTTP/RPC proxy patterns
 
 Use `EntityProxy` when an entity should be exposed through an RPC group or HTTP API. Keep the generated proxy at the adapter edge.
-
-Adapted from `repos/effect/packages/effect/src/unstable/cluster/EntityProxy.ts`:
 
 ```ts
 import { EntityProxy, EntityProxyServer } from "effect/unstable/cluster";

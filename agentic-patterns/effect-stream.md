@@ -1,7 +1,5 @@
 # Effect `Stream` patterns for agents
 
-These patterns are based on the `Stream` implementation and tests in `repos/effect`, the Effect stream docs in `repos/effect/ai-docs/src/02_stream`, and stream usage in `repos/t3code`, `repos/executor`, and `repos/alchemy-effect`.
-
 ## Mental model from `repos/effect`
 
 - `Stream.Stream<A, E, R>` is a lazy, pull-based, back-pressured sequence. It emits `A`, can fail with `E`, and requires services `R`.
@@ -16,7 +14,7 @@ These patterns are based on the `Stream` implementation and tests in `repos/effe
 
 A service should own the low-level source and expose a domain stream. Keep queues, callback handles, file watchers, child-process handles, sockets, and web readers private unless the caller truly owns their lifecycle.
 
-Adapted from `repos/t3code/apps/server/src/serverLifecycleEvents.ts`, `repos/t3code/apps/server/src/serverSettings.ts`, and Effect PubSub docs:
+Adapted from Effect PubSub docs:
 
 ```ts
 import { Context, Effect, Layer, PubSub, Schema, Stream } from "effect";
@@ -69,7 +67,7 @@ Guidelines:
 
 Use `Stream.unwrap` when each subscription must acquire a subscription, read a snapshot, register a poller, or compute stream-specific state. Attach cleanup with `Stream.ensuring`.
 
-Adapted from `repos/t3code/apps/server/src/vcs/VcsStatusBroadcaster.ts`:
+Example pattern:
 
 ```ts
 import { Effect, PubSub, Stream } from "effect";
@@ -109,8 +107,6 @@ export const streamStatus = (cwd: string) =>
 ### Use `Stream.callback` for push APIs
 
 `Stream.callback` is the right adapter for callback-style APIs. Register cleanup inside the callback effect so stream interruption unregisters handlers. Set a buffer size and strategy deliberately; the Effect tests show backpressure with `bufferSize` and cleanup on interruption.
-
-Adapted from `repos/effect/packages/effect/test/Stream.test.ts` and `repos/t3code/apps/server/src/ws.ts`:
 
 ```ts
 import { Cause, Effect, Queue, Schema, Stream } from "effect";
@@ -165,8 +161,6 @@ Keep pipeline stages separate:
 3. pure and effectful domain transforms;
 4. terminal sink at the application edge.
 
-Adapted from `repos/alchemy-effect/packages/alchemy/src/Cloudflare/Workers/Rpc.ts`, `repos/t3code/apps/server/src/textGeneration/ClaudeTextGeneration.ts`, and `repos/effect/ai-docs/src/02_stream/30_encoding.ts`:
-
 ```ts
 import { Effect, Schema, Stream } from "effect";
 
@@ -208,7 +202,7 @@ export const decodeTranscriptFrames = <E>(
 
 A service that transforms a stream should usually return another stream. A service that performs a command, writes stdin, stores rows, publishes events, or returns an aggregate can run the stream internally.
 
-Adapted from `repos/t3code/apps/server/src/processRunner.ts` and `repos/alchemy-effect/packages/alchemy/src/Build/Command.ts`:
+Example pattern:
 
 ```ts
 import { Effect, Schema, Sink, Stream } from "effect";
@@ -253,7 +247,7 @@ export const collectChildOutput = (child: ChildHandle, stdin: string) =>
 
 Use public service methods and bounded stream destructors. Prefer injected boundary layers and in-memory streams over implementation-detail assertions.
 
-Adapted from `repos/t3code/apps/server/src/server.test.ts`, `repos/t3code/apps/server/src/processRunner.test.ts`, and Effect stream tests:
+Adapted from Effect stream tests:
 
 ```ts
 import { Deferred, Effect, PubSub, Stream } from "effect";
@@ -288,8 +282,6 @@ Testing rules:
 ### Map external failures at the boundary
 
 Convert platform, process, socket, parser, HTTP, and vendor failures into precise tagged errors as close to the boundary as possible.
-
-Adapted from `repos/t3code/apps/server/src/processRunner.ts`, `repos/alchemy-effect/packages/alchemy/src/Cloudflare/Workers/Rpc.ts`, and `repos/effect/packages/effect/src/Stream.ts`:
 
 ```ts
 import { Effect, Schema, Stream } from "effect";
@@ -372,7 +364,7 @@ Do not recover from defects or unexpected causes unless the stream is crossing a
 
 ### Preserve remote stream failures explicitly
 
-When a stream crosses RPC, HTTP, worker, or WebSocket boundaries, encode stream failures as protocol frames and decode them back into the error channel. `repos/alchemy-effect/packages/alchemy/src/Cloudflare/Workers/Rpc.ts` uses `Stream.catchCause` to append an error marker and `Stream.flatMap` to turn remote error markers back into `Stream.fail`.
+When a stream crosses RPC, HTTP, worker, or WebSocket boundaries, encode stream failures as protocol frames and decode them back into the error channel. Use `Stream.catchCause` to append an error marker and `Stream.flatMap` to turn remote error markers back into `Stream.fail`.
 
 ```ts
 import { Cause, Effect, Schema, Stream } from "effect";

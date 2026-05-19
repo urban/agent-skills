@@ -1,15 +1,5 @@
 # Effect Workflow patterns for agents
 
-These notes capture the project patterns for writing with Effect's unstable Workflow modules. They are based on:
-
-- `repos/effect/packages/effect/src/unstable/workflow/*`
-- `repos/effect/packages/effect/src/unstable/cluster/ClusterWorkflowEngine.ts`
-- workflow tests in `repos/effect/packages/effect/test/unstable/workflow` and `repos/effect/packages/effect/test/cluster/ClusterWorkflowEngine.test.ts`
-- analogous workflow-style code in `repos/alchemy-effect/packages/alchemy/src/Cloudflare/Workers/Workflow.ts`
-- service orchestration patterns in `repos/t3code/apps/server/src/git/GitWorkflowService.ts`
-
-A search of the other vendored projects found no direct use of `effect/unstable/workflow` outside `repos/effect`. The reusable cross-repo lessons therefore come from analogous patterns: Alchemy's Cloudflare Workflow wrapper uses runtime services and named steps, while T3's `GitWorkflowService` shows how to keep orchestration services modular and testable.
-
 ## First principles
 
 - Treat a workflow as a durable, schema-defined orchestration boundary.
@@ -29,8 +19,6 @@ A search of the other vendored projects found no direct use of `effect/unstable/
 ### Let the workflow orchestrate; let services do domain work
 
 The workflow body should coordinate steps and decisions. It should not become the implementation of email, billing, Git, storage, or HTTP clients. Yield services from context inside the body, then call service methods from activities or durable steps.
-
-Adapted from `repos/effect/packages/effect/test/cluster/ClusterWorkflowEngine.test.ts`:
 
 ```ts
 import { Cause, Context, Effect, Layer, Schema } from "effect";
@@ -96,8 +84,6 @@ Guidelines:
 
 ### Use durable primitives for waits and external completion
 
-Adapted from `ClusterWorkflowEngine.test.ts`:
-
 ```ts
 import { DateTime, Duration, Effect, Schema } from "effect";
 import { Activity, DurableClock, DurableDeferred, Workflow } from "effect/unstable/workflow";
@@ -142,8 +128,6 @@ Guidelines:
 - Use `Workflow.resume(executionId)` for manually resumed suspended executions.
 
 ### Use durable queues for worker-driven work
-
-Adapted from `repos/effect/packages/effect/test/unstable/workflow/DurableQueue.test.ts`:
 
 ```ts
 import { Effect, Layer, Schema } from "effect";
@@ -207,7 +191,7 @@ Do not hide the engine inside the workflow module unless that module is a final 
 
 ### Wrap workflows in application services when callers need a stable capability
 
-Use a service when application code should not know about workflow execution details. This follows the boundary pattern in `repos/t3code/apps/server/src/git/GitWorkflowService.ts`: the service resolves supported backends, returns safe defaults for non-repositories, maps dependency errors, and exposes domain methods.
+Use a service when application code should not know about workflow execution details. The service resolves supported backends, returns safe defaults for unsupported inputs, maps dependency errors, and exposes domain methods.
 
 ```ts
 import { Context, Effect, Layer, Option, Schema } from "effect";
@@ -275,8 +259,6 @@ Guidelines:
 ### Generate API surfaces from workflow definitions when possible
 
 `WorkflowProxy` derives RPC or HTTP API definitions from the workflow schemas, and `WorkflowProxyServer` derives handlers that call `execute`, `execute(..., { discard: true })`, and `resume`.
-
-Adapted from `repos/effect/packages/effect/src/unstable/workflow/WorkflowProxy.ts`:
 
 ```ts
 import { Layer, Schema } from "effect";
@@ -367,8 +349,6 @@ Guidelines:
 - `poll(executionId)` returns `Option.none()` when no complete result is available.
 - A completed workflow is returned as `Workflow.Complete({ exit })`; inspect `Exit.isSuccess` or `Exit.isFailure`.
 - Suspended workflows may resume through a deferred completion, durable clock, explicit `resume`, or suspended retry polling depending on engine configuration.
-
-Adapted from `WorkflowEngine.test.ts`:
 
 ```ts
 import { assert, it } from "@effect/vitest";
@@ -465,15 +445,14 @@ Guidelines:
 - Use `TestClock.adjust(...)` for time-dependent workflow tests.
 - Provide worker and queue layers in the same test composition when using `DurableQueue`.
 - Keep tests deterministic. Avoid arbitrary wall-clock sleeps unless the test drives a true external deployment.
-- For external deployments, follow the Alchemy fixture pattern: deploy a fixture once, expose start/status routes, and poll until a terminal status.
+- For external deployments, use a fixture pattern: deploy a fixture once, expose start/status routes, and poll until a terminal status.
 
-## Notes from analogous `repos/**` workflow patterns
+## Additional workflow patterns
 
-- `repos/alchemy-effect/packages/alchemy/src/Cloudflare/Workers/Workflow.ts` uses a two-phase shape: the outer effect resolves shared dependencies and the returned function is the workflow body. Follow the same idea here: resolve services in the layer and keep the body focused on durable steps.
-- Alchemy's `task` captures the surrounding Effect context before running a named workflow step. The equivalent project lesson is to yield services from context and preserve requirements through activities instead of passing service instances as parameters.
-- Alchemy's workflow bridge provides `WorkflowEvent` and `WorkflowStep` as services. Prefer service-provided runtime context over callback parameters.
-- `repos/t3code/apps/server/src/git/GitWorkflowService.ts` routes operations through private helpers such as `ensureGit` and `detectGitRepositoryForStatus`, maps dependency errors at the boundary, and returns safe domain defaults. Use the same style for workflow-facing services.
-- `repos/t3code/apps/server/src/git/GitWorkflowService.test.ts` mocks true external boundaries with `Layer.mock(...)` and tests observable behavior. Use workflow engine tests only where the workflow behavior itself is under test.
+- Use a two-phase shape: the outer effect resolves shared dependencies and the returned function is the workflow body. Resolve services in the layer and keep the body focused on durable steps.
+- Named workflow steps should preserve the surrounding Effect context. Yield services from context and preserve requirements through activities instead of passing service instances as parameters.
+- Prefer service-provided runtime context over callback parameters.
+- Route operations through private helpers, map dependency errors at the boundary, and return safe domain defaults. Use workflow engine tests only where the workflow behavior itself is under test.
 
 ## What to avoid
 

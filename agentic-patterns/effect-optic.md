@@ -1,9 +1,5 @@
 # Effect `Optic` patterns for agents
 
-These notes summarize the patterns to follow when writing `Optic` code in this project. They are based on `repos/effect/packages/effect/OPTIC.md`, `repos/effect/packages/effect/src/Optic.ts`, the `Optic` tests and typetests, and schema integration tests in `repos/effect/packages/effect/test/schema/toIso.test.ts`.
-
-Review note: the other vendored repos currently do not contain direct `Optic` imports or calls. Searches across `repos/alchemy-effect`, `repos/executor`, and `repos/t3code` found no application-level `Optic` usage; generated `Schema.optionalKey` calls are unrelated. Treat `repos/effect` as the authoritative source, and combine these Optic patterns with the existing service and schema patterns used in the other repos.
-
 ## First principles
 
 - Use `Optic` for repeated or complex immutable updates to nested data, union variants, optional fields, records, arrays, and schema-backed custom types.
@@ -35,8 +31,6 @@ Review note: the other vendored repos currently do not contain direct `Optic` im
 ## Encapsulate behavior behind domain functions
 
 Define named optics and transition functions near the domain type they update. Callers should not know the path details.
-
-Adapted from `repos/effect/packages/effect/test/Optic.test.ts`:
 
 ```ts
 import { Optic } from "effect";
@@ -135,8 +129,6 @@ Follow this pattern:
 
 `replace` and `modify` never throw on focus failure. They return the original source unchanged. That is useful for best-effort transformations, but dangerous for required business invariants.
 
-Adapted from the record and array `.at(...)` tests:
-
 ```ts
 import { Optic, Result } from "effect";
 
@@ -161,8 +153,6 @@ Map the failure string to a specific `Schema.TaggedErrorClass` at service bounda
 ### Use `replace` or `modify` for intentional no-op behavior
 
 Use no-op semantics when the business rule is “update this only if it exists.” Tagged-union and validation filters often fit this pattern.
-
-Adapted from `tag` and `check` tests:
 
 ```ts
 import { Optic, Schema } from "effect";
@@ -207,8 +197,6 @@ const label = Result.match(title.getResult({}), {
 
 ## Optional fields: choose deletion or preservation deliberately
 
-Adapted from the `key` and `optionalKey` tests:
-
 ```ts
 import { Optic } from "effect";
 
@@ -236,8 +224,6 @@ A `Traversal<S, A>` is modeled as `Optional<S, ReadonlyArray<A>>`. This makes tw
 
 - `.modify(...)` transforms the entire collected array of focused values.
 - `.modifyAll(...)` transforms each focused value independently.
-
-Adapted from the array traversal tests:
 
 ```ts
 import { Optic, Schema } from "effect";
@@ -290,8 +276,6 @@ Use `Optic.getAll(traversal)` when extraction is enough. It returns a fresh arra
 
 Plain path optics clone arrays and plain objects. They should not be used directly to update class instances. Use `Schema.toIso` or a manually defined `Optic.makeIso` to convert to a plain focus and back.
 
-Adapted from `repos/effect/packages/effect/test/schema/toIso.test.ts`:
-
 ```ts
 import { Schema } from "effect";
 
@@ -312,8 +296,6 @@ addOneDay(Box.make({ value: Value.make({ a: new Date(0) }) }));
 ```
 
 For schema-derived structures such as `Option`, `Result`, `Cause`, `Exit`, `ReadonlySet`, `ReadonlyMap`, and HTTP types, use the schema iso to enter the representation, then compose smaller optics.
-
-Adapted from HTTP tests:
 
 ```ts
 import { Schema } from "effect";

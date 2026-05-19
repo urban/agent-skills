@@ -1,15 +1,5 @@
 # Effect testing patterns for agents
 
-These patterns are distilled from:
-
-- `repos/effect/packages/vitest` and `repos/effect/ai-docs/src/09_testing`
-- Effect package tests such as `repos/effect/packages/effect/test/TestClock.test.ts`, `Layer.test.ts`, `Cache.test.ts`, and `unstable/http/HttpClient.test.ts`
-- Effect-style tests in `repos/executor`, especially plugin, HTTP, OAuth refresh, and connection tests
-- Effect-style tests in `repos/t3code`, especially process, source-control, SSH, and rule-fixture tests
-- `repos/alchemy-effect` testing docs, which wrap Vitest tests with Effect-aware setup for provider lifecycle tests
-
-Examples below are copied or adapted from those repositories, then adjusted for this project's stricter rules: no `any`, no non-null assertions, no unchecked type assertions, no expected failures as defects, and no wall-clock sleeps for deterministic Effect tests.
-
 ## First principles
 
 - Import test APIs from `@effect/vitest` whenever the test runs Effect code.
@@ -21,8 +11,6 @@ Examples below are copied or adapted from those repositories, then adjusted for 
 - Expected failures belong in the typed error channel. Assert tagged errors with `Effect.flip`, `Effect.exit`, or `Effect.result`.
 
 ## Basic `@effect/vitest` shape
-
-Adapted from `repos/effect/ai-docs/src/09_testing/10_effect-tests.ts` and `repos/effect/packages/vitest/test/index.test.ts`:
 
 ```ts
 import { assert, describe, it } from "@effect/vitest";
@@ -62,8 +50,6 @@ Use `it.live(...)` only when the test intentionally needs live runtime services,
 ## Layer-driven tests
 
 `@effect/vitest` exposes `layer(...)` and nested `it.layer(...)`. The Effect repo uses these to share a layer for a test block and release it after the block. The layer receives test services unless `{ excludeTestServices: true }` is passed.
-
-Adapted from `repos/effect/packages/vitest/test/index.test.ts`:
 
 ```ts
 import { expect, layer } from "@effect/vitest";
@@ -120,10 +106,10 @@ Good Effect tests usually look like this:
 - Assert the public return value, typed error, emitted event, request payload, process arguments, or persisted row.
 - Keep internal refs, queues, caches, spans, and layers private unless they are deliberately exposed as test harness services.
 
-Patterns seen in `repos/t3code` and `repos/executor`:
+Useful patterns:
 
 - Source-control providers are tested through provider-neutral methods while only the GitHub/GitLab/Azure CLI boundary is mocked.
-- OpenAPI and GraphQL plugins are tested by creating a real executor with test config, then invoking tools through the executor API.
+- Protocol plugins are tested by creating a real test composition, then invoking tools through the public API.
 - Process and SSH tests inject `ChildProcessSpawner` but call the higher-level command/tunnel API.
 - HTTP tests use in-process servers or handler-backed clients when the contract is HTTP behavior, not the public internet.
 
@@ -139,8 +125,6 @@ Follow these service guidelines:
 - Build live layers by composing focused layers at the edge.
 - Build test layers with `Layer.mock`, `Layer.succeed`, in-memory `Ref`s, and scripted handlers.
 - Use `Layer.provideMerge` when tests should access both the service under test and its test backing store.
-
-Adapted from `repos/effect/ai-docs/src/09_testing/20_layer-tests.ts`:
 
 ```ts
 import { assert, layer } from "@effect/vitest";
@@ -205,7 +189,7 @@ layer(TodoRepo.layerTest)("TodoRepo", (it) => {
 
 ### Process boundary
 
-Adapted from `repos/t3code/packages/tailscale/src/tailscale.test.ts` and `repos/t3code/packages/ssh/src/command.test.ts`:
+Example pattern:
 
 ```ts
 import { assert, it } from "@effect/vitest";
@@ -253,7 +237,7 @@ The important behavior is that the service still runs normally; only the OS proc
 
 ### Domain service boundary
 
-Adapted from `repos/t3code/apps/server/src/sourceControl/GitHubSourceControlProvider.test.ts`:
+Example pattern:
 
 ```ts
 import { assert, it } from "@effect/vitest";
@@ -302,9 +286,7 @@ Assert exact calls only when the exact call is the contract: CLI arguments, HTTP
 
 ## Time, fibers, and concurrent behavior
 
-Effect's own tests and `repos/t3code` use `TestClock` to prove timeout and retry behavior without waiting on wall-clock time.
-
-Adapted from `repos/effect/packages/effect/test/TestClock.test.ts` and `repos/t3code/packages/ssh/src/command.test.ts`:
+Effect's own tests use `TestClock` to prove timeout and retry behavior without waiting on wall-clock time.
 
 ```ts
 import { assert, it } from "@effect/vitest";
@@ -339,12 +321,12 @@ Rules:
 
 ## HTTP and external integration tests
 
-`repos/executor` shows two useful HTTP patterns:
+Use two HTTP patterns:
 
 1. Use an in-process server or handler when testing protocol behavior.
 2. Provide the client through a layer so application code still depends on `HttpClient.HttpClient`.
 
-Adapted from `repos/executor/packages/plugins/openapi/src/testing/index.ts` and OpenAPI plugin tests:
+Example pattern:
 
 ```ts
 import { expect, layer } from "@effect/vitest";
@@ -425,7 +407,7 @@ it.effect("surfaces a typed not-found error", () =>
 );
 ```
 
-Use `Effect.exit` when both success and failure are meaningful observations or when testing a public envelope. This appears often in `repos/executor` failure-mode tests:
+Use `Effect.exit` when both success and failure are meaningful observations or when testing a public envelope:
 
 ```ts
 import { expect, it } from "@effect/vitest";
@@ -472,7 +454,7 @@ Error guidelines:
 
 ## Regression and contract tests
 
-The strongest tests in `repos/executor` are regression tests that encode user-visible contracts:
+The strongest regression tests encode user-visible contracts:
 
 - non-JSON request bodies must not serialize as `[object Object]`
 - OAuth refresh must dedupe concurrent refreshes into one token call
@@ -488,9 +470,9 @@ Use this pattern for bugs in this project:
 4. Assert the stable contract, not every intermediate step.
 5. Keep a short comment only when it explains why the regression matters.
 
-## Alchemy-style harness pattern
+## Harness pattern
 
-`repos/alchemy-effect` wraps Effect tests in a file-level harness. The important transferable idea is not the exact API, but the fixture ownership:
+For larger test suites, a file-level harness can own fixtures. The important idea is fixture ownership:
 
 - A single `Test.make(...)` owns providers, state, setup hooks, teardown hooks, and helper functions.
 - Shared setup returns lazy accessors used inside tests, rather than global mutable values.

@@ -1,18 +1,5 @@
 # Effect fast-check patterns for agents
 
-These notes capture how agents should write property-based tests for Effect code in this project. They are based on:
-
-- `knowledge/skills/effect-fast-check-v4.md`
-- `repos/effect/packages/effect/src/testing/FastCheck.ts`
-- `repos/effect/packages/effect/src/testing/TestSchema.ts`
-- `repos/effect/packages/vitest/src/internal/internal.ts`
-- `repos/effect/packages/effect/test/schema/toArbitrary.test.ts`
-- `repos/effect/packages/vitest/test/index.test.ts`
-- `repos/effect/ai-docs/src/09_testing/10_effect-tests.ts`
-- general fast-check patterns from `repos/fast-check/skills/javascript-testing-expert/SKILL.md` and `repos/fast-check/examples/**`
-
-Search note: `repos/alchemy-effect`, `repos/executor`, and `repos/t3code` mostly carry `fast-check` transitively through Effect and do not currently provide many app-level property-test examples. `repos/executor/notes/livestore-effect-testing-porting.md` recommends direct `@effect/vitest` property tests until a custom wrapper is justified.
-
 ## First principles
 
 - Use property tests for behavior that should hold for many inputs: round trips, idempotence, monotonicity, invariants, ordering, commutativity, schema generation, and error classification.
@@ -32,8 +19,6 @@ Property tests should exercise public behavior boundaries, not implementation de
 - Do not put fast-check concerns into production services. Arbitraries belong in tests, test support modules, or schema annotations used by `Schema.toArbitrary`.
 - Build valid inputs at the boundary. Use schemas, branded constructors, or test-only builders so the service receives domain values, not arbitrary unchecked objects.
 - Avoid property tests that depend on hidden accumulated state unless the property is explicitly about state evolution. For stateful services, generate a command sequence and compare against a simple model, or reset/build state inside each generated case.
-
-Adapted from `repos/effect/ai-docs/src/09_testing/10_effect-tests.ts`:
 
 ```ts
 import { assert, describe, it } from "@effect/vitest";
@@ -62,8 +47,6 @@ Services make property tests easier when their contracts are small and domain-or
 - Keep service methods deterministic for a given set of dependencies. If a method uses time, random values, files, HTTP, or AI providers, depend on Effect services/layers that can be replaced.
 - Prefer pure helper functions for pure invariants, then call those helpers from the service. Test both: examples at the service boundary, properties around the pure invariant when useful.
 - Do not assert on call counts or private sequencing unless it is part of the public contract. Prefer observable outputs, typed errors, state transitions, or emitted events.
-
-Service property test adapted from `repos/effect/packages/vitest/test/index.test.ts` layer/property patterns:
 
 ```ts
 import { assert, describe, it } from "@effect/vitest";
@@ -132,9 +115,9 @@ it.prop("string reverse preserves length", [Schema.toArbitrary(Schema.String)], 
 
 ### Direct `FastCheck.assert` for rare lower-level helpers
 
-Use direct `FastCheck.assert(FastCheck.property(...))` only when a file is testing a pure low-level helper and does not need Effect services. This is common in `repos/fast-check` itself and in Effect's schema test helpers.
+Use direct `FastCheck.assert(FastCheck.property(...))` only when a file is testing a pure low-level helper and does not need Effect services. This is common in Effect's schema test helpers.
 
-Adapted from `repos/fast-check/examples/003-misc/roman/main.spec.ts`:
+Example pattern:
 
 ```ts
 import { expect, it } from "vitest";
@@ -161,8 +144,6 @@ it("reversing twice returns the original array", () => {
 - Use `TestSchema.Asserts(schema).arbitrary().verifyGeneration()` for schema authorship tests: generated values must satisfy `Schema.is(schema)`.
 - Use `TestSchema.Asserts(schema).verifyLosslessTransformation()` for codecs that should encode and decode losslessly.
 - Add a `toArbitrary` annotation only when the built-in generator cannot produce useful valid values for a custom declaration or constrained schema.
-
-Adapted from `repos/effect/packages/effect/test/schema/toArbitrary.test.ts` and `repos/effect/packages/effect/src/testing/TestSchema.ts`:
 
 ```ts
 import { describe, it } from "vitest";
@@ -200,8 +181,6 @@ it.effect.prop("assessment record JSON round-trips", [AssessmentRecord], ([recor
   }),
 );
 ```
-
-Custom arbitrary annotation pattern adapted from Effect's `toArbitrary` tests:
 
 ```ts
 import { Schema } from "effect";
@@ -274,17 +253,17 @@ describe("ScorePolicy", () => {
 
 ## General fast-check habits
 
-The fast-check repo patterns are useful, but adapt them to Effect's testing APIs.
+General property-testing patterns are useful, but adapt them to Effect's testing APIs.
 
 - Start with broad arbitraries. Do not add `min`, `max`, `minLength`, or `maxLength` unless those limits are part of the domain or needed for a clear performance reason.
 - Prefer generator constraints over `.filter` and `FastCheck.pre`. Use `FastCheck.integer({ min: 1 })`, `FastCheck.nat()`, `Schema.NonEmptyString`, or a `.map(...)` construction when possible.
-- Use `FastCheck.pre` only for relationships that are hard to generate directly, as in `repos/fast-check` tests that compare two distinct values or exclude NaN.
+- Use `FastCheck.pre` only for relationships that are hard to generate directly, such as comparing two distinct values or excluding NaN.
 - Construct inputs so the expected property is obvious. Do not rewrite the implementation under test inside the predicate.
 - Prefer invariant assertions over exact full-output assertions when the exact output is complex.
 - For asynchronous non-Effect code, use `FastCheck.asyncProperty`; for Effect code, use `it.effect.prop` instead.
 - Tune `numRuns` intentionally. Increase it for cheap pure invariants; keep it lower for expensive service or schema round-trip tests.
 
-Adapted from `repos/fast-check/packages/fast-check/test/unit/arbitrary/_internals/helpers/FloatHelpers.spec.ts`:
+Example pattern:
 
 ```ts
 import { expect, it } from "vitest";

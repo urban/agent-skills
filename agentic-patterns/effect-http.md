@@ -1,7 +1,5 @@
 # Effect `HTTP` patterns for agents
 
-These notes capture the project patterns for writing Effect HTTP code. They are based on `repos/effect/packages/effect/src/unstable/http`, `repos/effect/packages/effect/src/unstable/httpapi`, `repos/effect/packages/effect/HTTPAPI.md`, the HTTP tests under `repos/effect/packages/**/test`, and HTTP usage in `repos/executor`, `repos/alchemy-effect`, and `repos/t3code`.
-
 ## First principles
 
 - Prefer Effect HTTP primitives at boundaries: `HttpClient.HttpClient`, `HttpClientRequest.HttpClientRequest`, `HttpClientResponse.HttpClientResponse`, `HttpServerRequest.HttpServerRequest`, and `HttpServerResponse.HttpServerResponse`.
@@ -18,14 +16,12 @@ These notes capture the project patterns for writing Effect HTTP code. They are 
 
 ### First-party HTTP APIs: contract first, behavior behind services
 
-`repos/effect/packages/effect/HTTPAPI.md`, `repos/executor/packages/plugins/example/src/shared.ts`, and `repos/executor/packages/plugins/example/src/server.ts` all use the same shape:
+`repos/effect/packages/effect/HTTPAPI.md` demonstrates this shape:
 
 1. define schemas and the `HttpApiGroup` in a shared module,
 2. define domain behavior in a service or extension,
 3. make handlers thin adapters from HTTP input to service calls,
 4. let typed errors flow through the handler instead of translating in every route.
-
-Adapted pattern:
 
 ```ts
 import { Context, Effect, Layer, Schema } from "effect";
@@ -93,9 +89,7 @@ Guidelines:
 
 ### Outbound HTTP: one service owns one remote protocol
 
-Effect's HTTP client docs model a service that captures `HttpClient.HttpClient`, applies common request transforms once, and exposes domain methods. `repos/executor/packages/core/sdk/src/oauth-discovery.ts`, `repos/executor/packages/plugins/openapi/src/sdk/parse.ts`, and `repos/executor/packages/plugins/mcp/src/sdk/probe-shape.ts` follow this pattern with injected client layers, explicit timeouts, and domain errors.
-
-Adapted pattern:
+Effect's HTTP client docs model a service that captures `HttpClient.HttpClient`, applies common request transforms once, and exposes domain methods. Follow this pattern with injected client layers, explicit timeouts, and domain errors.
 
 ```ts
 import { Context, Duration, Effect, flow, Layer, Schedule, Schema } from "effect";
@@ -192,7 +186,7 @@ Guidelines:
 
 ### Keep transport injection explicit
 
-`repos/executor/packages/core/sdk/src/oauth-discovery.ts` and `repos/executor/packages/plugins/mcp/src/sdk/probe-shape.ts` accept an optional `httpClientLayer` and default to `FetchHttpClient.layer` at the API edge. That keeps tests deterministic without patching `globalThis.fetch`.
+Accept an optional `httpClientLayer` and default to `FetchHttpClient.layer` at the API edge. That keeps tests deterministic without patching `globalThis.fetch`.
 
 ```ts
 import { Effect, Layer } from "effect";
@@ -225,9 +219,7 @@ Use this shape for SDK-style helper functions. For application services, prefer 
 
 ### Test with HTTP layers, not global mocks
 
-Effect's own tests use `NodeHttpServer.layerTest`, `HttpRouter.serve`, `HttpServer.serve`, and `HttpApiTest.groups`. Executor adds a useful wrapper in `repos/executor/packages/core/sdk/src/testing.ts`: build a scoped test server, expose a `baseUrl`, and return a `Layer.succeed(HttpClient.HttpClient, client)` for callers.
-
-Adapted test pattern:
+Effect's own tests use `NodeHttpServer.layerTest`, `HttpRouter.serve`, `HttpServer.serve`, and `HttpApiTest.groups`. A useful wrapper can build a scoped test server, expose a `baseUrl`, and return a `Layer.succeed(HttpClient.HttpClient, client)` for callers.
 
 ```ts
 import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
@@ -291,7 +283,7 @@ Guidelines:
 
 ### Keep client transforms close to typed clients
 
-Effect docs and `repos/executor/packages/core/sdk/src/client.ts` use generated clients with request transforms for base URLs and auth.
+Effect docs use generated clients with request transforms for base URLs and auth.
 
 ```ts
 import { Context, Effect, flow, Layer } from "effect";
@@ -479,15 +471,15 @@ Effect provides conversion helpers:
 - `HttpServerResponse.fromWeb`
 - `HttpServerResponse.toClientResponse`
 
-`repos/alchemy-effect/stacks/otel/Ingester.ts` uses these helpers to bridge Cloudflare Worker requests and upstream web `Response` values. In this project, keep that kind of web interop isolated in an adapter. Domain services should use Effect HTTP services, not direct `fetch`.
+Use these helpers to bridge Cloudflare Worker requests and upstream web `Response` values. Keep that kind of web interop isolated in an adapter. Domain services should use Effect HTTP services, not direct `fetch`.
 
-If an external runtime requires a `fetch` function, wrap it at the transport layer, as in `repos/executor/packages/core/sdk/src/hosted-http-client.ts`: provide `FetchHttpClient.Fetch` with a guarded implementation, then expose a normal `Layer.Layer<HttpClient.HttpClient>`.
+If an external runtime requires a `fetch` function, wrap it at the transport layer: provide `FetchHttpClient.Fetch` with a guarded implementation, then expose a normal `Layer.Layer<HttpClient.HttpClient>`.
 
 ## Observability and tracing
 
 - Use `Effect.fn` or `Effect.withSpan` around meaningful HTTP operations. Add stable attributes such as route templates, methods, and remote service names.
 - Do not add manual logs for error paths. Spans already capture failures.
-- When an HTTP client is used by telemetry exporters, avoid recursively tracing the exporter. `repos/t3code/apps/web/src/observability/clientTracing.ts` composes `FetchHttpClient.layer` with `Layer.succeed(HttpClient.TracerDisabledWhen, () => true)` for that purpose.
+- When an HTTP client is used by telemetry exporters, avoid recursively tracing the exporter by composing `FetchHttpClient.layer` with `Layer.succeed(HttpClient.TracerDisabledWhen, () => true)`.
 - Use `Effect.annotateCurrentSpan` for request-specific fields inside an existing span.
 
 ## What to avoid

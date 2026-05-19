@@ -1,0 +1,6 @@
+# Productivity
+
+General workflow skills, not code-specific.
+
+- [brainstorming](./brainstorming/SKILL.md) - ...
+- [build-a-skill](./build-a-skill/SKILL.md) - ...

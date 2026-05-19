@@ -1,13 +1,11 @@
 # Effect Schema patterns for agents
 
-These notes summarize the patterns to follow when writing `Schema` code in this project. They are based on `repos/effect/packages/effect/SCHEMA.md`, `repos/effect/packages/effect/src/Schema.ts`, the Effect schema tests, and Schema usage in `repos/alchemy-effect`, `repos/executor`, and `repos/t3code`.
-
 ## First principles
 
 - Define schemas at boundaries and reuse them for both runtime validation and TypeScript types.
 - Treat `Schema.Type` as the decoded/domain representation and `Schema.Encoded` as the input/output representation.
 - Decode untrusted data with `Schema.decodeUnknownEffect` or `Schema.decodeUnknownSync`; decode statically typed encoded data with `Schema.decodeEffect` or `Schema.decodeSync`.
-- Hoist compiled decoders and encoders to module scope. `repos/t3code/oxlint-plugin-t3code/rules/no-inline-schema-compile.ts` exists because compiler calls allocate.
+- Hoist compiled decoders and encoders to module scope because compiler calls allocate.
 - Prefer `Schema.Struct` / `Schema.TaggedStruct` plus `export type X = typeof X.Type` for plain data. Use `Schema.Class` only when runtime class instances, methods, or `instanceof` semantics are intentional.
 - Use `Schema.TaggedErrorClass` for Effect errors that should be caught with `Effect.catchTag` / `Effect.catchTags`.
 - Use `Schema.fromJsonString(...)` instead of `JSON.parse` at implementation boundaries.
@@ -60,7 +58,7 @@ export const PluginConfig = Schema.Struct({
 export type PluginConfig = typeof PluginConfig.Type;
 ```
 
-Adapted from `repos/executor/packages/core/config/src/schema.ts`.
+Example pattern:
 
 ### Optionality
 
@@ -102,7 +100,7 @@ export const McpAuthConfig = Schema.Union([
 export type McpAuthConfig = typeof McpAuthConfig.Type;
 ```
 
-Adapted from `repos/executor/packages/core/config/src/schema.ts`.
+Example pattern:
 
 ### Filters
 
@@ -134,7 +132,7 @@ export const ThreadId = makeEntityId("ThreadId");
 export type ThreadId = typeof ThreadId.Type;
 ```
 
-Adapted from `repos/t3code/packages/contracts/src/baseSchemas.ts`.
+Example pattern:
 
 ## Encoding and decoding examples
 
@@ -145,19 +143,19 @@ Use this for HTTP payloads, config files, command output, local storage, and oth
 ```ts
 import { Effect, Schema } from "effect";
 
-export const ExecutorFileConfig = Schema.Struct({
+export const AppFileConfig = Schema.Struct({
   name: Schema.optional(Schema.String),
   plugins: Schema.optional(Schema.Array(PluginConfig)),
 });
-export type ExecutorFileConfig = typeof ExecutorFileConfig.Type;
+export type AppFileConfig = typeof AppFileConfig.Type;
 
-const decodeExecutorFileConfig = Schema.decodeUnknownEffect(ExecutorFileConfig);
+const decodeAppFileConfig = Schema.decodeUnknownEffect(AppFileConfig);
 
 export const normalizeConfig = (parsed: unknown) =>
-  decodeExecutorFileConfig(parsed).pipe(Effect.mapError((error) => error.issue.toString()));
+  decodeAppFileConfig(parsed).pipe(Effect.mapError((error) => error.issue.toString()));
 ```
 
-Adapted from `repos/executor/packages/core/config/src/load.ts`.
+Example pattern:
 
 ### Decode JSON strings with schemas
 
@@ -181,7 +179,7 @@ export const parseStatus = (raw: string): Effect.Effect<TailscaleStatusJson, Sch
   decodeTailscaleStatusJson(raw);
 ```
 
-Adapted from `repos/t3code/packages/tailscale/src/tailscale.ts`.
+Example pattern:
 
 ### Encode typed values
 
@@ -341,7 +339,7 @@ export class ConfigParseError extends Schema.TaggedErrorClass<ConfigParseError>(
   },
 ) {}
 
-const decodeConfig = Schema.decodeUnknownEffect(ExecutorFileConfig);
+const decodeConfig = Schema.decodeUnknownEffect(AppFileConfig);
 
 export const decodeConfigFile = (path: string, parsed: unknown) =>
   decodeConfig(parsed).pipe(
@@ -355,7 +353,7 @@ export const decodeConfigFile = (path: string, parsed: unknown) =>
   );
 ```
 
-Adapted from `repos/executor/packages/core/config/src/load.ts`.
+Example pattern:
 
 ### Tagged errors for Effect programs
 
@@ -377,7 +375,7 @@ const program = Effect.gen(function* () {
 }).pipe(Effect.catchTag("InternalError", (error) => Effect.succeed(error.traceId)));
 ```
 
-Adapted from `repos/executor/packages/core/sdk/src/api-errors.ts`.
+Example pattern:
 
 ### Custom validation messages
 
@@ -422,7 +420,7 @@ export const getJob = HttpApiEndpoint.get("getJob", "/", {
 });
 ```
 
-Adapted from `repos/alchemy-effect/examples/aws-lambda-httpapi/src/Job.ts` and `JobApi.ts`.
+Example pattern:
 
 ## Testing patterns
 

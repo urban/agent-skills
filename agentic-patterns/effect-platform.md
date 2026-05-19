@@ -1,7 +1,5 @@
 # Effect `Platform` patterns for agents
 
-These notes capture how agents should write code against Effect's platform abstractions in this project. They are based on `repos/effect/packages/effect/src/FileSystem.ts`, `Path.ts`, `PlatformError.ts`, `unstable/http/HttpPlatform.ts`, the `@effect/platform-node` / `@effect/platform-bun` implementations and tests, and usage in `repos/t3code`, `repos/executor`, and `repos/alchemy-effect`.
-
 ## What `Platform` means here
 
 `Platform` code is code that crosses an operating-system or runtime boundary: files, paths, stdio, terminals, child processes, sockets, HTTP servers, workers, and runtime entrypoints.
@@ -30,7 +28,7 @@ The Effect sources model these capabilities as services with typed errors. For e
 
 Platform services are low-level capabilities. Application modules should translate them into domain behavior and domain errors.
 
-Adapted from `repos/t3code/apps/server/src/workspace/Layers/WorkspaceFileSystem.ts`:
+Example pattern:
 
 ```ts
 import { Context, Effect, FileSystem, Layer, Path, Schema } from "effect";
@@ -113,7 +111,7 @@ Why this shape matters:
 
 ### Capture platform requirements when the service owns the behavior
 
-`repos/alchemy-effect/packages/alchemy/src/Auth/Profile.ts` documents this pattern: build a service layer that captures `FileSystem` at layer-build time, so the service methods themselves have `R = never`.
+Build a service layer that captures `FileSystem` at layer-build time, so the service methods themselves have `R = never`.
 
 Use this when platform access is an implementation detail of the service:
 
@@ -165,7 +163,7 @@ export const ProfileLive: Layer.Layer<Profile, never, FileSystem.FileSystem> = L
 
 ### Leave requirements explicit for reusable platform helpers
 
-`repos/alchemy-effect/packages/alchemy/src/Build/Memo.ts` uses a helper that still requires `FileSystem | Path`. This is useful for reusable functions that intentionally remain platform-polymorphic:
+A helper can still require `FileSystem | Path`. This is useful for reusable functions that intentionally remain platform-polymorphic:
 
 ```ts
 import { Effect, FileSystem, Path, PlatformError } from "effect";
@@ -201,9 +199,7 @@ Guideline: choose one of these two shapes intentionally. Do not accidentally lea
 
 ### Compose platform adapters at the edge
 
-`repos/effect/packages/platform-node/src/NodeServices.ts` and `repos/effect/packages/platform-bun/src/BunServices.ts` merge focused layers into one runtime platform layer. `repos/t3code/apps/server/src/server.ts` and `repos/alchemy-effect/packages/alchemy/src/Util/PlatformServices.ts` choose Node or Bun at the outer runtime boundary.
-
-Adapted pattern:
+`repos/effect/packages/platform-node/src/NodeServices.ts` and `repos/effect/packages/platform-bun/src/BunServices.ts` merge focused layers into one runtime platform layer. Choose Node or Bun at the outer runtime boundary.
 
 ```ts
 import { Effect, Layer } from "effect";
@@ -256,8 +252,6 @@ Do not probe arbitrary unknown values with `"_tag" in error`. If the effect says
 
 ### Translate platform errors to domain errors at boundaries
 
-Adapted from `repos/effect/packages/effect/src/unstable/http/HttpStaticServer.ts`:
-
 ```ts
 import { Effect, PlatformError, Schema } from "effect";
 
@@ -286,8 +280,6 @@ Use this pattern when callers can take different actions for different domain ou
 
 ### Build platform adapters with typed constructors
 
-Adapted from Effect's Node file-system implementation and `repos/executor/tests/daemon-state.test.ts`:
-
 ```ts
 import { Effect, PlatformError } from "effect";
 import * as FsPromises from "node:fs/promises";
@@ -314,7 +306,7 @@ Prefer existing platform services over writing adapters yourself. Only write ada
 
 ### Use `FileSystem.layerNoop` for focused behavior tests
 
-`repos/effect/packages/effect/test/ConfigProvider.test.ts` and `repos/executor/tests/daemon-state.test.ts` override only the filesystem methods the test needs.
+`repos/effect/packages/effect/test/ConfigProvider.test.ts` overrides only the filesystem methods the test needs.
 
 ```ts
 import { Effect, FileSystem, PlatformError } from "effect";
@@ -344,8 +336,6 @@ Use `layerNoop` when the unit under test only needs a few file operations. Use `
 
 ### Prefer scoped temp resources over manual cleanup
 
-Adapted from `repos/effect/packages/platform-node-shared/test/NodeFileSystem.test.ts` and `repos/t3code/oxlint-plugin-t3code/test/utils.ts`:
-
 ```ts
 import { Effect, FileSystem, Path } from "effect";
 
@@ -366,8 +356,6 @@ const withFixture = Effect.scoped(
 Scoped temp resources make tests deterministic and avoid cleanup bugs.
 
 ### Mock child processes with services, streams, and sinks
-
-Adapted from `repos/effect/packages/effect/test/unstable/process/ChildProcess.test.ts`:
 
 ```ts
 import { Effect, Layer, Sink, Stream } from "effect";

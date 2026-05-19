@@ -1,7 +1,5 @@
 # Effect OpenTelemetry patterns for agents
 
-These notes capture how agents should write observability code in this project. They are based on `repos/effect/packages/opentelemetry`, `repos/effect/packages/effect/src/unstable/observability`, Effect observability docs, and OpenTelemetry usage in `repos/alchemy-effect`, `repos/executor`, and `repos/t3code`.
-
 ## First principles
 
 - Prefer Effect-native instrumentation (`Effect.withSpan`, `Stream.withSpan`, `Effect.annotateSpans`, `Metric.*`, `Effect.log*`) over direct OpenTelemetry API calls in domain code.
@@ -18,8 +16,6 @@ These notes capture how agents should write observability code in this project. 
 ### Use `effect/unstable/observability` for direct OTLP export
 
 The lightweight OTLP modules build Effect `Tracer`, `Logger`, and metric exporters without installing the OpenTelemetry SDK. They require an `HttpClient`, an `OtlpSerialization` layer, and a scope.
-
-Adapted from `repos/effect/ai-docs/src/08_observability/20_otlp-tracing.ts` and `repos/alchemy-effect/packages/alchemy/src/Telemetry/Layer.ts`:
 
 ```ts
 import { FetchHttpClient } from "effect/unstable/http";
@@ -66,8 +62,6 @@ Use `Otlp.layerJson` / `Otlp.layerProtobuf` when all three signals share a base 
 
 `@effect/opentelemetry` bridges Effect spans/logs/metrics to official OpenTelemetry SDK providers. `NodeSdk.layer` and `WebSdk.layer` compose tracing, logging, and metrics based on which processors/readers are present.
 
-Adapted from `repos/effect/packages/opentelemetry/test/Tracer.test.ts`:
-
 ```ts
 import * as NodeSdk from "@effect/opentelemetry/NodeSdk";
 import { InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
@@ -86,7 +80,7 @@ const program = Effect.gen(function* () {
 }).pipe(Effect.withSpan("voice-assessment.run"), Effect.provide(TracingLive));
 ```
 
-Use subpath imports in edge runtimes. `repos/executor/apps/cloud/src/services/telemetry.ts` avoids the `@effect/opentelemetry` barrel because it imports Node SDK code that is invalid in Cloudflare Workers.
+Use subpath imports in edge runtimes. Avoid the `@effect/opentelemetry` barrel when it imports Node SDK code that is invalid in Cloudflare Workers.
 
 ## Behavior encapsulation
 
@@ -134,7 +128,7 @@ For this project, if you write an Effect-returning wrapper only to add a span, u
 
 Do not scatter counter/timer/span wiring across handlers. Write one generic combinator that preserves the original success, error, and context types.
 
-Adapted from `repos/t3code/apps/server/src/observability/Metrics.ts`:
+Example pattern:
 
 ```ts
 import * as Clock from "effect/Clock";
@@ -190,7 +184,7 @@ Key points:
 
 Stream lifetimes differ from effect construction. Use `Stream.withSpan` and `Stream.onExit` so duration and failure represent stream consumption, not just creation.
 
-Adapted from `repos/t3code/apps/server/src/observability/RpcInstrumentation.ts`:
+Example pattern:
 
 ```ts
 import * as Clock from "effect/Clock";
@@ -245,7 +239,7 @@ export const observeRpcStream = <A, E, R>(
 
 For diagnostics or trace-inspection endpoints, disable tracing at the boundary rather than relying on every child to remember not to span.
 
-Adapted from `repos/t3code/apps/server/src/observability/RpcInstrumentation.ts`:
+Example pattern:
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -282,7 +276,7 @@ Telemetry exporters need scopes, finalizers, intervals, and sometimes platform-s
 - Use `Layer.unwrap` when configuration decides whether telemetry exists.
 - Use `Layer.empty` when telemetry is disabled. Effect's native tracer is safe as a no-op, so application spans can remain in place.
 
-Adapted from `repos/alchemy-effect/packages/alchemy/src/Telemetry/Layer.ts`:
+Example pattern:
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -309,7 +303,7 @@ export const TelemetryLive: Layer.Layer<never> = Layer.unwrap(
 
 Test instrumentation without talking to a collector.
 
-For span behavior, provide a custom `Tracer.Tracer` and inspect finished spans. Adapted from `repos/t3code/apps/server/src/observability/RpcInstrumentation.test.ts`:
+For span behavior, provide a custom `Tracer.Tracer` and inspect finished spans:
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -343,11 +337,11 @@ For OTLP payloads, provide a fake `HttpClient` and advance `TestClock` to trigge
 
 ### Keep platform-specific OpenTelemetry code out of domain modules
 
-`repos/executor/apps/cloud/src/services/telemetry.ts` is a useful edge-runtime example:
+For edge runtimes:
 
-- It imports `@effect/opentelemetry/Resource` and `@effect/opentelemetry/Tracer` subpaths instead of the barrel to avoid Node imports.
-- It installs one `WebTracerProvider` per Cloudflare Worker isolate, not once per request, because deferred callbacks can outlive the request Effect scope.
-- It exposes `TelemetryLive` / `DoTelemetryLive` layers so application code remains Effect-native.
+- Import `@effect/opentelemetry/Resource` and `@effect/opentelemetry/Tracer` subpaths instead of the barrel to avoid Node imports.
+- Install one `WebTracerProvider` per isolate or application lifetime, not once per request, because deferred callbacks can outlive the request Effect scope.
+- Expose telemetry setup as layers so application code remains Effect-native.
 
 Use this pattern only for platform integration code. Domain modules should still use `Effect.withSpan` and metrics, not direct OpenTelemetry SDK objects.
 
@@ -399,12 +393,6 @@ Use stable dotted names with domain-first prefixes:
 - `ws.rpc.assessment.submit`
 - `server.startup.config.load`
 
-Patterns from `repos/**`:
-
-- `server.startup.${phase}` in `repos/t3code/apps/server/src/serverRuntimeStartup.ts`
-- `plugin.mcp.invoke` and `plugin.mcp.connection.acquire` in `repos/executor/packages/plugins/mcp/src/sdk/invoke.ts`
-- `cli.${command}` in `repos/alchemy-effect/packages/alchemy/src/Cli/commands/_shared.ts`
-
 ### Attributes
 
 Prefer low-cardinality attributes:
@@ -425,7 +413,7 @@ Use domain identifiers sparingly when they are necessary for support/debugging a
 
 Define metrics centrally in an observability module, then update them at behavior boundaries.
 
-Adapted from `repos/t3code/apps/server/src/observability/Metrics.ts` and `repos/alchemy-effect/packages/alchemy/src/Telemetry/Metrics.ts`:
+Example pattern:
 
 ```ts
 import * as Metric from "effect/Metric";
@@ -452,7 +440,7 @@ Use `Metric.withAttributes` at update sites so the attribute set is local to the
 - Do not use high-cardinality or sensitive metric attributes.
 - Do not attach raw request/response bodies, audio transcripts, model prompts, secrets, bearer tokens, or full generated outputs to spans or logs.
 - Do not provide a per-request scoped OpenTelemetry provider when callbacks may outlive the request. Use an application/isolate lifetime layer or explicit flush strategy.
-- Do not copy unsafe patterns from vendored libraries into app code. The Effect source sometimes uses `any`, type assertions, `Effect.orDie`, and non-null assertions internally; this project forbids those in application code.
+- Do not copy unsafe patterns from Effect internals into app code. The Effect source sometimes uses `any`, type assertions, `Effect.orDie`, and non-null assertions internally; this project forbids those in application code.
 - Do not test exporters with wall-clock sleeps. Use `TestClock.adjust` and fake `HttpClient` / fake `Tracer` services.
 
 ## Source map
@@ -463,7 +451,3 @@ Use `Metric.withAttributes` at update sites so the attribute set is local to the
 - `repos/effect/packages/opentelemetry/src/Metrics.ts` and `Logger.ts` — metric producer registration and OTel log mapping.
 - `repos/effect/packages/effect/src/unstable/observability/OtlpTracer.ts`, `OtlpLogger.ts`, `OtlpMetrics.ts`, `OtlpExporter.ts`, `Otlp.ts` — lightweight OTLP exporter modules.
 - `repos/effect/packages/effect/test/unstable/observability/OtlpExporter.test.ts` and `OtlpMetrics.test.ts` — fake `HttpClient` and `TestClock` exporter tests.
-- `repos/t3code/apps/server/src/observability/*` — RPC instrumentation, metric combinators, and configurable OTLP/local file tracing.
-- `repos/t3code/apps/desktop/src/app/DesktopObservability.ts` and `repos/t3code/apps/web/src/observability/clientTracing.ts` — desktop/browser tracer delegation and scoped runtime management.
-- `repos/alchemy-effect/packages/alchemy/src/Telemetry/*` — CLI telemetry layer, command instrumentation, resource lifecycle metrics.
-- `repos/executor/apps/cloud/src/services/telemetry.ts` — Worker-safe `@effect/opentelemetry` setup and global provider lifetime.

@@ -1,7 +1,5 @@
 # Effect `Layer` patterns for agents
 
-These notes capture how agents should write `Layer` code in this project. They are based on `repos/effect/packages/effect/src/Layer.ts`, `repos/effect/packages/effect/test/Layer.test.ts`, Effect's layer docs under `repos/effect/ai-docs`, and Layer usage in `repos/alchemy-effect`, `repos/executor`, and `repos/t3code`.
-
 ## First principles
 
 - A `Layer<ROut, E, RIn>` is a recipe for building services: it **provides** `ROut`, can fail with `E`, and **requires** `RIn`.
@@ -70,8 +68,6 @@ export class UserRepository extends Context.Service<
   );
 }
 ```
-
-Adapted from `repos/effect/ai-docs/src/01_effect/02_services/20_layer-composition.ts`.
 
 ## Keep services modular, testable, and maintainable
 
@@ -173,7 +169,7 @@ export const GitHostCliLayer: Layer.Layer<GitHostCli, never, VcsProcess> = Layer
 );
 ```
 
-Adapted from `repos/t3code/apps/server/src/sourceControl/AzureDevOpsCli.ts` and related source-control services.
+Example pattern:
 
 ### Compose with the right operator
 
@@ -203,7 +199,7 @@ export const NonProtectedApiLive = HttpApiBuilder.layer(NonProtectedApi).pipe(
 );
 ```
 
-Adapted from `repos/executor/apps/cloud/src/api/layers.ts`.
+Example pattern:
 
 ## Resource and lifetime patterns
 
@@ -237,8 +233,6 @@ export class DbService extends Context.Service<DbService, DbServiceShape>()("mya
 }
 ```
 
-Adapted from `repos/executor/apps/cloud/src/services/db.ts` and `repos/effect/ai-docs/src/01_effect/04_resources/10_acquire-release.ts`.
-
 ### Be explicit about shared vs per-request lifetimes
 
 Default layer memoization is usually desirable. It is wrong for request-bound resources in runtimes that forbid cross-request I/O reuse. In that case, build the request-scoped layer inside request handling with a fresh `MemoMap` and the request scope.
@@ -260,7 +254,7 @@ export const requestScopedMiddleware = <A>(layer: Layer.Layer<A>) =>
   );
 ```
 
-Adapted from `repos/executor/apps/cloud/src/api/request-scoped.ts`. The important rule is not “always manual-build layers”; it is “manual-build only at a lifetime boundary that Effect's normal application composition cannot express.”
+The important rule is not “always manual-build layers”; it is “manual-build only at a lifetime boundary that Effect's normal application composition cannot express.”
 
 ### Use `Layer.fresh` sparingly
 
@@ -292,7 +286,7 @@ export const TelemetryLive: Layer.Layer<never> = Layer.unwrap(
 );
 ```
 
-Adapted from `repos/alchemy-effect/packages/alchemy/src/Telemetry/Layer.ts` and `repos/executor/apps/cloud/src/services/telemetry.ts`.
+Example pattern:
 
 ## Error handling patterns
 
@@ -344,8 +338,6 @@ export const MessageStoreLive: Layer.Layer<MessageStore> = remoteStore.pipe(
   Layer.catchTag("PrimaryUnavailable", () => inMemoryStore),
 );
 ```
-
-Adapted from `repos/effect/packages/effect/test/Layer.test.ts` and `repos/effect/ai-docs/src/01_effect/02_services/20_layer-unwrap.ts`.
 
 ## Test-layer patterns
 
@@ -409,8 +401,6 @@ it.effect("uses the test repository", () =>
 );
 ```
 
-Adapted from `repos/effect/ai-docs/src/09_testing/20_layer-tests.ts` and `repos/t3code/apps/server/src/sourceControl/AzureDevOpsCli.test.ts`.
-
 ## Background and entrypoint layers
 
 Use `Layer.effectDiscard` for scoped background work that does not provide a service. Fork long-running work with `Effect.forkScoped` so it is interrupted when the layer scope closes.
@@ -429,8 +419,6 @@ export const BackgroundSync = Layer.effectDiscard(
   }),
 );
 ```
-
-Adapted from `repos/effect/ai-docs/src/01_effect/04_resources/20_layer-side-effects.ts`.
 
 Use `Layer.launch` only at process/application entrypoints where the application is represented as a long-running layer, such as an HTTP server or worker.
 

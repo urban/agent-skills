@@ -1,7 +1,5 @@
 # Effect `Context.Service` patterns for agents
 
-These notes capture the project patterns for writing Effect services. They are based on `repos/effect/packages/effect/src/Context.ts`, Effect's service docs and tests, and `Context.Service` usage in `repos/t3code`, `repos/executor`, and `repos/alchemy-effect`.
-
 ## First principles
 
 - Use `Context.Service` for new services. Do not use old v3 APIs such as `Context.Tag`, `Context.GenericTag`, `Effect.Tag`, or `Effect.Service`.
@@ -9,7 +7,7 @@ These notes capture the project patterns for writing Effect services. They are b
   `export class Thing extends Context.Service<Thing, ThingShape>()("pkg/path/Thing") {}`.
 - Treat the service class as both the dependency key and an Effect. `const thing = yield* Thing` reads the implementation from the current fiber context.
 - Treat the service shape as the public capability contract. Keep it small, domain-oriented, and stable.
-- Use stable, package-scoped identifiers such as `"t3/process/ProcessRunner"`, `"@executor-js/plugin-openapi/OpenApiExtensionService"`, or `"alchemy/State"`.
+- Use stable, package-scoped identifiers such as `"app/process/ProcessRunner"`, `"@app/plugin-openapi/OpenApiExtensionService"`, or `"app/State"`.
 - Build implementations with `Thing.of({ ... })`. `of` just returns the implementation shape; resource acquisition, dependency capture, validation, and error mapping belong in `make`, `Layer.effect`, or private helpers.
 - A `make` option on `Context.Service` stores a constructor effect, but it does not create a layer. Define `static readonly layer = Layer.effect(this, this.make)` or an exported `layer` yourself.
 - In this project, use `Effect.fnUntraced` for effectful wrappers unless spans are required. Use `Effect.fn` only when the method should create spans.
@@ -51,8 +49,6 @@ export class Database extends Context.Service<Database, DatabaseShape>()("myapp/
 export type DatabaseService = Database["Service"];
 ```
 
-Adapted from `repos/effect/ai-docs/src/01_effect/02_services/01_service.ts`.
-
 ## Encapsulate behavior behind capabilities
 
 A service should own one coherent behavior boundary.
@@ -86,7 +82,7 @@ export interface VcsProcessShape {
 }
 
 export class VcsProcess extends Context.Service<VcsProcess, VcsProcessShape>()(
-  "t3/vcs/VcsProcess",
+  "app/vcs/VcsProcess",
 ) {}
 
 export class GitHubCliError extends Schema.TaggedErrorClass<GitHubCliError>()("GitHubCliError", {
@@ -111,7 +107,7 @@ export interface GitHubCliShape {
 }
 
 export class GitHubCli extends Context.Service<GitHubCli, GitHubCliShape>()(
-  "t3/source-control/GitHubCli",
+  "app/source-control/GitHubCli",
 ) {}
 
 const normalizeGitHubCliError = (operation: string, error: VcsProcessError) =>
@@ -158,7 +154,7 @@ export const GitHubCliLayer: Layer.Layer<GitHubCli, never, VcsProcess> = Layer.e
 );
 ```
 
-Adapted from `repos/t3code/apps/server/src/sourceControl/GitHubCli.ts`.
+Example pattern:
 
 ## Keep services modular, testable, and maintainable
 
@@ -222,11 +218,9 @@ export class UserRepository extends Context.Service<UserRepository, UserReposito
 }
 ```
 
-Adapted from `repos/effect/ai-docs/src/01_effect/02_services/20_layer-composition.ts`.
-
 ### Capture dependencies once in `make`
 
-For larger services, capture dependencies in `make` and return methods that close over them. This is common in `repos/t3code` and keeps method bodies focused while still making dependencies explicit.
+For larger services, capture dependencies in `make` and return methods that close over them. This keeps method bodies focused while still making dependencies explicit.
 
 ```ts
 import { Context, Duration, Effect, Layer, Option, Schema } from "effect";
@@ -256,7 +250,7 @@ export interface ProcessSpawnerShape {
 }
 
 export class ProcessSpawner extends Context.Service<ProcessSpawner, ProcessSpawnerShape>()(
-  "t3/process/ProcessSpawner",
+  "app/process/ProcessSpawner",
 ) {}
 
 export interface ProcessRunnerShape {
@@ -264,7 +258,7 @@ export interface ProcessRunnerShape {
 }
 
 export class ProcessRunner extends Context.Service<ProcessRunner, ProcessRunnerShape>()(
-  "t3/process/ProcessRunner",
+  "app/process/ProcessRunner",
 ) {}
 
 const finalizeRunProcess = (
@@ -302,11 +296,11 @@ export const ProcessRunnerLayer: Layer.Layer<ProcessRunner, never, ProcessSpawne
 );
 ```
 
-Adapted from `repos/t3code/apps/server/src/processRunner.ts`.
+Example pattern:
 
 ### Use layer factories for parameterized resources
 
-When a service needs test options, configuration, or a resource handle, expose a function that returns a layer. This is used in executor test servers and harnesses.
+When a service needs test options, configuration, or a resource handle, expose a function that returns a layer.
 
 ```ts
 import { Context, Effect, Layer, Ref } from "effect";
@@ -335,14 +329,14 @@ const serveGraphqlTestServer = (
   });
 
 export class GraphqlTestServer extends Context.Service<GraphqlTestServer, GraphqlTestServerShape>()(
-  "@executor-js/plugin-graphql/testing/GraphqlTestServer",
+  "@app/plugin-graphql/testing/GraphqlTestServer",
 ) {
   static readonly layer = (options: GraphqlTestServerOptions): Layer.Layer<GraphqlTestServer> =>
     Layer.effect(GraphqlTestServer, serveGraphqlTestServer(options));
 }
 ```
 
-Adapted from `repos/executor/packages/plugins/graphql/src/testing/index.ts`.
+Example pattern:
 
 ### Use scoped acquisition for owned resources
 
@@ -351,16 +345,16 @@ If a service owns a resource with a lifetime, acquire and release it in the laye
 ```ts
 import { Context, Effect, Layer } from "effect";
 
-export interface ExecutorHarness {
+export interface TestHarness {
   readonly run: Effect.Effect<void>;
   readonly close: Effect.Effect<void>;
 }
 
-export class TestExecutor extends Context.Service<TestExecutor, ExecutorHarness>()(
-  "executor-sdk/TestExecutor",
+export class TestHarnessService extends Context.Service<TestHarnessService, TestHarness>()(
+  "app/testing/TestHarness",
 ) {}
 
-const makeTestExecutorHarness: Effect.Effect<ExecutorHarness> = Effect.acquireRelease(
+const makeTestHarness: Effect.Effect<TestHarness> = Effect.acquireRelease(
   Effect.sync(() => ({
     run: Effect.void,
     close: Effect.void,
@@ -368,11 +362,11 @@ const makeTestExecutorHarness: Effect.Effect<ExecutorHarness> = Effect.acquireRe
   (harness) => harness.close,
 );
 
-export const makeTestExecutorLayer = (): Layer.Layer<TestExecutor> =>
-  Layer.effect(TestExecutor, makeTestExecutorHarness);
+export const makeTestHarnessLayer = (): Layer.Layer<TestHarnessService> =>
+  Layer.effect(TestHarnessService, makeTestHarness);
 ```
 
-Adapted from `repos/executor/packages/core/sdk/src/test-config.ts`.
+Example pattern:
 
 ### Provide small test services
 
@@ -420,8 +414,6 @@ export class TodoRepo extends Context.Service<TodoRepo, TodoRepoShape>()("app/To
 }
 ```
 
-Adapted from `repos/effect/ai-docs/src/09_testing/20_layer-tests.ts`.
-
 For very small behavior tests, `Layer.mock(Service)` can provide a partial service. Missing members intentionally fail when called, so this is only appropriate when the test proves the path uses a narrow capability.
 
 ```ts
@@ -447,8 +439,6 @@ const program = Effect.gen(function* () {
   ),
 );
 ```
-
-Adapted from `repos/effect/packages/effect/test/Layer.test.ts`.
 
 ## Error handling patterns
 
@@ -502,8 +492,6 @@ export const makeTodoApi = Effect.fnUntraced(function* () {
 });
 ```
 
-Adapted from `repos/effect/ai-docs/src/50_http-client/10_basics.ts` and the typed-error style used in `repos/t3code` and `repos/executor`.
-
 ## Accessing services
 
 Prefer yielding services inside effect bodies:
@@ -524,14 +512,6 @@ const configuredPort = ConfigService.useSync((config) => config.port);
 ```
 
 `Context.Service` implements `use` and `useSync` in `repos/effect/packages/effect/src/Context.ts`, but `repos/effect/migration/services.md` recommends `yield*` for most workflows because it keeps dependencies visible.
-
-## Notes from other repos
-
-- `repos/t3code` commonly defines a `Shape` interface, a `Context.Service` class, private helper functions, a `make` effect, and a `Layer.effect` provider. This is the default style to copy.
-- `repos/t3code` facade services, such as provider orchestration, expose domain operations and streams while hiding adapter registries and runtime directories behind the layer.
-- `repos/executor` plugin handlers yield a plugin extension service and call one method. The service shape already has the right typed errors, so handlers avoid per-endpoint translation.
-- `repos/executor` test utilities use layer factories and scoped acquisition to make test resources deterministic and disposable.
-- `repos/alchemy-effect` uses services heavily for platform/runtime context and resource operations. It also contains advanced generic service wrappers; do not copy those unless the project explicitly needs that level of type-level abstraction.
 
 ## What to avoid
 
