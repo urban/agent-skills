@@ -15,6 +15,7 @@ description: Creates high-quality skill directories from ambiguous ideas. Use wh
 - Prefer atomic skills with no skill-to-skill dependencies. If shared guidance is needed, vendor it into local `references/` instead of relying on `metadata.dependencies`.
 - Make support files composable. Each script, reference, and asset should stay useful on its own.
 - Keep rules and constraints separate because agents follow them differently.
+- Do not create a separate `Validation Checklist` section in generated skills; put subjective quality criteria in `Deliverables` and executable checks in `Deterministic Validation`.
 
 ## Constraints
 
@@ -60,13 +61,15 @@ Execute in this order unless the user already provided equivalent inputs. If a s
    - Vendor any shared contract or borrowed guidance into local bundled resources so the final skill stays atomic.
    - Check composition decisions against [`references/composability-checklist.md`](./references/composability-checklist.md).
 
-   Use these section rules when deciding what stays in the generated `SKILL.md`:
+   Use these section rules when deciding what stays in the generated `SKILL.md` after copying the template:
 
-   | Section                    | Include when                                                  | Omit when                        |
-   | -------------------------- | ------------------------------------------------------------- | -------------------------------- |
-   | optional dispatch section  | The workflow branches or agents need a compact runtime router | The workflow is short and linear |
-   | `References`               | Any `references/*.md` file is included                        | No bundled references are needed |
-   | `Deterministic Validation` | `scripts/*` exists for validation or transforms that must run | No scripts are bundled           |
+   | Section                    | Include when                                                  | Omit when                                      |
+   | -------------------------- | ------------------------------------------------------------- | ---------------------------------------------- |
+   | optional dispatch section  | The workflow branches or agents need a compact runtime router | The workflow is short and linear               |
+   | `References`               | Any `references/*.md` file is included                        | No bundled references are needed               |
+   | `Deterministic Validation` | A `scripts/*` command must be run for validation or transforms | No bundled script must be run |
+
+   Do not add `Validation Checklist`; it duplicates `Deliverables` and `Deterministic Validation`.
 
 3. **Write `Gotchas` early**
    - Add 5–9 gotchas.
@@ -105,6 +108,7 @@ Required artifacts:
 - Skill folder shape must follow [`references/structure.md`](./references/structure.md).
 - Any borrowed contract needed by the skill is vendored locally under bundled resources instead of another skill dependency.
 - `Gotchas` with 5–9 specific, actionable, experience-derived items.
+- No separate `Validation Checklist`; quality criteria belong in `Deliverables`, and executable validation belongs in `Deterministic Validation` only when scripts exist.
 
 ## References
 
@@ -117,21 +121,12 @@ Required artifacts:
 - [`references/notify-hook.md`](./references/notify-hook.md): Read when: wiring automatic validation after each turn.
 - [`references/composability-checklist.md`](./references/composability-checklist.md): Read when: checking whether the skill composes cleanly at runtime without tight coupling.
 
-## Validation Checklist
-
-Before returning:
-
-- Run deterministic validation and confirm it passes.
-- `Gotchas` exists and contains 5–9 specific, actionable, post-mortem-style items.
-- `References` and `Deterministic Validation` are included only when their conditions apply.
-- The skill is atomic and does not rely on other skills for execution-critical guidance.
-- The description is strong enough to support runtime selection without relying on cross-skill dependency metadata.
-- `Requirements`, `Workflow`, `Gotchas`, and `Deliverables` are concrete enough that an unfamiliar agent can execute without guessing.
-
 ## Deterministic Validation
 
-Validate a generated skill directory with:
+Validate this skill or a generated skill directory with:
 
 - `bash scripts/validate-skill.sh <target-skill-dir>`
+
+The command checks frontmatter, section structure, references, and size thresholds. If a generated skill has its own scripts, list only the exact script commands it must run here.
 
 Codex supports a `notify` command hook that runs after each agent turn and receives a JSON payload. You can use it to run validation automatically. See [`references/notify-hook.md`](./references/notify-hook.md) for a ready-to-use snippet.

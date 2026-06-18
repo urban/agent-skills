@@ -34,10 +34,6 @@ description: [TODO: Brief description of capability. Use when specific condition
 [TODO: List `references/*.md` files.]
 [TODO: Every entry must include 'Read when: [specific condition]'.]
 
-## Validation Checklist
-
-[TODO: Add the verification list.]
-
 ## Deterministic Validation (optional)
 
-[TODO: List validation instructions when `scripts/*` exist.]
+[TODO: Include only when `scripts/*` exist and must run. List exact commands and expected pass condition.]

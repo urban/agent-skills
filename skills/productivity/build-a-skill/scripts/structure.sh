@@ -151,12 +151,15 @@ REQUIRED_SECTIONS=(
   "Workflow"
   "Gotchas"
   "Deliverables"
-  "Validation Checklist"
 )
 
 OPTIONAL_SECTIONS=(
   "References"
   "Deterministic Validation"
+)
+
+DISALLOWED_SECTIONS=(
+  "Validation Checklist"
 )
 
 ORDERED_SECTIONS=(
@@ -167,11 +170,10 @@ ORDERED_SECTIONS=(
   "Gotchas"
   "Deliverables"
   "References"
-  "Validation Checklist"
   "Deterministic Validation"
 )
 
-ORDER_DISPLAY="Rules -> Constraints -> Requirements -> Workflow -> Gotchas -> Deliverables -> References -> Validation Checklist -> Deterministic Validation"
+ORDER_DISPLAY="Rules -> Constraints -> Requirements -> Workflow -> Gotchas -> Deliverables -> References -> Deterministic Validation"
 
 for section in "${REQUIRED_SECTIONS[@]}"; do
   count="$(count_section_occurrences "${section}")"
@@ -186,6 +188,13 @@ for section in "${OPTIONAL_SECTIONS[@]}"; do
   count="$(count_section_occurrences "${section}")"
   if [[ "${count}" -gt 1 ]]; then
     log_error "Optional section appears multiple times (must be unique): ${section}"
+  fi
+done
+
+for section in "${DISALLOWED_SECTIONS[@]}"; do
+  count="$(count_section_occurrences "${section}")"
+  if [[ "${count}" -gt 0 ]]; then
+    log_error "Disallowed section: ${section}. Put quality criteria in Deliverables and executable checks in Deterministic Validation."
   fi
 done
 
