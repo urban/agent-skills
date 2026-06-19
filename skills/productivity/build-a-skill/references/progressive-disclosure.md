@@ -28,13 +28,14 @@ Design the skill so agents load only the information needed for the current step
 
 When `references/` exists, include one lightweight routing table or list in `SKILL.md` near the workflow or references section.
 
-| Task                      | Read first                             |
-| ------------------------- | -------------------------------------- |
-| Draft frontmatter         | `references/frontmatter.md`            |
-| Choose supporting dirs    | `references/resources.md`              |
-| Use folder skeleton       | `references/structure.md`              |
-| Write post-mortem gotchas | `references/gotchas.md`                |
-| Design tiered docs        | `references/progressive-disclosure.md` |
+| Task                         | Read first                                |
+| ---------------------------- | ----------------------------------------- |
+| Choose skill archetype       | `references/skill-archetypes.md`          |
+| Draft frontmatter            | `references/frontmatter.md`               |
+| Choose supporting dirs       | `references/resources.md`                 |
+| Use folder skeleton/contract | `references/structure.md`                 |
+| Write post-mortem gotchas    | `references/gotchas.md`                   |
+| Design tiered docs           | `references/progressive-disclosure.md`    |
 
 Implementation notes:
 

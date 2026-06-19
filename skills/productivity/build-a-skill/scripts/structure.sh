@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# structure.sh - Deterministic validation for required/optional sections
+# structure.sh - Deterministic validation for workflow and knowledge skill sections
 #
 # Usage:
 #   structure.sh [<skill-file>] [--json|--quiet]
@@ -125,7 +125,7 @@ count_section_occurrences() {
   local count=0
   local section
   for section in "${TOP_LEVEL_SECTIONS[@]}"; do
-    [[ "${section}" == "${target}" ]] && ((count++))
+    [[ "${section}" == "${target}" ]] && ((count++)) || true
   done
   echo "${count}"
 }
@@ -139,18 +139,111 @@ first_section_index() {
       echo "${idx}"
       return 0
     fi
-    ((idx++))
+    ((idx++)) || true
   done
   echo "-1"
 }
 
-REQUIRED_SECTIONS=(
+count_present_sections() {
+  local present=0
+  local section
+  for section in "$@"; do
+    if [[ "$(count_section_occurrences "${section}")" -gt 0 ]]; then
+      ((present++)) || true
+    fi
+  done
+  echo "${present}"
+}
+
+validate_required_sections() {
+  local section
+  local count
+  for section in "$@"; do
+    count="$(count_section_occurrences "${section}")"
+    if [[ "${count}" -eq 0 ]]; then
+      log_error "Missing required section: ${section}"
+    elif [[ "${count}" -gt 1 ]]; then
+      log_error "Section appears multiple times (must be unique): ${section}"
+    fi
+  done
+}
+
+validate_optional_sections() {
+  local section
+  local count
+  for section in "$@"; do
+    count="$(count_section_occurrences "${section}")"
+    if [[ "${count}" -gt 1 ]]; then
+      log_error "Optional section appears multiple times (must be unique): ${section}"
+    fi
+  done
+}
+
+validate_disallowed_sections() {
+  local section
+  local count
+  for section in "$@"; do
+    count="$(count_section_occurrences "${section}")"
+    if [[ "${count}" -gt 0 ]]; then
+      log_error "Disallowed section: ${section}. Put subjective quality criteria in Deliverables for workflow skills and executable checks in Deterministic Validation. Knowledge skills should not use a validation checklist."
+    fi
+  done
+}
+
+validate_section_order() {
+  local order_display="$1"
+  shift
+
+  local prev_idx=-1
+  local prev_section=""
+  local section
+  local idx
+
+  for section in "$@"; do
+    idx="$(first_section_index "${section}")"
+    if [[ "${idx}" -ge 0 ]]; then
+      if [[ "${prev_idx}" -ge 0 && "${idx}" -lt "${prev_idx}" ]]; then
+        log_error "Section order invalid: '${section}' appears before '${prev_section}'. Expected order: ${order_display}"
+        break
+      fi
+      prev_idx="${idx}"
+      prev_section="${section}"
+    fi
+  done
+}
+
+COMMON_REQUIRED_SECTIONS=(
+  "Rules"
+  "Constraints"
+  "Gotchas"
+)
+
+WORKFLOW_ONLY_SECTIONS=(
+  "Requirements"
+  "Workflow"
+  "Deliverables"
+)
+
+KNOWLEDGE_ONLY_SECTIONS=(
+  "Knowledge Boundaries"
+  "Patterns"
+)
+
+WORKFLOW_REQUIRED_SECTIONS=(
   "Rules"
   "Constraints"
   "Requirements"
   "Workflow"
   "Gotchas"
   "Deliverables"
+)
+
+KNOWLEDGE_REQUIRED_SECTIONS=(
+  "Rules"
+  "Constraints"
+  "Knowledge Boundaries"
+  "Patterns"
+  "Gotchas"
 )
 
 OPTIONAL_SECTIONS=(
@@ -162,7 +255,7 @@ DISALLOWED_SECTIONS=(
   "Validation Checklist"
 )
 
-ORDERED_SECTIONS=(
+WORKFLOW_ORDERED_SECTIONS=(
   "Rules"
   "Constraints"
   "Requirements"
@@ -173,47 +266,52 @@ ORDERED_SECTIONS=(
   "Deterministic Validation"
 )
 
-ORDER_DISPLAY="Rules -> Constraints -> Requirements -> Workflow -> Gotchas -> Deliverables -> References -> Deterministic Validation"
+KNOWLEDGE_ORDERED_SECTIONS=(
+  "Rules"
+  "Constraints"
+  "Knowledge Boundaries"
+  "Patterns"
+  "Gotchas"
+  "References"
+  "Deterministic Validation"
+)
 
-for section in "${REQUIRED_SECTIONS[@]}"; do
-  count="$(count_section_occurrences "${section}")"
-  if [[ "${count}" -eq 0 ]]; then
-    log_error "Missing required section: ${section}"
-  elif [[ "${count}" -gt 1 ]]; then
-    log_error "Section appears multiple times (must be unique): ${section}"
-  fi
-done
+WORKFLOW_ORDER_DISPLAY="Rules -> Constraints -> Requirements -> Workflow -> Gotchas -> Deliverables -> References -> Deterministic Validation"
+KNOWLEDGE_ORDER_DISPLAY="Rules -> Constraints -> Knowledge Boundaries -> Patterns -> Gotchas -> References -> Deterministic Validation"
 
-for section in "${OPTIONAL_SECTIONS[@]}"; do
-  count="$(count_section_occurrences "${section}")"
-  if [[ "${count}" -gt 1 ]]; then
-    log_error "Optional section appears multiple times (must be unique): ${section}"
-  fi
-done
+validate_disallowed_sections "${DISALLOWED_SECTIONS[@]}"
+validate_optional_sections "${OPTIONAL_SECTIONS[@]}"
 
-for section in "${DISALLOWED_SECTIONS[@]}"; do
-  count="$(count_section_occurrences "${section}")"
-  if [[ "${count}" -gt 0 ]]; then
-    log_error "Disallowed section: ${section}. Put quality criteria in Deliverables and executable checks in Deterministic Validation."
-  fi
-done
+WORKFLOW_MARKERS="$(count_present_sections "${WORKFLOW_ONLY_SECTIONS[@]}")"
+KNOWLEDGE_MARKERS="$(count_present_sections "${KNOWLEDGE_ONLY_SECTIONS[@]}")"
+CONTRACT="workflow"
 
-prev_idx=-1
-prev_section=""
-for section in "${ORDERED_SECTIONS[@]}"; do
-  idx="$(first_section_index "${section}")"
-  if [[ "${idx}" -ge 0 ]]; then
-    if [[ "${prev_idx}" -ge 0 && "${idx}" -lt "${prev_idx}" ]]; then
-      log_error "Section order invalid: '${section}' appears before '${prev_section}'. Expected order: ${ORDER_DISPLAY}"
-      break
-    fi
-    prev_idx="${idx}"
-    prev_section="${section}"
-  fi
-done
+if [[ "${WORKFLOW_MARKERS}" -gt 0 && "${KNOWLEDGE_MARKERS}" -gt 0 ]]; then
+  log_error "Mixed section contracts: workflow sections (Requirements/Workflow/Deliverables) and knowledge sections (Knowledge Boundaries/Patterns) both appear. Split the skill or move secondary material into references/."
+  CONTRACT="mixed"
+elif [[ "${KNOWLEDGE_MARKERS}" -gt 0 ]]; then
+  CONTRACT="knowledge"
+fi
+
+case "${CONTRACT}" in
+  workflow)
+    validate_required_sections "${WORKFLOW_REQUIRED_SECTIONS[@]}"
+    validate_section_order "${WORKFLOW_ORDER_DISPLAY}" "${WORKFLOW_ORDERED_SECTIONS[@]}"
+    ;;
+  knowledge)
+    validate_required_sections "${KNOWLEDGE_REQUIRED_SECTIONS[@]}"
+    validate_section_order "${KNOWLEDGE_ORDER_DISPLAY}" "${KNOWLEDGE_ORDERED_SECTIONS[@]}"
+    ;;
+  mixed)
+    validate_required_sections "${COMMON_REQUIRED_SECTIONS[@]}"
+    ;;
+esac
 
 if [[ "${ERRORS}" -eq 0 ]]; then
-  log_info "Section presence and ordering validation passed"
+  case "${CONTRACT}" in
+    workflow) log_info "Section validation passed for workflow contract" ;;
+    knowledge) log_info "Section validation passed for knowledge/capability contract" ;;
+  esac
 fi
 
 if $JSON_MODE; then

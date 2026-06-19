@@ -18,7 +18,9 @@ Bundled guidance must not silently invent intent.
 
 If the skill participates in a shared artifact type, confirm:
 
-- section order matches the canonical contract
+- section order matches the selected archetype contract: workflow or knowledge/capability
+- workflow skills include `Requirements`, `Workflow`, and `Deliverables`
+- knowledge/capability skills include `Knowledge Boundaries` and `Patterns` instead of fake workflow sections
 - naming rules match the canonical contract
 - validation rules match the canonical contract
 - uncertainty handling is explicit where interpretation is involved
