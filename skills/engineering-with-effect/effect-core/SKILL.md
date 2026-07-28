@@ -8,16 +8,16 @@ description: Write Effect-native TypeScript with current core Effect v4 standard
 - Prefer direct Effect expressions. Use `Effect.fnUntraced` for effectful wrappers unless spans are required, and use named `Effect.fn("name")` only when the function should create a span.
 - Pass `Effect.fn` / `Effect.fnUntraced` post-processing combinators as additional constructor arguments. Do not call `.pipe(...)` on the function returned by `Effect.fn`.
 - Do not wrap an effect in `Effect.fnUntraced(function* () { return yield* effect })`; return or compose the direct effect expression instead.
-- Outside generators, convert yieldables with `.asEffect()` before piping.
 - In `Effect.gen` methods that need `this`, use `Effect.gen({ self: this }, function* () { ... })`; do not pass `this` directly as the first argument.
 - Define services with `Context.Service`; avoid v3 service APIs such as `Context.Tag`, `Context.GenericTag`, `Effect.Tag`, and `Effect.Service`.
 - Yield services from context inside effect bodies. Do not pass service implementations as ordinary function arguments.
 - All streaming implementations, including SSE and WebSockets, should use Effect `Stream`. SSE framing belongs to `effect/unstable/encoding/Sse`; WebSockets should use first-party Effect socket abstractions.
-- Type final live layers such as `Rpc.toLayer`, service layers, and middleware layers as `Layer.Layer<ProvidedServices>`. Let intermediate and test-exported layers infer naturally.
+- Type final live layers such as RPC group handler layers, service layers, and middleware layers as `Layer.Layer<ProvidedServices>`. Let intermediate and test-exported layers infer naturally.
 - Compose layers before providing them. Use `Layer.fresh` or `Effect.provide(layer, { local: true })` only when a layer subtree must be rebuilt independently, such as for test isolation.
 - Keep expected failures in the typed error channel. Handle them with v4 catch combinators, and use `Effect.die` only for genuinely unrecoverable failures.
 - Use v4 catch combinators: `Effect.catch`, `Effect.catchCause`, `Effect.catchDefect`, `Effect.catchFilter`, `Effect.catchCauseFilter`, `Effect.catchTag`, and `Effect.catchTags`.
 - Use v4 fiber names: `Effect.forkChild`, `Effect.forkDetach`, `Effect.forkScoped`, or `Effect.forkIn`.
+- Pass concurrency directly to operators as a number or `"unbounded"`. `Effect.withConcurrency` and the `"inherit"` concurrency value have been removed.
 - Model app errors with `Schema.TaggedErrorClass` and a typed `_tag` discriminator. Reuse an existing tagged error when one already fits.
 - Services should expose typed errors only for actionable failures callers can handle. Non-actionable failures should die at the boundary or remain defects.
 - If a tagged error has a `reason` field, model it with `Schema.Literals([...])` and PascalCase values.
@@ -30,7 +30,7 @@ description: Write Effect-native TypeScript with current core Effect v4 standard
 ## Anti-Patterns to Avoid
 
 - Do not write `(...args) => Effect.gen(function* () { ... })` for effectful wrappers when `Effect.fnUntraced` or `Effect.fn` is the intended abstraction.
-- Do not use removed or renamed v3 APIs such as `catchAll`, `catchAllCause`, `catchAllDefect`, `catchSome`, `catchSomeCause`, `Effect.fork`, `Effect.forkDaemon`, `Effect.forkAll`, or `Effect.forkWithErrorHandler`.
+- Do not use removed or renamed APIs such as `catchAll`, `catchAllCause`, `catchAllDefect`, `catchSome`, `catchSomeCause`, `Effect.fork`, `Effect.forkDaemon`, `Effect.forkAll`, `Effect.forkWithErrorHandler`, or `Effect.withConcurrency`.
 - Do not use `Effect.orDie`. First handle typed errors explicitly with `Effect.catchTag` or `Effect.catchTags`; then use `Effect.die` only for genuinely unrecoverable failures.
 - Do not use the global `Error` class in app code for expected failures.
 - Do not probe errors with checks like `if ("_tag" in error)`. Match on the typed Effect error channel instead.

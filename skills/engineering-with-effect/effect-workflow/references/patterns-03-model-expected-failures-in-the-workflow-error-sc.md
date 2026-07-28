@@ -25,8 +25,7 @@ export class TranscriptionUnavailable extends Schema.TaggedErrorClass<Transcript
   { message: Schema.String },
 ) {}
 
-export const TranscriptionWorkflow = Workflow.make({
-  name: "TranscriptionWorkflow",
+export const TranscriptionWorkflow = Workflow.make("app/transcription/TranscriptionWorkflow", {
   payload: { recordingId: Schema.String },
   success: Schema.String,
   error: TranscriptionUnavailable,
@@ -55,7 +54,7 @@ export const TranscriptionWorkflowLayer = TranscriptionWorkflow.toLayer(
 
 Guidelines:
 
-- Put expected business failures in `Workflow.make({ error })` and `Activity.make({ error })`.
+- Put expected business failures in the error schema passed to `Workflow.make(tag, { error })` and `Activity.make({ error })`.
 - Return tagged errors with `return yield* new MyError(...)` from generators.
 - Use `Activity.retry(...)` for retryable typed failures.
 - Let non-actionable defects die or convert them to defects at the service boundary before they enter workflow APIs.
@@ -65,7 +64,7 @@ Guidelines:
 
 - `execute(payload)` waits for completion and returns the success value or fails with the workflow error.
 - `execute(payload, { discard: true })` starts execution and returns the deterministic execution id.
-- `poll(executionId)` returns `Option.none()` when no complete result is available.
+- `poll(executionId)` returns `Option.none()` when the execution is unknown or its current run is still in progress. It can return `Option.some(Workflow.Suspended)` as well as a completed result.
 - A completed workflow is returned as `Workflow.Complete({ exit })`; inspect `Exit.isSuccess` or `Exit.isFailure`.
 - Suspended workflows may resume through a deferred completion, durable clock, explicit `resume`, or suspended retry polling depending on engine configuration.
 
@@ -74,8 +73,7 @@ import { assert, it } from "@effect/vitest";
 import { Effect, Exit, Layer, Option, Schema } from "effect";
 import { Workflow, WorkflowEngine } from "effect/unstable/workflow";
 
-const IncrementWorkflow = Workflow.make({
-  name: "WorkflowEngine/IncrementWorkflow",
+const IncrementWorkflow = Workflow.make("WorkflowEngine/IncrementWorkflow", {
   payload: { value: Schema.Number },
   success: Schema.Number,
   idempotencyKey: ({ value }) => String(value),

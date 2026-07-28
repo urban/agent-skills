@@ -21,10 +21,10 @@ Keep pipeline stages separate:
 ```ts
 import { Effect, Schema, Stream } from "effect";
 
-const TranscriptFrame = Schema.Union(
+const TranscriptFrame = Schema.Union([
   Schema.Struct({ type: Schema.Literal("Delta"), text: Schema.String }),
   Schema.Struct({ type: Schema.Literal("Done") }),
-).annotate({ identifier: "TranscriptFrame" });
+]).annotate({ identifier: "TranscriptFrame" });
 
 type TranscriptFrame = typeof TranscriptFrame.Type;
 
@@ -32,7 +32,7 @@ export class TranscriptFrameDecodeError extends Schema.TaggedErrorClass<Transcri
   "TranscriptFrameDecodeError",
   {
     reason: Schema.Literals(["InvalidFrame"]),
-    cause: Schema.Defect,
+    cause: Schema.Defect(),
   },
 ) {}
 
@@ -68,7 +68,7 @@ export class ProcessReadError extends Schema.TaggedErrorClass<ProcessReadError>(
   "ProcessReadError",
   {
     stream: Schema.Literals(["Stdout", "Stderr"]),
-    cause: Schema.Defect,
+    cause: Schema.Defect(),
   },
 ) {}
 

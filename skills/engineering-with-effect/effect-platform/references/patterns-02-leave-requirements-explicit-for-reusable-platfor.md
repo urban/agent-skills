@@ -55,16 +55,17 @@ Guideline: choose one of these two shapes intentionally. Do not accidentally lea
 
 ```ts
 import { Effect, Layer } from "effect";
+import type { Crypto } from "effect/Crypto";
 import type { FileSystem } from "effect/FileSystem";
 import type { Path } from "effect/Path";
 import type { Stdio } from "effect/Stdio";
 import type { Terminal } from "effect/Terminal";
 import type { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner";
 
-export type PlatformServices = ChildProcessSpawner | FileSystem | Path | Stdio | Terminal;
+export type PlatformServices = ChildProcessSpawner | Crypto | FileSystem | Path | Stdio | Terminal;
 
 export const PlatformServicesLive: Layer.Layer<PlatformServices> = Effect.promise(async () => {
-  if (typeof Bun !== "undefined") {
+  if ("Bun" in globalThis) {
     const BunServices = await import("@effect/platform-bun/BunServices");
     return BunServices.layer;
   }
@@ -110,7 +111,7 @@ import { Effect, PlatformError, Schema } from "effect";
 export class StaticFileError extends Schema.TaggedErrorClass<StaticFileError>()("StaticFileError", {
   reason: Schema.Literals(["NotFound", "Unavailable"]),
   path: Schema.String,
-  cause: Schema.optional(Schema.Defect),
+  cause: Schema.optional(Schema.Defect()),
 }) {}
 
 const handlePlatformError = <A>(

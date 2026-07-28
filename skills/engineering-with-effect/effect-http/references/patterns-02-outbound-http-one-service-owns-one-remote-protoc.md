@@ -30,7 +30,7 @@ export class TranscriptApiError extends Schema.TaggedErrorClass<TranscriptApiErr
   "TranscriptApiError",
   {
     reason: Schema.Literals(["RequestFailed", "MalformedResponse"]),
-    cause: Schema.Defect,
+    cause: Schema.Defect(),
   },
 ) {}
 
@@ -111,7 +111,12 @@ Accept an optional `httpClientLayer` and default to `FetchHttpClient.layer` at t
 
 ```ts
 import { Effect, Layer } from "effect";
-import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http";
+import {
+  FetchHttpClient,
+  HttpClient,
+  HttpClientError,
+  HttpClientRequest,
+} from "effect/unstable/http";
 
 export interface ProbeOptions {
   readonly httpClientLayer?: Layer.Layer<HttpClient.HttpClient>;
@@ -123,7 +128,10 @@ const provideHttpClient = <A, E>(
 ): Effect.Effect<A, E> =>
   effect.pipe(Effect.provide(options.httpClientLayer ?? FetchHttpClient.layer));
 
-export const ping = (url: string, options: ProbeOptions = {}): Effect.Effect<boolean> =>
+export const ping = (
+  url: string,
+  options: ProbeOptions = {},
+): Effect.Effect<boolean, HttpClientError.HttpClientError> =>
   provideHttpClient(
     Effect.gen(function* () {
       const client = yield* HttpClient.HttpClient;

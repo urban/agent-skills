@@ -40,7 +40,7 @@ export class RegisterClientError extends Schema.TaggedErrorClass<RegisterClientE
   {
     reason: Schema.Literals(["Rejected", "Unavailable", "MalformedResponse"]),
     detail: Schema.optional(Schema.String),
-    cause: Schema.optional(Schema.Defect),
+    cause: Schema.optional(Schema.Defect()),
   },
 ) {}
 

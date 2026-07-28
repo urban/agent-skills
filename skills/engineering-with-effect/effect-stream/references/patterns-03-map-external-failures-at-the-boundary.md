@@ -28,7 +28,7 @@ export class OutputLimitError extends Schema.TaggedErrorClass<OutputLimitError>(
 
 export class OutputReadError extends Schema.TaggedErrorClass<OutputReadError>()("OutputReadError", {
   stream: Schema.Literals(["Stdout", "Stderr"]),
-  cause: Schema.Defect,
+  cause: Schema.Defect(),
 }) {}
 
 interface CollectState {
@@ -101,10 +101,10 @@ When a stream crosses RPC, HTTP, worker, or WebSocket boundaries, encode stream 
 ```ts
 import { Cause, Effect, Schema, Stream } from "effect";
 
-const RemoteFrame = Schema.Union(
+const RemoteFrame = Schema.Union([
   Schema.Struct({ type: Schema.Literal("Data"), value: Schema.String }),
   Schema.Struct({ type: Schema.Literal("Error"), message: Schema.String }),
-).annotate({ identifier: "RemoteFrame" });
+]).annotate({ identifier: "RemoteFrame" });
 
 type RemoteFrame = typeof RemoteFrame.Type;
 
@@ -118,6 +118,11 @@ export class RemoteStreamError extends Schema.TaggedErrorClass<RemoteStreamError
   },
 ) {}
 
+export class RemoteFrameEncodeError extends Schema.TaggedErrorClass<RemoteFrameEncodeError>()(
+  "RemoteFrameEncodeError",
+  { cause: Schema.Defect() },
+) {}
+
 export const failRemoteFrames = (
   frames: Stream.Stream<RemoteFrame>,
 ): Stream.Stream<string, RemoteStreamError> =>
@@ -129,14 +134,19 @@ export const failRemoteFrames = (
     ),
   );
 
-export const appendFailureFrame = <E>(lines: Stream.Stream<string, E>): Stream.Stream<string> =>
+export const appendFailureFrame = <E>(
+  lines: Stream.Stream<string, E>,
+): Stream.Stream<string, RemoteFrameEncodeError> =>
   lines.pipe(
     Stream.catchCause((cause) =>
       Stream.fromEffect(
         encodeRemoteFrame({
           type: "Error",
           message: Cause.pretty(cause),
-        }).pipe(Effect.map((line) => `${line}\n`)),
+        }).pipe(
+          Effect.map((line) => `${line}\n`),
+          Effect.mapError((cause) => new RemoteFrameEncodeError({ cause })),
+        ),
       ),
     ),
   );

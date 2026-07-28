@@ -45,7 +45,7 @@ export class AssessmentAiError extends Schema.TaggedErrorClass<AssessmentAiError
 }
 
 export const AnswerScore = Schema.Struct({
-  score: Schema.Number,
+  score: Schema.Int.check(Schema.isBetween({ minimum: 0, maximum: 100 })),
   rationale: Schema.String,
 }).annotate({ identifier: "AnswerScore" });
 
@@ -62,9 +62,11 @@ export class AssessmentAi extends Context.Service<
   static readonly layer = Layer.effect(
     AssessmentAi,
     Effect.gen(function* () {
+      const model = yield* LanguageModel.LanguageModel;
+
       const scoreAnswer = Effect.fn("AssessmentAi.scoreAnswer")(
         function* (input: { readonly question: string; readonly answer: string }) {
-          const response = yield* LanguageModel.generateObject({
+          const response = yield* model.generateObject({
             objectName: "answer_score",
             schema: AnswerScore,
             prompt: [
@@ -80,7 +82,7 @@ export class AssessmentAi extends Context.Service<
       );
 
       const streamFeedback = (answer: string) =>
-        LanguageModel.streamText({
+        model.streamText({
           prompt: `Give concise feedback for this answer:\n${answer}`,
           toolChoice: "none",
         }).pipe(

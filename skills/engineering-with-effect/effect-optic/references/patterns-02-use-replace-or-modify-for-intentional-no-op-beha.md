@@ -140,7 +140,7 @@ Plain path optics clone arrays and plain objects. They should not be used direct
 import { Schema } from "effect";
 
 class Value extends Schema.Class<Value>("Value")({
-  a: Schema.DateValid,
+  a: Schema.Date,
 }) {}
 
 class Box extends Schema.Class<Box>("Box")({

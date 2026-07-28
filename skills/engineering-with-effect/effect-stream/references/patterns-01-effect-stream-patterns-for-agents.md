@@ -127,7 +127,7 @@ import { Cause, Effect, Queue, Schema, Stream } from "effect";
 
 export class WatchError extends Schema.TaggedErrorClass<WatchError>()("WatchError", {
   reason: Schema.Literals(["ReadFailed"]),
-  cause: Schema.Defect,
+  cause: Schema.Defect(),
 }) {}
 
 interface WatchHandle {

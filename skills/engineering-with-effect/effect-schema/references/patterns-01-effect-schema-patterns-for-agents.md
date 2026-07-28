@@ -49,11 +49,13 @@ import { Schema } from "effect";
 
 Schema.String;
 Schema.Number;
-Schema.Int;
 Schema.Finite;
+Schema.Int;
+Schema.Natural;
 Schema.Boolean;
 Schema.Unknown;
-Schema.Defect;
+Schema.Defect();
+Schema.Error();
 
 Schema.Literal("openapi");
 Schema.Literals(["remote", "local", "unsafe-no-auth"]);
@@ -62,6 +64,8 @@ Schema.Record(Schema.String, Schema.Unknown);
 Schema.Tuple([Schema.String, Schema.Int]);
 Schema.Union([Schema.String, Schema.Number]);
 ```
+
+Use `Schema.Finite` for finite numbers, `Schema.Int` for safe integers, and `Schema.Natural` for non-negative safe integers. Reserve unconstrained `Schema.Number` for domains where `NaN` and infinities are meaningful.
 
 Use `Schema.Struct` for fixed object shapes:
 

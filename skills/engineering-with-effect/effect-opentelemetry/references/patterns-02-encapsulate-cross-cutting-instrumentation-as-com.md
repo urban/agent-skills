@@ -26,7 +26,7 @@ import * as Metric from "effect/Metric";
 export interface WithMetricsOptions {
   readonly counter?: Metric.Metric<number, unknown>;
   readonly timer?: Metric.Metric<Duration.Duration, unknown>;
-  readonly attributes?: Readonly<Record<string, unknown>>;
+  readonly attributes?: Metric.Metric.Attributes;
 }
 
 export const withMetrics =

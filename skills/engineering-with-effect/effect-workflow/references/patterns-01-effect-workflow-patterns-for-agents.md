@@ -15,7 +15,7 @@ Covers:
 ## First principles
 
 - Treat a workflow as a durable, schema-defined orchestration boundary.
-- Define workflows with `Workflow.make({ name, payload, success, error, idempotencyKey })` at module scope.
+- Define workflows with `Workflow.make("StableTag", { payload, success, error, idempotencyKey })` at module scope. The first argument is the workflow tag and is exposed as `_tag`.
 - Use stable, deterministic idempotency keys derived from the logical payload. Do not use time, random values, counters, or mutable process state.
 - Register behavior with `Workflow.toLayer(...)`. Callers should use `execute`, `poll`, `interrupt`, `resume`, or proxy-generated APIs, not the implementation function directly.
 - Put durable or replay-sensitive side effects behind named primitives:
@@ -60,8 +60,7 @@ export class EmailSender extends Context.Service<EmailSender, EmailSenderShape>(
   );
 }
 
-export const EmailWorkflow = Workflow.make({
-  name: "EmailWorkflow",
+export const EmailWorkflow = Workflow.make("app/email/EmailWorkflow", {
   payload: {
     id: Schema.String,
     to: Schema.String,
@@ -104,8 +103,7 @@ export const EmailTrigger = DurableDeferred.make("EmailTrigger", {
   success: Schema.String,
 });
 
-export const WaitForEmailWorkflow = Workflow.make({
-  name: "WaitForEmailWorkflow",
+export const WaitForEmailWorkflow = Workflow.make("app/email/WaitForEmailWorkflow", {
   payload: { id: Schema.String },
   success: Schema.String,
   idempotencyKey: ({ id }) => id,

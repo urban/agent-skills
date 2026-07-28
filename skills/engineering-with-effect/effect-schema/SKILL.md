@@ -12,6 +12,8 @@ description: Design Effect Schema contracts for runtime validation, typed bounda
 - Prefer `Schema.Struct` / `Schema.TaggedStruct` plus `export type X = typeof X.Type` for plain data. Use `Schema.Class` only when runtime class instances, methods, or `instanceof` semantics are intentional.
 - Use `Schema.TaggedErrorClass` for Effect errors that should be caught with `Effect.catchTag` / `Effect.catchTags`.
 - Use `Schema.fromJsonString(...)` instead of `JSON.parse` at implementation boundaries.
+- Call constructor schemas such as `Schema.Defect()` and `Schema.Error()`; they are functions in current v4. `Schema.Date` validates that `Date` values are valid, so do not use removed `Schema.DateValid`.
+- Choose numeric schemas semantically: `Schema.Finite` for finite numbers, `Schema.Int` for safe integers, and `Schema.Natural` for non-negative safe integers. Use unconstrained `Schema.Number` only when `NaN` and infinities are valid inputs.
 - Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
 
 ## Anti-Patterns to Avoid

@@ -44,13 +44,22 @@ export const makeTodoApi = Effect.fnUntraced(function* () {
   const client = yield* HttpClient.HttpClient;
 
   const getTodo = Effect.fnUntraced(function* (id: number) {
-    return yield* client.get(`/todos/${id}`).pipe(
-      Effect.flatMap(HttpClientResponse.schemaBodyJson(Todo)),
+    const response = yield* client.get(`/todos/${id}`).pipe(
       Effect.mapError(
         (cause) =>
           new TodoApiError({
             reason: "RequestFailed",
-            detail: cause._tag,
+            detail: cause.reason._tag,
+          }),
+      ),
+    );
+
+    return yield* HttpClientResponse.schemaBodyJson(Todo)(response).pipe(
+      Effect.mapError(
+        (cause) =>
+          new TodoApiError({
+            reason: "InvalidResponse",
+            detail: cause.message,
           }),
       ),
     );

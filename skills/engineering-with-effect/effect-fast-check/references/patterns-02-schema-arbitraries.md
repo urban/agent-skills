@@ -50,8 +50,8 @@ const AssessmentRecord = Schema.Struct({
 
 it.effect.prop("assessment record JSON round-trips", [AssessmentRecord], ([record]) =>
   Effect.gen(function* () {
-    const encoded = yield* Schema.encode(AssessmentRecord)(record);
-    const decoded = yield* Schema.decode(AssessmentRecord)(encoded);
+    const encoded = yield* Schema.encodeEffect(AssessmentRecord)(record);
+    const decoded = yield* Schema.decodeEffect(AssessmentRecord)(encoded);
     assert.deepStrictEqual(decoded, record);
   }),
 );

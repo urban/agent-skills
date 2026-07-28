@@ -68,7 +68,7 @@ interface TestServerShape {
 }
 
 class TestServer extends Context.Service<TestServer, TestServerShape>()("app/TestServer") {
-  static readonly layer = Layer.effect(
+  static readonly layerNoDeps = Layer.effect(
     TestServer,
     Effect.gen(function* () {
       const server = yield* HttpServer.HttpServer;
@@ -88,7 +88,11 @@ class TestServer extends Context.Service<TestServer, TestServerShape>()("app/Tes
   );
 }
 
-layer(TestServer.layer)("tool invocation", (it) => {
+declare const HttpServerLive: Layer.Layer<HttpServer.HttpServer | HttpClient.HttpClient>;
+
+const TestServerLive = TestServer.layerNoDeps.pipe(Layer.provide(HttpServerLive));
+
+layer(TestServerLive)("tool invocation", (it) => {
   it.effect("routes requests through the provided HttpClient", () =>
     Effect.gen(function* () {
       const server = yield* TestServer;

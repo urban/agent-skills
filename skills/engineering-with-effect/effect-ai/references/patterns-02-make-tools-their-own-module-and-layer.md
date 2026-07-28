@@ -52,7 +52,7 @@ Guidelines:
 - Prefer branded IDs and domain schemas for parameters and outputs.
 - A toolkit handler may depend on other services; provide those through its Layer.
 - Use `Tool.providerDefined` or provider packages such as `OpenAiTool.WebSearch` for provider-side tools. Do not add a local handler for tools that the provider executes server-side.
-- Use `needsApproval` for tools that can mutate state, disclose sensitive data, or perform high-cost operations. A static boolean is best for always-dangerous tools; a predicate is appropriate when risk depends on decoded parameters.
+- Use the `needsApproval` option or `Tool.setNeedsApproval(...)` for tools that can mutate state, disclose sensitive data, or perform high-cost operations. A static boolean is best for always-dangerous tools; a predicate is appropriate when risk depends on decoded parameters and the tool-call context.
 - Use `disableToolCallResolution: true` only when another part of the system intentionally owns the tool execution loop.
 
 ### Test with fake models and fake boundaries
@@ -69,19 +69,34 @@ export const withTestLanguageModel = dual(
   <A, E, R>(
     effect: Effect.Effect<A, E, R>,
     options: {
-      readonly generateText?: ReadonlyArray<Response.PartEncoded>;
-      readonly streamText?: ReadonlyArray<Response.StreamPartEncoded>;
+      readonly generateText?:
+        | Array<Response.PartEncoded>
+        | ((options: LanguageModel.ProviderOptions) =>
+            | Array<Response.PartEncoded>
+            | Effect.Effect<Array<Response.PartEncoded>>);
+      readonly streamText?:
+        | Array<Response.StreamPartEncoded>
+        | ((options: LanguageModel.ProviderOptions) =>
+            | Array<Response.StreamPartEncoded>
+            | Stream.Stream<Response.StreamPartEncoded>);
     },
   ): Effect.Effect<A, E, Exclude<R, LanguageModel.LanguageModel>> =>
     Effect.provideServiceEffect(
       effect,
       LanguageModel.LanguageModel,
       LanguageModel.make({
-        generateText: () => Effect.succeed(options.generateText ?? []),
-        streamText: () =>
-          Predicate.isUndefined(options.streamText)
-            ? Stream.empty
-            : Stream.fromIterable(options.streamText),
+        generateText: (providerOptions) => {
+          if (Predicate.isUndefined(options.generateText)) return Effect.succeed([]);
+          if (Array.isArray(options.generateText)) return Effect.succeed(options.generateText);
+          const result = options.generateText(providerOptions);
+          return Effect.isEffect(result) ? result : Effect.succeed(result);
+        },
+        streamText: (providerOptions) => {
+          if (Predicate.isUndefined(options.streamText)) return Stream.empty;
+          if (Array.isArray(options.streamText)) return Stream.fromIterable(options.streamText);
+          const result = options.streamText(providerOptions);
+          return Array.isArray(result) ? Stream.fromIterable(result) : result;
+        },
       }),
     ),
 );
@@ -144,9 +159,10 @@ const retryTransientAi = <A, R>(effect: Effect.Effect<A, AiError.AiError, R>) =>
   effect.pipe(
     Effect.retry({
       while: (error) => error.isRetryable,
-      schedule: Schedule.exponential(Duration.millis(200)).pipe(
-        Schedule.intersect(Schedule.recurs(3)),
-      ),
+      schedule: Schedule.max([
+        Schedule.exponential(Duration.millis(200)),
+        Schedule.recurs(3),
+      ]),
     }),
   );
 ```

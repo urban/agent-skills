@@ -28,8 +28,7 @@ export const ScoreQueue = DurableQueue.make({
   idempotencyKey: ({ id }) => id,
 });
 
-export const ScoreWorkflow = Workflow.make({
-  name: "ScoreWorkflow",
+export const ScoreWorkflow = Workflow.make("app/assessment/ScoreWorkflow", {
   payload: {
     id: Schema.String,
     rawScore: Schema.Number,
@@ -97,8 +96,7 @@ export interface AssessmentWorkflowServiceShape {
   ) => Effect.Effect<Option.Option<Workflow.Result<void, AssessmentWorkflowError>>, never>;
 }
 
-export const AssessmentWorkflow = Workflow.make({
-  name: "AssessmentWorkflow",
+export const AssessmentWorkflow = Workflow.make("app/assessment/AssessmentWorkflow", {
   payload: {
     assessmentId: Schema.String,
     recordingId: Schema.String,
@@ -149,8 +147,7 @@ import { Layer, Schema } from "effect";
 import { HttpApi, HttpApiBuilder } from "effect/unstable/httpapi";
 import { Workflow, WorkflowProxy, WorkflowProxyServer } from "effect/unstable/workflow";
 
-const NotifyWorkflow = Workflow.make({
-  name: "NotifyWorkflow",
+const NotifyWorkflow = Workflow.make("app/notifications/NotifyWorkflow", {
   payload: {
     id: Schema.String,
     to: Schema.String,

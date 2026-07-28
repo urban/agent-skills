@@ -50,7 +50,7 @@ Example pattern:
 
 ### Use scoped acquisition for owned resources
 
-If a service owns a resource with a lifetime, acquire and release it in the layer with `Effect.acquireRelease`, `Layer.scoped`, or an effect passed to `Layer.effect` that contains acquisition and finalization.
+If a service owns a resource with a lifetime, use `Effect.acquireRelease` inside the effect passed to `Layer.effect`; the layer supplies and owns the acquisition scope.
 
 ```ts
 import { Context, Effect, Layer } from "effect";
@@ -64,7 +64,7 @@ export class TestHarnessService extends Context.Service<TestHarnessService, Test
   "app/testing/TestHarness",
 ) {}
 
-const makeTestHarness: Effect.Effect<TestHarness> = Effect.acquireRelease(
+const makeTestHarness = Effect.acquireRelease(
   Effect.sync(() => ({
     run: Effect.void,
     close: Effect.void,
@@ -96,7 +96,7 @@ export class TodoRepoTestRef extends Context.Service<
 >()("app/TodoRepoTestRef") {
   static readonly layer: Layer.Layer<TodoRepoTestRef> = Layer.effect(
     TodoRepoTestRef,
-    Ref.make(Array.empty<Todo>()),
+    Ref.make<ReadonlyArray<Todo>>(Array.empty<Todo>()),
   );
 }
 

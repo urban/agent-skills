@@ -15,11 +15,17 @@ Effect's own tests use `NodeHttpServer.layerTest`, `HttpRouter.serve`, `HttpServ
 ```ts
 import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import { Context, Effect, Layer, Predicate, Schema, Scope } from "effect";
-import { HttpClient, HttpRouter, HttpServer, HttpServerResponse } from "effect/unstable/http";
+import {
+  HttpClient,
+  HttpRouter,
+  HttpServer,
+  HttpServerError,
+  HttpServerResponse,
+} from "effect/unstable/http";
 
 export class TestServerAddressError extends Schema.TaggedErrorClass<TestServerAddressError>()(
   "TestServerAddressError",
-  { address: Schema.Defect },
+  { address: Schema.Defect() },
 ) {}
 
 export interface TestHttpServer {
@@ -30,7 +36,11 @@ export interface TestHttpServer {
 
 export const serveRoutes = (
   routes: readonly HttpRouter.Route<never, never>[],
-): Effect.Effect<TestHttpServer, TestServerAddressError, Scope.Scope> =>
+): Effect.Effect<
+  TestHttpServer,
+  TestServerAddressError | HttpServerError.ServeError,
+  Scope.Scope
+> =>
   Effect.gen(function* () {
     const context = yield* Layer.build(
       Layer.fresh(
@@ -44,7 +54,7 @@ export const serveRoutes = (
     const server = Context.get(context, HttpServer.HttpServer);
     const address = server.address;
     if (!Predicate.isTagged(address, "TcpAddress")) {
-      return yield* new TestServerAddressError(address);
+      return yield* new TestServerAddressError({ address });
     }
 
     const client = Context.get(context, HttpClient.HttpClient);

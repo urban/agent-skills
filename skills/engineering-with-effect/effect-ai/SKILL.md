@@ -24,7 +24,7 @@ description: Design and implement Effect AI integrations behind domain services 
 - Do not swallow `AiError.reason` or replace it with a generic error string.
 - Do not retry all AI failures. Use `isRetryable` and reason-specific handling.
 - Do not use tools without schemas. Tool parameters, successes, and expected failures should be modeled explicitly.
-- Do not let unsafe tools execute silently. Use `needsApproval` and policy checks for mutation, external side effects, sensitive reads, and high-cost actions.
+- Do not let unsafe tools execute silently. Use the `needsApproval` option or `Tool.setNeedsApproval(...)` plus policy checks for mutation, external side effects, sensitive reads, and high-cost actions.
 - Do not use `failureMode: "return"` for defects or invariant violations that should stop the request.
 - Do not write live-provider tests for normal behavior. Swap the model, toolkit, HTTP client, process spawner, or gateway binding layer.
 - Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.

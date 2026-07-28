@@ -85,9 +85,9 @@ export const AssessmentHandlers = HttpApiBuilder.group(Api, "assessment", (handl
   ),
 );
 
-export const AssessmentApiLive: Layer.Layer<never, never, VoiceAssessment> = HttpApiBuilder.layer(
-  Api,
-).pipe(Layer.provide(AssessmentHandlers));
+export const AssessmentApiRoutes = HttpApiBuilder.layer(Api).pipe(
+  Layer.provide(AssessmentHandlers),
+);
 ```
 
 Guidelines:

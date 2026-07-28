@@ -15,12 +15,13 @@ Covers:
 
 ## What `Platform` means here
 
-`Platform` code is code that crosses an operating-system or runtime boundary: files, paths, stdio, terminals, child processes, sockets, HTTP servers, workers, and runtime entrypoints.
+`Platform` code is code that crosses an operating-system or runtime boundary: files, paths, cryptography, stdio, terminals, child processes, sockets, HTTP servers, workers, and runtime entrypoints.
 
 Use Effect platform services instead of direct runtime APIs:
 
 - `FileSystem.FileSystem` instead of `node:fs` / `Bun.file` in application behavior.
 - `Path.Path` instead of `node:path` / `pathe` in application behavior.
+- `Crypto.Crypto` instead of runtime-specific crypto APIs in portable application behavior.
 - `ChildProcessSpawner.ChildProcessSpawner` and `ChildProcess.make` instead of `child_process.spawn`.
 - `HttpClient.HttpClient` / `HttpClientResponse.HttpClientResponse` at HTTP boundaries instead of `fetch` / web `Response`.
 - `NodeServices.layer` / `BunServices.layer` only at runtime or test composition edges.
@@ -52,7 +53,7 @@ export class WorkspaceFileSystemError extends Schema.TaggedErrorClass<WorkspaceF
     operation: Schema.String,
     relativePath: Schema.String,
     detail: Schema.String,
-    cause: Schema.optional(Schema.Defect),
+    cause: Schema.optional(Schema.Defect()),
   },
 ) {}
 

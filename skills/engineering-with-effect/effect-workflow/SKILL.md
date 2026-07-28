@@ -6,7 +6,7 @@ description: Model durable Effect workflows with schema-defined payloads, determ
 ## Native Effect Standards
 
 - Treat a workflow as a durable, schema-defined orchestration boundary.
-- Define workflows with `Workflow.make({ name, payload, success, error, idempotencyKey })` at module scope.
+- Define workflows at module scope with `Workflow.make("StableTag", { payload, success, error, idempotencyKey })`. The first argument is the workflow tag and is exposed as `_tag`.
 - Use stable, deterministic idempotency keys derived from the logical payload. Do not use time, random values, counters, or mutable process state.
 - Register behavior with `Workflow.toLayer(...)`. Callers should use `execute`, `poll`, `interrupt`, `resume`, or proxy-generated APIs, not the implementation function directly.
 - Put durable or replay-sensitive side effects behind named primitives: `Activity.make` for retryable encoded steps, `DurableDeferred` for external completion, `DurableClock.sleep` for durable waits, and `DurableQueue` for worker-driven asynchronous work.

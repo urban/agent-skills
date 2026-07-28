@@ -24,7 +24,6 @@ Covers:
 - Pass `Effect.fn` / `Effect.fnUntraced` post-processing combinators as additional arguments to the function constructor.
 - Do not call `.pipe(...)` on the function returned by `Effect.fn`.
 - An `Effect.fnUntraced` that only does `return yield* effect` is not allowed. Write the direct effect expression instead of wrapping it in a generator.
-- Outside generators, yieldables must be converted with `.asEffect()` before piping.
 - In `Effect.gen` methods that need `this`, pass `Effect.gen({ self: this }, function* () { ... })`; do not pass `this` directly as the first argument.
 
 ## Services
@@ -45,7 +44,7 @@ Covers:
 
 ## Layers
 
-- Final live layers such as `Rpc.toLayer`, service layers, and middleware layers must be typed as `Layer.Layer<ProvidedServices>`.
+- Final live layers such as RPC group handler layers, service layers, and middleware layers must be typed as `Layer.Layer<ProvidedServices>`.
 - Intermediate and test-exported layers should infer naturally.
 - Use `Layer.orDie` only on final live compositions whose remaining errors are truly unrecoverable.
 - Prefer composing layers before providing them.
@@ -71,6 +70,7 @@ Covers:
 
 - For forked fibers, use names: `Effect.forkChild`, `Effect.forkDetach`, `Effect.forkScoped`, or `Effect.forkIn`.
 - Do not use removed or renamed v3 forms such as `Effect.fork`, `Effect.forkDaemon`, `Effect.forkAll`, or `Effect.forkWithErrorHandler`.
+- Concurrency options accept a number or `"unbounded"`. Do not use removed `Effect.withConcurrency` or the removed `"inherit"` concurrency value.
 
 ## Causes
 

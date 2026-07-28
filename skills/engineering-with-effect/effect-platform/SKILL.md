@@ -1,6 +1,6 @@
 ---
 name: effect-platform
-description: Implement OS and runtime boundaries with Effect platform services for files, paths, stdio, terminals, child processes, sockets, HTTP runtime adapters, scoped resources, and deterministic tests. Use when code crosses filesystem, path, process, terminal, stdio, socket, worker, HTTP-server, Node, Bun, or runtime-entrypoint boundaries in an Effect codebase.
+description: Implement OS and runtime boundaries with Effect platform services for files, paths, crypto, stdio, terminals, child processes, sockets, HTTP runtime adapters, scoped resources, and deterministic tests. Use when code crosses filesystem, path, cryptography, process, terminal, stdio, socket, worker, HTTP-server, Node, Bun, or runtime-entrypoint boundaries in an Effect codebase.
 ---
 
 ## Native Effect Standards

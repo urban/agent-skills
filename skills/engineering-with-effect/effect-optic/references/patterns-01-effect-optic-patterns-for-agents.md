@@ -70,8 +70,8 @@ interface State {
 const taskDone = (projectIndex: number, taskIndex: number) =>
   Optic.id<State>().key("projects").at(projectIndex).key("tasks").at(taskIndex).key("done");
 
-export const completeTask = (projectIndex: number, taskIndex: number) =>
-  taskDone(projectIndex, taskIndex).replaceResult(true);
+export const completeTask = (projectIndex: number, taskIndex: number) => (state: State) =>
+  taskDone(projectIndex, taskIndex).replaceResult(true, state);
 ```
 
 Use this shape because:

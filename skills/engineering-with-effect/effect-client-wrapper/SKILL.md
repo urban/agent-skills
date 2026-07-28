@@ -15,7 +15,7 @@ Prefer exposing named domain methods. Keep a generic `use` method only as a low-
 - Return service implementations with `MyService.of(...)`.
 - Put the production implementation on `static readonly layer` (lowercase), commonly with `layerNoDeps` when dependencies are composed separately.
 - Define custom errors with `Schema.TaggedErrorClass`.
-- Use `Schema.Defect` for opaque thrown/rejected causes.
+- Use `Schema.Defect()` for opaque thrown/rejected causes.
 - Define Effect-returning functions with `Effect.fn("Name")`; do not create functions that return `Effect.gen(...)`.
 - `Effect.fn` creates a span. Add dynamic metadata with `Effect.annotateCurrentSpan` / `Effect.annotateSpans`.
 - Use `Layer.withSpan(...)` for layer construction tracing.
@@ -33,13 +33,13 @@ import { ThirdPartyClient } from "third-party-sdk"
 export class MyClientInstantiationError extends Schema.TaggedErrorClass<MyClientInstantiationError>()(
   "MyClientInstantiationError",
   {
-    cause: Schema.Defect
+    cause: Schema.Defect()
   }
 ) {}
 
 export class MyClientError extends Schema.TaggedErrorClass<MyClientError>()("MyClientError", {
   operation: Schema.String,
-  cause: Schema.Defect
+  cause: Schema.Defect()
 }) {}
 
 // 2. Define the service shape.
@@ -169,12 +169,10 @@ Use `Schedule` with typed SDK errors. Prefer retrying only errors that are known
 ```typescript
 import { Effect, Schedule } from "effect"
 
-const retryPolicy = Schedule.both(
+const retryPolicy = Schedule.max([
   Schedule.exponential("250 millis"),
   Schedule.recurs(3)
-).pipe(
-  Schedule.jittered
-)
+]).pipe(Schedule.jittered)
 
 const useWithRetry: MyClientService["use"] = Effect.fn("MyClient.use")(
   function*<A>(
@@ -270,7 +268,7 @@ import { Config, Context, Effect, Layer, Redacted, Schema } from "effect"
 export class StripeInstantiationError extends Schema.TaggedErrorClass<StripeInstantiationError>()(
   "StripeInstantiationError",
   {
-    cause: Schema.Defect
+    cause: Schema.Defect()
   }
 ) {}
 
@@ -278,7 +276,7 @@ export class StripeClientError extends Schema.TaggedErrorClass<StripeClientError
   "StripeClientError",
   {
     operation: Schema.String,
-    cause: Schema.Defect
+    cause: Schema.Defect()
   }
 ) {}
 

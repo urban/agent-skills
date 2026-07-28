@@ -20,7 +20,6 @@ import { Effect, Schema } from "effect";
 import { Rpc } from "effect/unstable/rpc";
 
 export class CounterError extends Schema.TaggedErrorClass<CounterError>()("CounterError", {
-  _tag: Schema.tag("CounterError"),
   reason: Schema.Literals(["NegativeAmount", "CounterClosed"]),
   detail: Schema.String,
 }) {}

@@ -114,19 +114,23 @@ Example pattern:
 Effect’s own tests use `TestSchema.Asserts` for exhaustive schema behavior. In application tests, the most important checks are usually semantic:
 
 ```ts
+import { assert, it } from "@effect/vitest";
 import { Effect, Exit, Schema } from "effect";
-import { expect, it } from "vitest";
 
 const decode = Schema.decodeUnknownEffect(PortFromString);
 
-it("rejects ports outside the TCP range", async () => {
-  const exit = await Effect.runPromiseExit(decode("70000"));
-  expect(Exit.isFailure(exit)).toBe(true);
-});
+it.effect("rejects ports outside the TCP range", () =>
+  Effect.gen(function* () {
+    const exit = yield* Effect.exit(decode("70000"));
+    assert(Exit.isFailure(exit));
+  }),
+);
 
-it("decodes a valid port", async () => {
-  await expect(Effect.runPromise(decode("443"))).resolves.toBe(443);
-});
+it.effect("decodes a valid port", () =>
+  Effect.gen(function* () {
+    assert.strictEqual(yield* decode("443"), 443);
+  }),
+);
 ```
 
 Use parse options when you need specific behavior:
