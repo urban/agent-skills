@@ -1,90 +1,62 @@
 ---
 name: effect-ai
-description: Design and implement Effect AI integrations behind domain services with typed schemas, provider layers, toolkits, streaming output, error mapping, and deterministic tests. Use when adding or refactoring LLM/model behavior, AI tools, structured generation, chat history, model fallback, provider adapters, or tests around Effect AI modules.
+description: Design Effect AI capabilities with domain-owned behavior, provider routing, structured output, tool safety, streaming, retry/fallback policy, and deterministic substitutes. Use when model or tool semantics—not lint syntax—drive the design.
 ---
 
-## Native Effect Standards
+## Rules
 
-- Encapsulate AI behavior behind domain services. Application code should call methods like `scoreAnswer`, `generateThreadTitle`, or `draftFeedback`, not scatter `LanguageModel.generateText` calls through handlers.
-- Keep provider details at the edge. Use `OpenAiLanguageModel.model(...)`, `AnthropicLanguageModel.model(...)`, `Model.make(...)`, or an `ExecutionPlan` in Layers and adapters, not in domain logic.
-- Use `Schema` at every AI boundary: structured output schemas, tool parameter schemas, tool success schemas, prompt input parsing, persisted chat history, and provider response decoding.
-- Prefer `LanguageModel.generateObject` for structured data. Do not ask for JSON and parse it manually in application code.
-- Prefer `Stream.Stream` for partial model output. Do not hand-roll web reader loops for model streaming.
-- Treat tools as capabilities with typed schemas and handlers, not as arbitrary callbacks. Group them with `Toolkit.make` and provide handlers via `toLayer`.
-- Map provider-agnostic `AiError.AiError` to a domain tagged error at the service boundary when callers should not depend on AI internals.
-- Build tests by swapping the `LanguageModel.LanguageModel`, toolkit handler, provider client, or process boundary layer. Tests should not hit live model providers.
-- Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Put product AI behavior behind domain capabilities; provider requests, prompt assembly, and response parts are implementation details unless passthrough is the product.
+- Keep provider/model selection, credentials, transports, and fallback plans at adapter or layer boundaries.
+- Use schemas for structured output and tools; decide what invalid output means for the product.
+- Treat tool approval, failure mode, idempotency, cost, and side effects as explicit policy.
 
-## Anti-Patterns to Avoid
+## Constraints
 
-- Do not call provider SDKs or `fetch` directly from domain services. Use provider Layers and `HttpClient`-backed clients.
-- Do not parse model JSON with `JSON.parse` in application code. Use `LanguageModel.generateObject` or `Schema.fromJsonString(...)` at a boundary.
-- Do not expose raw provider request/response shapes from product services unless the product feature is explicitly a provider passthrough.
-- Do not hard-code provider/model selection deep inside behavior. Keep it in config, registry, model Layer, or `ExecutionPlan`.
-- Do not swallow `AiError.reason` or replace it with a generic error string.
-- Do not retry all AI failures. Use `isRetryable` and reason-specific handling.
-- Do not use tools without schemas. Tool parameters, successes, and expected failures should be modeled explicitly.
-- Do not let unsafe tools execute silently. Use the `needsApproval` option or `Tool.setNeedsApproval(...)` plus policy checks for mutation, external side effects, sensitive reads, and high-cost actions.
-- Do not use `failureMode: "return"` for defects or invariant violations that should stop the request.
-- Do not write live-provider tests for normal behavior. Swap the model, toolkit, HTTP client, process spawner, or gateway binding layer.
-- Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.
-- Do not invent generic `UnknownError`, `InternalError`, or stringly failures when the pattern calls for precise tagged errors.
+- Effect AI is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
+- Never allow a model to authorize its own sensitive read, mutation, external side effect, or high-cost action.
+- Retry and provider fallback require semantic equivalence and must not duplicate non-idempotent tool effects.
+- Raw prompts, outputs, credentials, and tool payloads require explicit privacy and telemetry decisions.
 
 ## Knowledge Boundaries
 
-Design facts this knowledge expects the agent to consider:
-
-- the domain AI behavior and caller-facing service API
-- provider/model selection requirements, tool policy, and schema contracts
-- streaming, chat, or structured-output expectations
-- test boundaries for fake models, tool handlers, provider clients, or HTTP clients
-
-Effect-native code should tend toward:
-
-- domain-shaped AI services and layers
-- schemas for prompts, structured outputs, tools, and persisted history
-- provider routing and fallback isolated at the edge
-- tests that replace model/provider/tool boundaries instead of hitting live providers
-
 Applies to:
 
-- applying Effect AI patterns to implementation, refactoring, review, or tests
-- preserving typed Effect success, error, and context channels
-- keeping runtime-specific or external-system concerns at explicit boundaries
+- domain AI service design and provider routing
+- structured generation, chat history, streaming parts, and toolkits
+- AI error taxonomy, retry/fallback, approval, and deterministic tests
 
 Does not cover:
 
-- broad rewrites outside the user-requested behavior
-- replacing project conventions without evidence from local code or the bundled reference
-- live external integrations in normal tests unless the task is explicitly an integration smoke test
+- provider SDK syntax without product-level behavior
+- generic Schema, Stream, HTTP, or Layer rules
 
-Failure modes this knowledge helps avoid:
+Decision inputs:
 
-- leaking low-level Effect or provider/runtime details through domain APIs
-- flattening typed errors, causes, or schema failures into unstructured strings
-- writing tests that depend on live services, wall-clock timing, or implementation internals
+- caller-facing behavior and acceptable model variance
+- provider portability and fallback guarantees
+- tool risk, replay safety, and approval authority
+- persisted history and privacy requirements
 
-## Best-Practice Patterns
+## Patterns
 
-- Bundled `references/patterns-*` files contain source-pattern detail for implementing non-trivial AI behavior or changing provider/tool wiring.
-- Define the domain service API first; hide prompts, raw provider request shapes, response parts, and model-specific configuration unless the feature is explicitly a provider passthrough.
-- Put provider clients, model selection, `ExecutionPlan`, transports, and credentials in layers or provider adapters.
-- Model every AI boundary with `Schema`, prefer `LanguageModel.generateObject` for structured data, and use `Stream` for partial output.
-- Model tools with `Tool.make`, `Toolkit.make`, typed success/failure schemas, handlers in layers, and explicit approval policy for risky tools.
-- Map `AiError.AiError` to domain tagged errors at service boundaries while preserving semantic reasons and retryability.
-- Test through the service API with fake language models, toolkit handlers, provider HTTP clients, process boundaries, and `TestClock` for delayed streams/tools.
+- Separate three decisions: the domain service decides what behavior is needed, routing decides which configured model can perform it, and the provider adapter decides how to call it.
+- Prefer structured generation when downstream behavior depends on fields. Validate, normalize, and apply domain checks after model decoding.
+- Stream domain-relevant deltas or events, not provider-specific response parts, unless the caller is a provider adapter.
+- Define tools as protocols: parameter schema, success schema, expected failure schema, handler layer, approval rule, and failure mode.
+- Preserve semantic AI failure reasons when callers distinguish authentication, quota, policy, invalid input/output, transient provider failure, or tool failure.
+- Test prompts and behavior through fake language models and tool handlers; assert normalized outputs, tool calls/results, approval, error mapping, and stream order.
 
 ## Gotchas
 
-- If model calls are scattered through handlers, prompt text and provider details become the product API and later provider swaps become rewrites. Put behavior behind a domain service first.
-- If structured data is requested as JSON and parsed manually, invalid output turns into ad hoc bugs and lost diagnostics. Use `LanguageModel.generateObject` or schema decoding at the boundary.
-- If provider selection happens inside domain behavior, tests and fallback policy become tangled with prompts. Move selection into layers, registries, or `ExecutionPlan`.
-- If tool callbacks lack schemas and approval policy, the model can invoke unsafe or malformed capabilities silently. Define tools as typed capabilities with `needsApproval` where risk exists.
-- If all AI errors are collapsed to strings, callers cannot distinguish retryable rate limits from authentication, quota, or policy failures. Preserve `AiError.reason` in a domain error.
-- If tests hit live providers for normal behavior, the suite becomes slow, flaky, and expensive. Swap the language model, toolkit, provider client, or transport layer.
+- Scattered model calls turn prompt text and provider response shape into accidental product API.
+- Schema-valid output can still violate product invariants; validate semantic constraints after generation.
+- Provider fallback after tools have run can repeat side effects; fallback boundaries must account for completed tool calls.
+- Returning a tool failure to the model is recovery policy, not generic error handling; defects and permission failures usually must stop the operation.
+- Collapsing AI failures to one string prevents correct retry, setup, moderation, and quota UX.
+- Live-provider tests measure availability and model drift, not deterministic application behavior.
 
 ## References
 
-- [`references/patterns-01-effect-ai-patterns-for-agents.md`](./references/patterns-01-effect-ai-patterns-for-agents.md): Read when: you need source-pattern detail for Effect AI patterns for agents, First principles, Behavior encapsulation.
-- [`references/patterns-02-make-tools-their-own-module-and-layer.md`](./references/patterns-02-make-tools-their-own-module-and-layer.md): Read when: you need source-pattern detail for Make tools their own module and Layer, Test with fake models and fake boundaries, Error handling patterns.
-- [`references/patterns-03-what-to-avoid.md`](./references/patterns-03-what-to-avoid.md): Read when: you need source-pattern detail for What to avoid.
+- [`references/domain-model-and-routing.md`](./references/domain-model-and-routing.md): Read when: designing an AI service, model/provider routing, structured output, chat, or streaming.
+- [`references/tools-errors-and-testing.md`](./references/tools-errors-and-testing.md): Read when: defining tool approval/failure semantics, AI error policy, fallback, or deterministic tests.

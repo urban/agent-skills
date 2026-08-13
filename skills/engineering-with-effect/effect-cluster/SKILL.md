@@ -1,88 +1,62 @@
 ---
 name: effect-cluster
-description: Model stateful per-identity behavior with Effect Cluster entities, typed RPC protocols, runner layers, persistence annotations, proxy adapters, and public-client tests. Use when designing or modifying Cluster entities, entity RPCs, sharding runners, persistent messages, entity proxies, actor-style state, or tests around clustered stateful behavior.
+description: Decide when Effect Cluster entity semantics fit, then design identity, message protocols, state ownership, concurrency, persistence, delivery errors, runners, and public client tests. Use for stateful per-identity behavior, not generic RPC.
 ---
 
-## Native Effect Standards
+## Rules
 
-- Treat Cluster as an actor/entity runtime for stateful, per-identity behavior. Do not use it as a generic RPC wrapper for stateless services.
-- Model the public message protocol with `Rpc.make` and `Schema` before writing handlers. The protocol is the durable boundary.
-- Keep domain behavior behind `Context.Service` services. Entity clients are an infrastructure detail that services can use internally.
-- Use `Entity.make("Name", [rpcs])` for the entity definition and `Entity.toLayer(...)` for the implementation.
-- Prefer `TestRunner.layer` or `Entity.makeTestClient` for tests, `SingleRunner.layer` for local durable single-node workflows, and `NodeClusterSocket.layer` / `NodeClusterHttp.layer` for live runners.
-- Use `ClusterSchema.Persisted` only when the message can be replayed safely and the environment provides `MessageStorage`.
-- Keep error channels precise. Business failures belong in RPC error schemas. Cluster delivery failures are typed as cluster errors such as `MailboxFull`, `AlreadyProcessingMessage`, and `PersistenceError`.
-- Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Use an entity when per-identity state, serialized message handling, passivation, or clustered placement is essential.
+- Define the message protocol before handlers; payload, success, business errors, primary key, and persistence annotations are durable contracts.
+- Keep per-entity state inside entity construction and hide raw sharding/entity clients behind domain capabilities where appropriate.
+- Choose sequential or concurrent handling from state-transition safety, not throughput preference alone.
 
-## Anti-Patterns to Avoid
+## Constraints
 
-- Do not pass `Sharding`, entity clients, `MessageStorage`, or runner internals through domain APIs.
-- Do not use Cluster for stateless CRUD or one-off background tasks when a normal service, queue, or workflow is simpler.
-- Do not keep production entity state in module-level mutable variables. Put per-entity state in `toLayer` and shared dependencies in services.
-- Do not use `Rpc.fork` for handlers that mutate the same state unless the mutation is safe under concurrency.
-- Do not mark RPCs persisted without a storage layer and an idempotency/replay story.
-- Do not throw global `Error` values for expected failures.
-- Do not erase delivery failures into `unknown`, `Error`, or generic `InternalError` types.
-- Do not use wall-clock sleeps in cluster tests unless the test is intentionally live/networked. Prefer `TestClock.adjust(...)`, explicit queues, scoped fibers, and `sharding.pollStorage`.
-- Do not hand-roll socket clients, serialization, shard assignment, or message persistence. Use the provided runner layers and storage modules.
-- Do not edit or import from `.dotai/repos/effect`; it is reference material only.
-- Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.
-- Do not invent generic `UnknownError`, `InternalError`, or stringly failures when the pattern calls for precise tagged errors.
+- Effect Cluster is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
+- Persisted messages require storage, deterministic identity, replay safety, and duplicate-handling policy.
+- Delivery failures and business failures are separate contracts.
+- Fire-and-forget client semantics do not remove server-side durability or error considerations.
 
 ## Knowledge Boundaries
 
-Design facts this knowledge expects the agent to consider:
-
-- entity identity and state ownership model
-- RPC payload, success, error, persistence, and primary-key schemas
-- runner choice for tests, local workflows, or live cluster
-- domain service boundary that should hide raw entity clients
-
-Effect-native code should tend toward:
-
-- typed entity definitions and handler layers
-- domain services that wrap entity clients and map delivery failures
-- runner compositions for test/local/live use
-- tests through public entity clients or domain services
-
 Applies to:
 
-- applying Effect Cluster patterns to implementation, refactoring, review, or tests
-- preserving typed Effect success, error, and context channels
-- keeping runtime-specific or external-system concerns at explicit boundaries
+- entity suitability, identity, state, passivation, and handler concurrency
+- RPC schemas, delivery failures, persistence, primary keys, and transactions
+- test, local, and clustered runner composition
+- domain/proxy adapters and public-client verification
 
 Does not cover:
 
-- broad rewrites outside the user-requested behavior
-- replacing project conventions without evidence from local code or the bundled reference
-- live external integrations in normal tests unless the task is explicitly an integration smoke test
+- stateless RPC, simple queues, or durable orchestration better modeled as workflows
+- generic service and schema syntax
 
-Failure modes this knowledge helps avoid:
+Decision inputs:
 
-- leaking low-level Effect or provider/runtime details through domain APIs
-- flattening typed errors, causes, or schema failures into unstructured strings
-- writing tests that depend on live services, wall-clock timing, or implementation internals
+- state partition key and ownership
+- ordering and concurrency invariants
+- replay/idempotency and persistence guarantees
+- caller response to mailbox, duplicate, persistence, or transport failure
 
-## Best-Practice Patterns
+## Patterns
 
-- Bundled `references/patterns-*` files contain source-pattern detail for designing entity protocols, persistence, proxying, or runner composition.
-- Confirm Cluster is appropriate for stateful per-identity behavior; use a normal service, queue, or workflow for stateless work.
-- Define RPC schemas and business error schemas before handler code; treat the protocol as the durable boundary.
-- Put per-entity mutable state inside `Entity.toLayer` and use sequential handlers unless concurrency is explicitly safe.
-- Wrap entity clients in a domain service and map cluster delivery errors there.
-- Choose persistence annotations only with storage, idempotency, replay, and primary-key semantics understood.
-- Test via `Entity.makeTestClient`, `TestRunner.layer`, or the domain service instead of invoking handler internals.
+- Keep default sequential processing when handlers mutate shared entity state. Fork only read-only or commutative work with explicit safety reasoning.
+- Put business validation failures in RPC schemas. Translate cluster delivery failures at the boundary that can choose retry, backpressure, conflict, or unavailability behavior.
+- Use stable primary keys for commands that must deduplicate or reject duplicate in-flight work.
+- Keep runner, storage, shard configuration, and proxy generation at infrastructure edges.
+- Test through entity clients or domain services. Inspect storage internals only for persistence, replay, deduplication, or transaction semantics.
 
 ## Gotchas
 
-- If Cluster is used as a generic RPC wrapper, actor runtime complexity leaks into stateless CRUD. Use Cluster only when per-identity state and delivery semantics matter.
-- If RPC schemas are written after handlers, accidental implementation shapes become the public protocol. Define the durable message contract first.
-- If state lives in module-level variables, passivation and restart semantics are wrong. Keep per-entity refs, queues, and caches inside `toLayer`.
-- If `Rpc.fork` is used around shared mutable state, handlers can race inside one entity. Keep default sequential processing unless the operation is safe concurrently.
-- If persisted RPCs lack `MessageStorage` or replay idempotency, recovery becomes invalid or defects at runtime. Add persistence only with storage and duplicate-handling policy.
-- If delivery failures are erased into `UnknownError`, callers cannot react to mailbox, duplicate, or persistence problems. Map cluster errors explicitly at the service boundary.
+- Using Cluster as a generic RPC wrapper adds placement, mailbox, passivation, and delivery complexity without stateful benefit.
+- Module-level state survives and shares differently from entity state, breaking passivation and restart assumptions.
+- Forking stateful handlers introduces races within one identity despite actor-style expectations.
+- Persistence without idempotent effects replays external side effects after retries or recovery.
+- Mapping mailbox-full and duplicate-processing to one internal error prevents callers from applying backpressure or conflict handling.
+- Handler-only tests miss serialization, entity identity, mailbox, and delivery behavior.
 
 ## References
 
-- [`references/patterns-01-effect-cluster-patterns-for-agents.md`](./references/patterns-01-effect-cluster-patterns-for-agents.md): Read when: you need source-pattern detail for Effect Cluster patterns for agents, First principles, Behavior encapsulation.
-- [`references/patterns-02-put-business-errors-in-rpc-schemas.md`](./references/patterns-02-put-business-errors-in-rpc-schemas.md): Read when: you need source-pattern detail for Put business errors in RPC schemas, Map cluster delivery errors at the boundary, Treat defects as defects.
+- [`references/entity-protocols-and-state.md`](./references/entity-protocols-and-state.md): Read when: deciding entity suitability, message schemas, state ownership, concurrency, or passivation.
+- [`references/persistence-delivery-and-runners.md`](./references/persistence-delivery-and-runners.md): Read when: choosing persistence, primary keys, delivery-error mapping, proxies, runner layers, or tests.

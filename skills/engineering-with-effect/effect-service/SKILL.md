@@ -1,93 +1,60 @@
 ---
 name: effect-service
-description: Design Effect Context.Service boundaries with small domain contracts, dependency capture, typed errors, layers, scoped resources, test services, and modern service access patterns. Use when creating, refactoring, or reviewing Effect services, service shapes, layers, dependency access, error contracts, test doubles, or migration away from older Context APIs.
+description: Design Effect service boundaries that hide implementation dependencies while exposing stable domain capabilities, actionable failures, and intentional resource ownership. Use when the primary task is shaping an application capability, dependency capture, or replaceability and no narrower integration skill applies.
 ---
 
-## Native Effect Standards
+## Rules
 
-- Use `Context.Service` for new services. Do not use old v3 APIs such as `Context.Tag`, `Context.GenericTag`, `Effect.Tag`, or `Effect.Service`.
-- Prefer class syntax for application services: `export class Thing extends Context.Service<Thing, ThingShape>()("pkg/path/Thing") {}`.
-- Treat the service class as both the dependency key and an Effect. `const thing = yield* Thing` reads the implementation from the current fiber context.
-- Treat the service shape as the public capability contract. Keep it small, domain-oriented, and stable.
-- Use stable, package-scoped identifiers such as `"app/process/ProcessRunner"`, `"@app/plugin-openapi/OpenApiExtensionService"`, or `"app/State"`.
-- Build implementations with `Thing.of({ ... })`. `of` just returns the implementation shape; resource acquisition, dependency capture, validation, and error mapping belong in `make`, `Layer.effect`, or private helpers.
-- A `make` option on `Context.Service` stores a constructor effect, but it does not create a layer. Define `static readonly layer = Layer.effect(this, this.make)` or an exported `layer` yourself.
-- In this project, use `Effect.fnUntraced` for effectful wrappers unless spans are required. Use `Effect.fn` only when the method should create spans.
-- Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Define a service around one coherent capability owned by a domain or integration boundary.
+- Make the public shape describe what callers can do, not the client, repository, runtime, or state used to do it.
+- Capture implementation dependencies during service construction unless pass-through requirements are intentionally part of the capability.
+- Expose only failures callers can handle; translate provider and platform failures at the boundary where their meaning is known.
 
-## Anti-Patterns to Avoid
+## Constraints
 
-- Do not create giant service bags. Split by behavior boundary and compose layers.
-- Do not pass service implementations as function arguments. Yield required services from context inside effect bodies.
-- Do not expose low-level dependencies through high-level service shapes unless callers truly need them.
-- Do not create stateful globals outside layers. Use `Layer`, `Ref`, `Queue`, `PubSub`, `Scope`, and finalizers so tests can replace and tear down services safely.
-- Do not use `Context.Service(..., { make })` expecting it to auto-wire dependencies or create a layer.
-- Do not use direct `JSON.parse` / `JSON.stringify` at implementation boundaries. Use `Schema.fromJsonString(...)` codecs.
-- Do not use web `fetch` / `Response` at package boundaries. Prefer first-party Effect HTTP services.
-- Do not expose generic failures like `XFailed`, `UnknownError`, or `InternalError` from service methods.
-- Do not use `Effect.orDie`; handle typed errors with `Effect.catchTag` / `Effect.catchTags`, then `Effect.die` only for genuinely unrecoverable failures.
-- Do not erase errors with `unknown`, `any`, broad catches, or untyped defects.
-- Do not use non-null assertions or type assertions in service shapes or implementations.
-- Do not overuse `Service.use` for workflows. Prefer `yield* Service` in `Effect.gen`.
-- Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.
-- Do not invent generic `UnknownError`, `InternalError`, or stringly failures when the pattern calls for precise tagged errors.
+- A service must remain replaceable without reproducing its implementation details in callers or tests.
+- Resource acquisition and release belong to the layer that constructs the service, not to unrelated call sites.
+- A low-level `use` escape hatch is acceptable only when wrapping the full surface is impractical and leaking the client is an explicit tradeoff.
 
 ## Knowledge Boundaries
 
-Design facts this knowledge expects the agent to consider:
-
-- capability boundary and domain operations
-- dependencies, resources, and external systems owned by the service
-- typed expected failures and error mapping
-- live, no-deps, parameterized, and test layer needs
-
-Effect-native code should tend toward:
-
-- `Context.Service` classes with stable identifiers and small shapes
-- `make`, `layerNoDeps`, live layers, or parameterized layer factories
-- typed domain errors and boundary error mapping
-- test layers using `Layer.succeed`, `Layer.mock`, `Ref`, or scoped resources
-
 Applies to:
 
-- applying Effect Context.Service patterns to implementation, refactoring, review, or tests
-- preserving typed Effect success, error, and context channels
-- keeping runtime-specific or external-system concerns at explicit boundaries
+- service granularity and public method shape
+- dependency capture versus intentional requirement pass-through
+- constructor effects, live layers, parameterized layers, and test implementations
+- service-level error taxonomy and normalization
 
 Does not cover:
 
-- broad rewrites outside the user-requested behavior
-- replacing project conventions without evidence from local code or the bundled reference
-- live external integrations in normal tests unless the task is explicitly an integration smoke test
+- detailed Layer graph composition or SDK-specific retry semantics
+- repository path rules that happen to require service classes
 
-Failure modes this knowledge helps avoid:
+Decision inputs:
 
-- leaking low-level Effect or provider/runtime details through domain APIs
-- flattening typed errors, causes, or schema failures into unstructured strings
-- writing tests that depend on live services, wall-clock timing, or implementation internals
+- stable domain verbs and invariants
+- dependencies and resources the implementation owns
+- which failure distinctions change caller behavior
+- whether configuration creates one implementation, a family of implementations, or a scoped resource
 
-## Best-Practice Patterns
+## Patterns
 
-- Bundled `references/patterns-*` files contain source-pattern detail for adding service classes, service layers, test doubles, or error contracts.
-- Define a small domain-shaped service contract before choosing dependencies or implementation details.
-- Use `Context.Service` class syntax with stable package-scoped identifiers and `Service.of` to build implementations.
-- Capture dependencies in `make` or `Layer.effect` with `yield* Dependency`; do not pass service instances around manually.
-- Expose `layerNoDeps`, live `layer`, or parameterized layer factories according to composition needs.
-- Map lower-level errors into precise tagged service errors and keep non-actionable defects out of public expected failure channels.
-- Test consumers with small test services or `Layer.mock`, and test implementations through the public service methods.
+- Keep contract, construction, and default wiring distinct enough that tests can replace the boundary and applications can choose runtime dependencies.
+- Capture dependencies once when every method uses the same implementation context. Leave requirements explicit only for reusable lower-level capabilities or request-bound services deliberately supplied by callers.
+- Use parameterized layer factories when configuration or resource identity changes the service instance.
+- Prefer a small full fake for behavior tests. Use partial mocks only when the test intentionally proves that unimplemented capabilities are unreachable.
+- Preserve actionable distinctions such as not-found, conflict, unavailable, rejected, and invalid input; do not mirror every vendor error code in the domain.
 
 ## Gotchas
 
-- If a service shape becomes a giant dependency bag, callers couple to implementation details. Split by behavior boundary and expose domain verbs.
-- If `Context.Service(..., { make })` is assumed to create a layer, dependencies will not be wired. Define `Layer.effect(Service, Service.make)` or an exported layer explicitly.
-- If service implementations are passed as function arguments, context requirements disappear from types and layer replacement gets harder. Yield services inside effects.
-- If raw HTTP, process, file, SQL, or vendor errors leak from high-level services, callers depend on adapter details. Normalize to domain tagged errors.
-- If expected failures use `throw`, rejected promises, or `Effect.orDie`, the type system cannot force handling. Keep expected failures in the Effect error channel.
-- If tests use global mutable mocks, service lifetime and isolation are false. Use layers, `Ref`, `Queue`, scoped resources, or `Layer.mock`.
+- A service shaped like its SDK becomes an alias rather than a boundary; provider changes then propagate through the application.
+- Ad-hoc threading of contextual service implementations hides requirements from composition and makes replacement inconsistent; capture those dependencies in construction. Explicit functional dependency injection remains valid when it is the intended interface.
+- Treating a constructor Effect as an already-wired layer leaves dependencies unresolved and ownership ambiguous; export the layer explicitly.
+- A broad infrastructure error may be typed but still unusable; map only the distinctions callers can act on and retain diagnostic cause data.
+- Shared mutable fake state can survive beyond one test scope; allocate it in a per-test layer unless sharing is the behavior under test.
 
 ## References
 
-- [`references/patterns-01-effect-context-service-patterns-for-agents.md`](./references/patterns-01-effect-context-service-patterns-for-agents.md): Read when: you need source-pattern detail for Effect Context.Service patterns for agents, First principles, Encapsulate behavior behind capabilities.
-- [`references/patterns-02-split-the-contract-from-wiring.md`](./references/patterns-02-split-the-contract-from-wiring.md): Read when: you need source-pattern detail for Split the contract from wiring, Capture dependencies once in make.
-- [`references/patterns-03-use-layer-factories-for-parameterized-resources.md`](./references/patterns-03-use-layer-factories-for-parameterized-resources.md): Read when: you need source-pattern detail for Use layer factories for parameterized resources, Use scoped acquisition for owned resources, Provide small test services.
-- [`references/patterns-04-error-handling-patterns.md`](./references/patterns-04-error-handling-patterns.md): Read when: you need source-pattern detail for Error handling patterns, Accessing services, What to avoid.
+- [`references/service-boundaries.md`](./references/service-boundaries.md): Read when: splitting contract from construction, choosing dependency capture, parameterizing a layer, or designing a service test substitute.
+- [`references/error-boundaries.md`](./references/error-boundaries.md): Read when: mapping dependency errors or deciding whether a failure belongs in the public service contract.
