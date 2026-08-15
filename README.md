@@ -22,7 +22,10 @@ The list below reflects git-tracked `SKILL.md` files.
 
 ### Engineering
 
+- `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
+- `testing-strategy` — confidence-oriented test boundaries, real seams, faithful substitutes, and observable evidence.
 - `typescript` — pragmatic functional TypeScript style and constraints.
+- `typescript-project-hygiene` — compiler, module, configuration, and type-safety hygiene.
 
 ### Engineering with Effect
 
