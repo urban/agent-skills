@@ -7,6 +7,13 @@ For this repo:
 - For `skills/engineering-with-effect/`, treat the skills as knowledge skills that teach current Effect-native authoring standards. Do not add workflow steps, deliverables, or validation checklists to those entrypoints unless the user explicitly asks.
 - Keep `README.md` human-facing and concise.
 
+## Implementation simplicity
+
+- For every TypeScript change, read and follow `skills/engineering/typescript/SKILL.md`.
+- Prefer direct values and native language constructs over helpers, wrappers, or configuration that only rename, concatenate, forward, or copy.
+- Introduce an abstraction only when it names a domain concept, enforces an invariant, hides meaningful complexity, or provides a real variation point. Multiple call sites alone do not justify an abstraction.
+- Before finishing, review changed code for behavior-preserving simplifications: remove obsolete workarounds, redundant conditions, unnecessary annotations or copies, parallel index-based data structures, and helpers whose deletion does not spread meaningful complexity.
+
 ## Static-analysis integrity
 
 - Never silence or bypass TypeScript, OxLint, or Effect diagnostics.

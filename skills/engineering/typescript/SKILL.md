@@ -13,6 +13,7 @@ description: Write TypeScript in a pragmatic functional style with expression-or
 - Prefer compiler inference over redundant annotations for initialized variables and private helpers.
 - Prefer immutable data and non-mutating updates; local mutation is allowed only when fully encapsulated inside an otherwise pure function.
 - Prefer native TypeScript/JavaScript collection methods such as `.map`, `.filter`, `.reduce`, `.flatMap`, `.find`, `.some`, `.every`, `.toSorted`, and `.toReversed` before adding helper wrappers.
+- Prefer the most direct representation of current behavior. Add a helper only when it centralizes meaningful logic, names domain policy, enforces an invariant, or creates a real seam.
 - Use manual currying and partial application when it creates reusable, readable functions; keep data arguments last for curried helpers.
 - Model domain states, variants, absence, and expected failures explicitly with TypeScript types, especially discriminated unions, branded types, generics, and `satisfies`.
 - Use advanced types pragmatically: make illegal states unrepresentable, but do not turn the type system into a puzzle.
@@ -32,6 +33,7 @@ description: Write TypeScript in a pragmatic functional style with expression-or
 ## Gotchas
 
 - If you wrap every native array operation in local FP helpers, the code starts serving a style guide instead of the problem. Use `.map`, `.filter`, `.reduce`, and friends directly until a curried helper removes real repetition or improves a call site.
+- If a helper only joins constants, forwards arguments, aliases a native operation, or preserves a workaround that is no longer needed, readers must inspect two places without gaining leverage. Inline it; multiple call sites alone do not justify the indirection.
 - If you annotate every helper return type, refactors become noisy and brittle because implementation details are copied into signatures. Annotate public exports as contracts and let private helpers infer unless recursion or unclear unions require help.
 - If you use `throw` for expected validation or domain failures, callers lose the failure mode in the type and agents later forget to handle it. Return a discriminated union that names the failure instead.
 - If you reach for `any` to make TypeScript stop complaining, you erase the exact safety this style depends on and downstream code becomes untyped by infection. Use `unknown` plus narrowing or improve the generic constraint.
