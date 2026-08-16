@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "isolatedDeclarations": false,
+    "noEmit": true,
+    "tsBuildInfoFile": "./dist/tsconfig.tools.tsbuildinfo"
+  },
+  "files": [],
+  "include": ["vitest.config.ts", "vitest.setup.ts", "oxlint.config.ts", "oxfmt.config.ts"]
+}
