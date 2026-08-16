@@ -1,3 +1,8 @@
+# Ralph loop
+/.ralph-tm/HANDOFF.md
+/.ralph-tm/HANDOFF.md.tmp
+/.ralph-snapshot-*/
+
 # Misc
 .agents/
 .DS_Store
