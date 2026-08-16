@@ -13,12 +13,16 @@
     "./bin": null
   },
   "scripts": {
-    "check": "bun run format && bun run lint && bun run typecheck && bun run test",
-    "format": "oxfmt -c ./oxfmt.config.ts",
-    "lint": "oxlint --fix --tsconfig tsconfig.json -c ./oxlint.config.ts .",
-    "prepare": "effect-tsgo patch --oxlint",
-    "test": "vitest run",
-    "typecheck": "tsc -b"
+    "check": "bun run check:static-analysis && bun run format && bun run lint && bun run typecheck && bun run test",
+    "build": "tsc -b",
+    "check:static-analysis": "bun run scripts/static-analysis-source.ts",
+    "format": "oxfmt --check -c ./oxfmt.config.ts",
+    "format:fix": "oxfmt --write -c ./oxfmt.config.ts",
+    "lint": "oxlint --tsconfig tsconfig.json -c ./oxlint.config.ts .",
+    "lint:fix": "oxlint --fix --tsconfig tsconfig.json -c ./oxlint.config.ts .",
+    "prepare": "effect-tsgo patch --oxlint && lefthook install",
+    "test": "vitest run && bun run test/bootstrap-process.ts",
+    "typecheck": "tsc -p tsconfig.src.json --noEmit --composite false --incremental false && tsc -p tsconfig.test.json --noEmit --composite false --incremental false && tsc -p tsconfig.bun-test.json --noEmit --composite false --incremental false && tsc -p tsconfig.tools.json --noEmit --composite false --incremental false && tsc -p tsconfig.scripts.json --noEmit --composite false --incremental false"
   },
   "dependencies": {
     "@effect/platform-bun": "4.0.0-rc.108",
@@ -29,6 +33,8 @@
     "@effect/tsgo": "0.36.4",
     "@effect/vitest": "4.0.0-rc.108",
     "@types/bun": "^1.3.13",
+    "lefthook": "2.1.10",
+    "oxc-parser": "0.144.0",
     "oxfmt": "0.49.0",
     "oxlint": "1.77.0",
     "oxlint-tsgolint": "7.0.2001",

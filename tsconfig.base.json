@@ -4,8 +4,8 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
-    "lib": ["ESNext"],
-    "types": ["bun"],
+    "lib": ["ESNext", "DOM"],
+    "types": [],
     "moduleResolution": "Bundler",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
@@ -16,7 +16,7 @@
     "allowUnusedLabels": false,
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedDeclarations": true,
+    "noCheck": false,
     "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
@@ -26,7 +26,7 @@
     "noUncheckedSideEffectImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "useUnknownInCatchVariables": true,
     "plugins": [
       {

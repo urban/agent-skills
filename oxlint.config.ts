@@ -3,6 +3,8 @@ import { defineConfig } from "oxlint";
 
 export default defineConfig({
   extends: [correctness, antipattern, effectNative, style],
+  env: { builtin: true },
+  globals: { Bun: "readonly", URL: "readonly" },
   ignorePatterns: [
     "**/dist/**",
     "**/build/**",

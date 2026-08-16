@@ -2,12 +2,10 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "isolatedDeclarations": false,
     "noEmit": true,
     "rootDir": ".",
     "tsBuildInfoFile": "./dist/tsconfig.test.tsbuildinfo"
   },
-  "references": [{ "path": "./tsconfig.src.json" }],
   "files": [],
-  "include": ["test/**/*.ts"]
+  "include": ["test/**/*.test.ts", "scripts/static-analysis-source-core.ts", "src/main.ts"]
 }
