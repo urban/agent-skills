@@ -7,6 +7,7 @@ These skills are intended to be used with the [`dotai` CLI](https://github.com/u
 ## Sibling skills
 
 - [effect-ai](./effect-ai/SKILL.md) — Effect AI integrations, provider layers, typed tools, structured generation, streaming output, and tests.
+- [effect-application-architecture](./effect-application-architecture/SKILL.md) — Whole-application Effect topology across ordinary values, services, Layer graphs, composition roots, scopes, and public exports.
 - [effect-atom](./effect-atom/SKILL.md) — Effect Atom state modules, async lifecycles, service-backed data access, React hooks, optimistic updates, and tests.
 - [effect-client-wrapper](./effect-client-wrapper/SKILL.md) — Effect service wrappers around Promise-based third-party SDK clients.
 - [effect-cluster](./effect-cluster/SKILL.md) — Effect Cluster entities, typed RPC protocols, runners, persistence, proxies, actor-style state, and tests.

@@ -15,7 +15,7 @@ Do not duplicate business transitions, authorization rules, or integration orche
 
 Use an ordinary call when work is in-process, short-lived, and needs no recovery after process loss.
 
-Use one database transaction when the required atomic state changes live in one transactional store and can complete without remote calls or long waits.
+Use one database transaction when the required atomic state changes live in one transactional store and can complete without remote calls or long waits. Make race-sensitive decisions from transaction-current reads after establishing the required consistency or writer position; previews and pre-transaction reads do not reserve state.
 
 Use a saga or durable workflow when work spans transaction boundaries and needs one or more of:
 
@@ -40,5 +40,7 @@ For every retried state-changing command, job, message, or workflow step, identi
 - transactional outbox for intended messages or external work
 
 An outbox makes local state and intent atomic; it does not make the eventual external side effect exactly once. The external operation still needs idempotency or deduplication where duplicates matter.
+
+When a commit outcome is unknown, reread authoritative state and reconcile the logical operation before retrying; do not treat uncertainty as proof that no commit occurred.
 
 Compensation reverses a completed business action. It is not evidence that replaying the original action is safe.

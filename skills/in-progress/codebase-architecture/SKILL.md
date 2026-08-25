@@ -1,6 +1,6 @@
 ---
 name: codebase-architecture
-description: Design TypeScript codebases around deep domain and application modules, narrow dependency seams, cohesive adapters, persistence boundaries, thin entrypoints, and explicit transaction or idempotency policy. Use when adding or reshaping modules, services, repositories, adapters, or application flows.
+description: Design framework-neutral TypeScript architecture around deep domain and application modules, narrow dependency seams, cohesive adapters, explicit composition roots, persistence boundaries, thin entrypoints, and transaction or idempotency policy. Use when deciding framework-neutral module boundaries, dependency seams, runtime assembly, persistence ownership, or transaction policy.
 ---
 
 ## Rules
@@ -30,6 +30,7 @@ Applies to:
 - deep module and seam placement
 - domain versus application module responsibilities
 - dependency shape, adapter reuse, and persistence design
+- composition roots, runtime dependency assembly, and resource ownership
 - entrypoint translation, shared authorization, transactions, workflows, and idempotency
 
 Does not cover:
@@ -43,6 +44,7 @@ Decision inputs:
 - established project vocabulary and module conventions
 - invariants and caller decisions the interface must preserve
 - existing adapters and their cohesive reasons to change
+- executable boundaries, configuration sources, and resource lifetimes
 - transaction boundaries, retry sources, durability needs, and external side effects
 
 Failure modes this knowledge helps avoid:
@@ -77,4 +79,5 @@ Failure modes this knowledge helps avoid:
 
 - [`references/modules-and-dependencies.md`](./references/modules-and-dependencies.md): Read when: deciding module depth, domain versus application ownership, class use, dependency injection, or split criteria.
 - [`references/adapters-and-persistence.md`](./references/adapters-and-persistence.md): Read when: reusing or creating an adapter, shaping consumer dependencies, designing repositories, or recording a seam decision.
+- [`references/composition-and-runtime-ownership.md`](./references/composition-and-runtime-ownership.md): Read when: assembling an executable or runtime, deciding who constructs configuration and resources, or hiding infrastructure behind a public application surface.
 - [`references/entrypoints-transactions-and-idempotency.md`](./references/entrypoints-transactions-and-idempotency.md): Read when: sharing behavior across entrypoints, placing authorization, selecting transactions versus workflows, or making retries safe.

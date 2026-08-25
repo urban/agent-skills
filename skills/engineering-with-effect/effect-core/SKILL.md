@@ -44,6 +44,7 @@ Route by the primary decision:
 
 | Decision | Specialist |
 | --- | --- |
+| Whole-application topology, composition roots, or public application surface | `effect-application-architecture` |
 | Capability contract or dependency capture | `effect-service` |
 | Construction graph, sharing, or scopes | `effect-layer` |
 | Encoded/domain representation | `effect-schema` |
