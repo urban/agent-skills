@@ -22,7 +22,6 @@ The list below reflects git-tracked `SKILL.md` files.
 
 ### Engineering
 
-- `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 - `testing-strategy` — confidence-oriented test boundaries, real seams, faithful substitutes, and observable evidence.
 - `typescript` — pragmatic functional TypeScript style and constraints.
 - `typescript-project-hygiene` — compiler, module, configuration, and type-safety hygiene.
@@ -52,6 +51,7 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 ### In progress
 
 - `capture-decisions` — durable Markdown decision logs with rationale, consequences, and risks.
+- `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 
 ## What is specific to this repo
 

@@ -13,7 +13,7 @@ Do not duplicate business transitions, authorization rules, or integration orche
 
 ## Coordination choice
 
-Use an ordinary call when work is in-process, short-lived, and needs no recovery after process loss.
+Use ordinary program flow when no cross-write atomicity or durable process-loss recovery is required. It may include bounded remote I/O.
 
 Use one database transaction when the required atomic state changes live in one transactional store and can complete without remote calls or long waits. Make race-sensitive decisions from transaction-current reads after establishing the required consistency or writer position; previews and pre-transaction reads do not reserve state.
 
@@ -23,8 +23,10 @@ Use a saga or durable workflow when work spans transaction boundaries and needs 
 - compensation
 - resumability or timers
 - human or external completion
-- cross-service coordination
+- cross-service progress or recovery that must survive process loss
 - durable progress and status
+
+Classify coordination by its guarantees, not its API imports. An in-memory Workflow engine is process-scoped orchestration, not a durable workflow.
 
 Never hold a database transaction open during a remote call or long wait. A transaction cannot make the remote side atomic, and holding locks increases contention while preserving the partial-failure problem.
 

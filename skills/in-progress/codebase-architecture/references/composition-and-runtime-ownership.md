@@ -1,14 +1,14 @@
 # Composition and runtime ownership
 
-Use an explicit composition root when an executable or independently started runtime must assemble configuration, dependencies, or managed resources. A library made only of ordinary values and pure functions should leave composition to its caller rather than inventing a runtime boundary.
+Use an explicit, identifiable composition boundary when a runtime ownership domain must assemble configuration, dependencies, or managed resources. A library made only of ordinary values and pure functions should leave composition to its caller rather than inventing a runtime boundary.
 
-## Composition root
+## Composition boundary
 
-Give each executable or runtime one named composition root. It owns runtime assembly: resolve and validate explicit configuration, select concrete infrastructure, construct the dependency graph, acquire managed resources, and run the complete application flow within their lifetimes.
+A conventional executable usually has one named root. Framework-hosted, reactive, command-dispatched, request-, tenant-, or job-scoped applications may combine an outer root with nested or lazily selected graphs. Each boundary owns assembly for one ownership and sharing domain: resolve and validate configuration, select concrete infrastructure, construct the graph complete for that domain, acquire managed resources, and run operations within their lifetimes.
 
-Keep invocation parsing and result publication at the entrypoint edge, and keep business decisions in domain or application modules. The composition root connects those owners; it does not become another place for policy.
+Keep invocation parsing and result publication at the entrypoint edge, and keep business decisions in domain or application modules. Composition connects those owners; it does not become another place for policy.
 
-Construct shared dependencies once for a flow. When one invocation makes several application calls, provide the same configured graph around the whole flow rather than rebuilding it per call. Public operations should not select their own production adapters, read hidden global configuration, or open process-lifetime resources internally.
+Construct long-lived dependencies once per sharing domain. When one invocation makes several application calls, provide the same configured graph around that flow rather than rebuilding it per call. Use nested provision for bounded request-, run-, tenant-, job-, or framework-owned lifetimes. Public operations should not select fixed long-lived production adapters, read hidden global configuration, or open process-lifetime resources internally.
 
 ## Modules and ordinary values
 
@@ -18,9 +18,9 @@ Do not promote every helper, command, callback, or transaction value into a cons
 
 ## Infrastructure ownership
 
-Apply the same boundary to non-storage infrastructure as to persistence. Concrete adapters own provider protocols, filesystem and process access, network clients, queues, telemetry transports, vendor representations, failure translation, and their acquisition or release semantics. The composition root configures and connects those adapters; application modules depend on narrow caller-meaningful capabilities.
+Apply the same boundary to non-storage infrastructure as to persistence. Concrete adapters own provider protocols, filesystem and process access, network clients, queues, telemetry transports, vendor representations, failure translation, and their acquisition or release semantics. The composition boundary configures and connects those adapters; application modules depend on narrow caller-meaningful capabilities.
 
-Make lifetime ownership explicit. The adapter defines what acquisition, sharing, freshness, and cleanup mean, while the composition root determines the scope in which that resource is available.
+Make lifetime ownership explicit. The adapter defines what acquisition, sharing, freshness, and cleanup mean, while the composition boundary determines the scope in which that resource is available.
 
 ## Public surface
 
@@ -30,8 +30,8 @@ A public application operation should remain usable with an alternate complete d
 
 ## Gotchas
 
-- If each public operation constructs its own dependencies, multi-call flows silently use different configuration, caches, clients, or lifetimes. Assemble once around the complete flow.
-- If the composition root contains business branching, alternate entrypoints can bypass policy and wiring becomes difficult to test. Keep the root limited to assembly, lifetime, and invocation.
+- If each public operation constructs its own long-lived dependencies, multi-call flows silently use different configuration, caches, clients, or lifetimes. Assemble once per sharing domain.
+- If a composition boundary contains business branching, alternate entrypoints can bypass policy and wiring becomes difficult to test. Keep composition limited to assembly, lifetime, and invocation.
 - If non-storage clients are created ad hoc inside features, provider errors and cleanup leak into application logic. Give their concrete adapters explicit ownership and compose them at the edge.
 - If transaction-scoped values become global modules, their valid lifetime is obscured and accidental reuse crosses transaction boundaries. Pass them as ordinary scoped values.
 - If concrete adapters or resource handles are public, callers couple to production wiring and cannot replace the application graph cleanly. Export the capability contract while hiding its assembly.

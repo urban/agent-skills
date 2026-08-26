@@ -22,34 +22,34 @@ Pure domain modules do not appear in the Layer graph merely because feature impl
 
 Compose by actual requirements and outputs. Dependencies used only to construct a private feature or facade should disappear from the downstream output. Keep a dependency visible only when another intentional consumer needs it. Operator choice, memoization, freshness, and scoped construction remain Layer-level mechanics rather than application-topology policy.
 
-## Composition roots
+## Composition boundaries
 
-Give each executable or independently started runtime one named composition root. A server, worker, command process, or independently hosted background runtime may each have its own root because each owns a different application lifetime. A repository does not need one global root, and a library of ordinary values should leave runtime composition to its host.
+Give each runtime ownership and sharing domain an explicit, identifiable composition boundary. A conventional server, worker, or command process usually has a named root. Framework-hosted, reactive, command-dispatched, request-, tenant-, or job-scoped applications may combine an outer root with nested or lazily selected graphs. Complete means complete for that ownership domain, not every graph in the executable. A library of ordinary values should leave runtime composition to its host.
 
-The root owns:
+The boundary owns:
 
-- resolving and validating explicit runtime configuration
+- resolving runtime configuration at the appropriate composition or adapter edge
 - selecting concrete infrastructure and runtime adapters
-- constructing the configured application graph
-- opening the scope that owns application resources
-- providing the graph around the complete application program
-- publishing or handing off the program's terminal result at the runtime edge
+- constructing the configured graph for its ownership domain
+- opening or receiving the scope that owns its resources
+- providing that graph around the operations which share it
+- publishing or handing off terminal results at the runtime edge when applicable
 
 It does not own domain transitions, authorization policy, protocol rendering, retry decisions, or feature orchestration.
 
-Construct the graph once per intended sharing domain. If one entrypoint flow invokes several public operations, provide the same graph around the entire flow rather than separately around each call. Long-lived runtimes similarly retain one application scope unless request-, tenant-, or job-specific ownership requires a nested graph with a distinct identity.
+Construct long-lived dependencies once per intended sharing domain. If one entrypoint flow invokes several public operations, provide the same graph around that flow rather than separately around each call. Use nested graphs when request-, run-, tenant-, job-, subscription-, or framework-owned lifetimes need distinct identity and release.
 
 ## Configuration and dependency hiding
 
-Read environment, files, flags, deployment metadata, or host values at an adapter boundary. Decode them into explicit configuration before choosing or parameterizing live Layers. A feature should receive the resulting capability, not repeatedly consult an ambient source.
+Resolve environment, files, flags, deployment metadata, or host values at a composition or adapter edge. Use explicit validated values or typed `Config` consumed during Layer construction. A feature should receive the resulting capability rather than repeatedly consult an ambient source during its operations.
 
 Configuration belongs in the public application contract only when the embedding caller must choose it. Even then, expose the smallest stable configuration required to construct the supported public Layer; keep provider-specific credentials, client options, and migration controls behind infrastructure constructors when callers do not need them.
 
-Capture common implementation dependencies once during Layer construction. Public operations must not provide production Layers internally: internal provision fixes the implementation, can reacquire scoped resources, and prevents a multi-call program from sharing one graph.
+Capture common implementation dependencies once during Layer construction. A composition boundary may build a provider family or scoped router: validated input or application policy may select an already-wired capability or a bounded identity-specific child graph. Feature operations must not construct ad hoc long-lived production adapters or repeatedly reacquire shared resources.
 
 ## Lifetime alignment
 
-The composition root owns the outer application scope, while individual Layers own acquisition and release for the resources they provide. Align each resource with the narrowest correct sharing domain:
+The outer composition boundary owns the application scope, while individual Layers own acquisition and release for the resources they provide. Align each resource with the narrowest correct sharing domain:
 
 - application-wide pools, exporters, and supervised infrastructure live in the application scope
 - tenant- or configuration-specific clients live with that identity

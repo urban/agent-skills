@@ -12,21 +12,11 @@ Do not create a service merely because code belongs to a feature. Pure feature p
 
 One persistence capability should own the database client and complete transaction scope. A transaction-current semantic view supplied to feature policy is usually an ordinary value passed only within the transaction callback. Making that view a globally discoverable service obscures its lifetime and can permit reuse after the transaction closes.
 
-Leave a transaction value contextual only when caller-supplied transaction context is a deliberate and enforced application contract. If it is contextual, its provider must be nested inside the transaction scope rather than included in the long-lived application Layer.
+Leave a transaction value contextual only when caller-supplied transaction context or a framework protocol is a deliberate, enforced contract. Its provider must be nested inside the transaction scope rather than included in the long-lived application Layer.
 
-Concurrency-sensitive decisions still need transaction-current observations. The persistence owner must:
+The same exception applies to other operation-local values required by a framework protocol or dynamic propagation contract: provide them only inside the owning request, run, transaction, tool, or subscription scope. Contextual discoverability must not extend their valid lifetime.
 
-- establish the consistency or writer position required by the operation
-- read and decode authoritative domain facts
-- run the decision against those current facts
-- apply semantic writes only for the chosen commit branch
-- return only the durable meaning guaranteed by the transaction abstraction
-
-A preview or pre-transaction read can inform presentation but does not reserve state and must not replace the transaction-current decision.
-
-Do not keep the transaction scope open across remote calls, durable waits, human interaction, or other long-running work. A Layer can own the client or pool used to start transactions without turning an individual transaction handle into an application-wide capability.
-
-Unknown commit outcome is not evidence of rollback. The persistence capability must preserve enough information for the application to reread authoritative state and reconcile the logical operation before retrying.
+A Layer can own the client or pool used to start transactions without turning an individual transaction handle into an application-wide capability. Consistency, commit uncertainty, retry, and transaction-versus-workflow policy belong to framework-neutral architecture guidance.
 
 ## Other scoped resources
 

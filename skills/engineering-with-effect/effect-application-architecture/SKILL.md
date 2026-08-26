@@ -6,21 +6,20 @@ description: Translate whole-application architecture into Effect topology acros
 ## Rules
 
 - Start from domain and application capabilities, then translate only runtime-bearing capabilities into services and Layer providers.
-- Keep schemas, canonical values, pure policy, immutable intents, and operation-local or transaction-scoped values ordinary unless they have an independent runtime identity.
+- Keep schemas, canonical values, pure policy, immutable intents, and operation-local or transaction-scoped values ordinary unless they have an independent runtime identity or an enforced scoped Context contract.
 - Use public facades to hide private feature topology when that reduces caller burden; expose multiple capabilities when callers genuinely need independently useful surfaces.
-- Give each executable or independently started runtime an explicit composition root that assembles its complete graph and owns its application scope.
-- Resolve configuration at the composition edge, capture implementation dependencies during construction, and hide private services from downstream outputs.
+- Give each runtime ownership and sharing domain an explicit, identifiable composition boundary that assembles the graph complete for that domain and owns its scope.
+- Resolve configuration at the composition or adapter edge, capture implementation dependencies during construction, and hide private services from downstream outputs.
 - Assign transaction, client, process, subscription, and background-fiber lifetime to one clear scope owner; keep transaction-scoped values within the lifetime where their observations remain valid.
-- Provide the complete Effect graph around an entrypoint program once, and make public exports reveal supported capabilities rather than infrastructure topology.
+- Provide long-lived dependencies once per sharing domain, use nested provision for bounded lifetimes, and make public exports reveal supported capabilities rather than infrastructure topology.
 
 ## Constraints
 
-- Do not require one facade, one public service, or one composition root for an entire repository; choose surfaces by caller cohesion and roots by independently started runtime.
+- Do not require one facade, one public service, or one composition root for an entire repository; choose surfaces by caller cohesion and composition boundaries by runtime ownership and sharing.
 - Do not turn every feature, operation, callback, transaction view, or configuration record into a `Context.Service`.
-- Public operations must not choose production adapters, read hidden ambient configuration, or provide their own live Layer graph.
+- Public operations must not choose fixed long-lived production adapters, repeatedly read ambient configuration, or rebuild the application graph; bounded nested provision must stay within its owning scope.
 - Do not export private feature services, concrete adapters, provider clients, transaction handles, resource constructors, or internal configuration merely because they exist in the composed graph.
-- Do not hold a database transaction across remote calls, durable waits, human interaction, or other long-running work.
-- Leave service mechanics, Layer operators, schema codecs, platform APIs, test techniques, telemetry semantics, and durable workflow protocols to their focused specialists.
+- Leave service mechanics, Layer operators, schema codecs, platform APIs, test techniques, telemetry semantics, transaction correctness, and durable workflow protocols to their focused specialists.
 
 ## Knowledge Boundaries
 
@@ -28,7 +27,7 @@ Applies to:
 
 - translating domain and application modules into ordinary values, services, and Layer providers
 - deciding public facade versus private Effect capability topology
-- arranging the application-wide Layer graph, provision scope, and explicit composition roots
+- arranging Layer graphs, provision scopes, and explicit composition boundaries by ownership domain
 - hiding construction requirements and assigning resource or transaction-scoped values to the correct Effect lifetime
 - providing entrypoint programs and designing intentional Effect-facing exports
 
@@ -43,16 +42,16 @@ Decision inputs:
 
 - domain invariants, application use cases, and capabilities callers actually need
 - which values have runtime identity, shared state, replaceability, configuration, or resources
-- executable boundaries, configuration sources, and resource sharing or release domains
+- runtime ownership boundaries, configuration sources, and resource sharing or release domains
 - capability dependency direction and which construction requirements callers must not observe
-- transaction consistency needs and the lifetime of transaction-current values
+- the owner and valid lifetime of transaction-current values
 
 Failure modes this knowledge helps avoid:
 
 - a service-per-function graph that obscures ordinary domain behavior
 - public facades that merely mirror private services or force unrelated capabilities together
 - feature methods that secretly construct production dependencies or open mismatched lifetimes
-- composition roots that contain business policy or get rebuilt for every public call
+- composition boundaries that contain business policy or rebuild long-lived dependencies for every public call
 - public exports that make private infrastructure and transaction machinery contractual
 
 ## Patterns
@@ -66,23 +65,23 @@ Translate the application by semantic role:
 | Coherent capability with replaceability, shared state, configuration, or resources | Service contract plus constructing Layer |
 | Private feature capability | Internal service whose requirements are captured by its Layer |
 | Cohesive caller-facing application surface | Public facade service or public operations over one or more services |
-| Executable/runtime assembly | Named composition root that provides the complete graph once |
+| Runtime assembly | Identifiable composition boundary with a graph complete for its ownership domain |
 
 - Let dependency direction run from public application surfaces through private feature capabilities to infrastructure capabilities; let Layer construction assemble the reverse provider graph.
 - Keep the public Layer output as narrow as the supported application surface. Requirements used to construct it are not automatically outputs.
-- Provide one configured graph around a complete multi-operation Effect program so operations share the intended configuration, clients, caches, and scope.
-- Keep transaction-current views as ordinary callback-scoped values by default; make them contextual only when caller-supplied transaction context is a deliberate, enforced contract.
+- Share one configured graph across a complete multi-operation Effect program when those operations occupy one ownership domain; use nested graphs for request-, run-, tenant-, job-, or framework-owned lifetimes.
+- Keep transaction-current views as ordinary callback-scoped values by default; make them contextual only when a caller or framework protocol deliberately enforces transaction-local Context.
 - Route detailed decisions to the narrow owner: service shape to `effect-service`, graph and lifetime mechanics to `effect-layer`, boundary representations to `effect-schema`, runtime resources to `effect-platform`, evidence to `effect-testing`, telemetry to `effect-opentelemetry`, and durable orchestration to `effect-workflow`.
 
 ## Gotchas
 
 - If every feature function becomes a service, construction noise hides the domain and transaction-scoped values acquire false global identity; keep values ordinary until runtime ownership justifies context.
 - If one public facade is imposed by convention, unrelated callers become coupled and the facade turns into an application-wide method catalog; group only capabilities with a coherent caller-facing contract.
-- If public access functions provide their live dependencies internally, callers cannot share one graph or replace it coherently; provide the graph at the composition root around the whole program.
+- If public access functions rebuild long-lived dependencies internally, callers cannot share one graph or replace it coherently; provide them once at the owning composition boundary and nest only bounded scoped capabilities.
 - If Layer construction embeds business branching, alternate provision paths can change application policy and runtime wiring becomes a second application layer; keep Layers focused on construction and lifetime.
 - If Layer output includes every construction requirement, private adapters become reachable and tests start depending on internals; hide requirements and expose only intentional capabilities.
 - If a transaction-current view is installed as a long-lived service, its validity can outlive the transaction that produced it; pass it as an ordinary scoped value unless context is an enforced part of the transaction API.
-- If an entrypoint provides the graph separately for each public call, equivalent-looking operations can use different clients, caches, or scopes; provide once around the complete Effect program.
+- If an entrypoint rebuilds the long-lived graph for each public call, equivalent-looking operations can use different clients, caches, or scopes; provide once per sharing domain.
 - If an internal module is omitted from package exports but still appears in a public service requirement or return type, the topology leaks through types anyway; close both exports and public contracts.
 
 ## References

@@ -14,6 +14,8 @@ Ordinary shapes commonly include:
 
 A reusable function may still return an `Effect` and declare requirements. That alone does not require a new service. Promote a capability to `Context.Service` when callers need a coherent runtime identity with replaceability, shared state, configuration, owned resources, or construction that captures implementation dependencies.
 
+An operation-local value may be contextual when a framework protocol or dynamic propagation contract requires service lookup. Provide it only inside the owning request, run, transaction, tool, or subscription scope; the exception changes access, not lifetime.
+
 ## Private feature capabilities
 
 A private feature capability coordinates a caller-meaningful use case while hiding infrastructure vocabulary. Its methods speak in domain inputs, outcomes, and expected failures. Its constructing Layer captures repositories, remote protocol services, clocks, identifiers, or other dependencies that are implementation details.
@@ -39,7 +41,7 @@ Choose from caller cohesion and replacement needs, not from a rule that an appli
 
 ## Dependency visibility
 
-Capture implementation requirements while constructing private features and facades. Leave a requirement visible on a public operation only when supplying that capability is intentionally the caller's responsibility, such as request-local context chosen by the caller.
+Capture implementation requirements while constructing private features and facades. Leave a requirement visible on a public operation only when supplying that capability is intentionally the caller's responsibility, such as scoped invocation context chosen by the caller or host protocol.
 
 A service's contextual requirements, method inputs, successes, failures, and returned values all contribute to the public contract. Hiding an internal module from exports is insufficient if a public type still mentions its service or representation.
 
