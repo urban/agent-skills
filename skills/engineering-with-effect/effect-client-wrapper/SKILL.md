@@ -1,337 +1,62 @@
 ---
 name: effect-client-wrapper
-description: Pattern for wrapping third-party SDK clients (Stripe, Resend, AWS, etc.) with Effect. Use when creating Effect services that wrap external libraries with Promise-based APIs. Provides type-safe error handling, automatic tracing, and clean dependency injection via the "use" pattern.
+description: Wrap Promise-based third-party SDK clients behind Effect with narrow capabilities, redacted configuration, actionable error mapping, scoped cleanup, retry/idempotency policy, telemetry boundaries, and deterministic substitutes. Use for Stripe, AWS, Resend, and similar SDK adapters.
 ---
 
-# Effect Client Wrapper Pattern
+## Rules
 
-Wrap third-party SDK clients with an Effect `Context.Service`. Use this when an SDK exposes Promise-based methods (Stripe, Resend, AWS SDK, etc.) and you want typed errors, tracing, configuration, testable layers, and a narrow dependency-injection boundary.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Prefer domain methods over exposing the SDK. Keep a generic client `use` escape hatch only when wrapping the surface is impractical and leakage is deliberate.
+- Construct and configure the SDK inside a layer; keep credentials redacted until the exact constructor/request boundary.
+- Map constructor failures and operation failures separately when startup and request recovery differ.
+- Add retry, telemetry, and cleanup from SDK semantics, not automatically.
 
-Prefer exposing named domain methods. Keep a generic `use` method only as a low-level SDK escape hatch or when the SDK surface is too large to wrap directly.
+## Constraints
 
-## Rules this pattern follows
+- Never include credentials or sensitive provider payloads in errors, spans, logs, or test snapshots.
+- Retry only classified transient failures and only when repeating the operation is safe.
+- If the client owns resources, its layer must own release and define release-failure policy.
 
-- Define services with `Context.Service`.
-- Return service implementations with `MyService.of(...)`.
-- Put the production implementation on `static readonly layer` (lowercase), commonly with `layerNoDeps` when dependencies are composed separately.
-- Define custom errors with `Schema.TaggedErrorClass`.
-- Use `Schema.Defect()` for opaque thrown/rejected causes.
-- Define Effect-returning functions with `Effect.fn("Name")`; do not create functions that return `Effect.gen(...)`.
-- `Effect.fn` creates a span. Add dynamic metadata with `Effect.annotateCurrentSpan` / `Effect.annotateSpans`.
-- Use `Layer.withSpan(...)` for layer construction tracing.
-- Use `Config.redacted` and unwrap with `Redacted.value` only at the SDK boundary.
+## Knowledge Boundaries
 
-## Base pattern
+Applies to:
 
-```typescript
-import { Config, Context, Effect, Layer, Redacted, Schema } from "effect"
+- SDK constructor/configuration layers
+- narrow domain methods and generic escape hatches
+- Promise rejection mapping, retryability, idempotency, tracing, and cleanup
+- fake SDK boundaries and adapter tests
 
-// Replace with the real SDK import.
-import { ThirdPartyClient } from "third-party-sdk"
+Does not cover:
 
-// 1. Define schema-backed tagged errors.
-export class MyClientInstantiationError extends Schema.TaggedErrorClass<MyClientInstantiationError>()(
-  "MyClientInstantiationError",
-  {
-    cause: Schema.Defect()
-  }
-) {}
+- native Effect HTTP protocols that should use HttpClient directly
+- generic service or layer syntax
 
-export class MyClientError extends Schema.TaggedErrorClass<MyClientError>()("MyClientError", {
-  operation: Schema.String,
-  cause: Schema.Defect()
-}) {}
+Decision inputs:
 
-// 2. Define the service shape.
-export interface MyClientService {
-  use<A>(
-    operation: string,
-    f: (client: ThirdPartyClient) => Promise<A>
-  ): Effect.Effect<A, MyClientError>
-}
+- SDK surface size and domain abstraction value
+- constructor versus per-operation failure semantics
+- operation idempotency and provider retry hints
+- client lifetime, close/flush behavior, and credential sensitivity
 
-// 3. Define the Context.Service and live layer.
-export class MyClient extends Context.Service<MyClient, MyClientService>()(
-  "myapp/integrations/MyClient"
-) {
-  static readonly layer: Layer.Layer<
-    MyClient,
-    Config.ConfigError | MyClientInstantiationError
-  > = Layer.effect(
-    MyClient,
-    Effect.gen(function*() {
-      const apiKey = yield* Config.redacted("MY_CLIENT_API_KEY")
+## Patterns
 
-      const client = yield* Effect.try({
-        try: () => new ThirdPartyClient({ apiKey: Redacted.value(apiKey) }),
-        catch: (cause) => new MyClientInstantiationError({ cause })
-      })
+- Split the low-level SDK adapter from higher-level domain services when many domains share the client but need different error and response models.
+- Accept one operation descriptor object in a generic escape hatch: operation name, invocation, and safe telemetry metadata. Keep the raw client inside the callback only.
+- Convert Promise rejections at the adapter boundary, preserving opaque cause plus structured provider details that are safe and useful.
+- Add a span only for a meaningful SDK operation; use stable operation names and low-cardinality attributes.
+- Classify transient failures from provider codes/status/retry hints. Bound attempts and backoff, and require idempotency for writes.
+- Provide a fake at the narrow service boundary or a scripted low-level adapter; assert domain calls and mapped outcomes rather than constructing the real SDK.
 
-      const use: MyClientService["use"] = Effect.fn("MyClient.use")(
-        function*<A>(
-          operation: string,
-          f: (client: ThirdPartyClient) => Promise<A>
-        ): Effect.fn.Return<A, MyClientError> {
-          yield* Effect.annotateCurrentSpan({ operation })
+## Gotchas
 
-          return yield* Effect.tryPromise({
-            try: () => f(client),
-            catch: (cause) => new MyClientError({ operation, cause })
-          })
-        }
-      )
+- A generic `use(client => ...)` everywhere leaks SDK request and response types through the application and defeats the boundary.
+- Retrying every rejected Promise can repeat charges, sends, uploads, or mutations.
+- Logging an opaque constructor error may stringify configuration or credentials; sanitize deliberately.
+- Swallowing close/flush failure can lose buffered work, while failing every shutdown can mask the primary application exit; choose policy by resource semantics.
+- Automatic spans around every wrapper can duplicate higher-level domain spans and inflate telemetry.
+- A fake that returns domain values directly can bypass adapter decoding and error mapping; test the adapter separately when those behaviors matter.
 
-      return MyClient.of({ use })
-    })
-  ).pipe(Layer.withSpan("MyClient.layer"))
-}
-```
+## References
 
-## Usage
-
-```typescript
-const program = Effect.gen(function*() {
-  const myClient = yield* MyClient
-
-  const result = yield* myClient.use("someMethod", (client) =>
-    client.someMethod({ param: "value" })
-  )
-
-  return result
-})
-
-program.pipe(Effect.provide(MyClient.layer))
-```
-
-## Named domain methods (preferred)
-
-Expose focused methods when the rest of the application should not know about the SDK shape.
-
-```typescript
-import { Context, Effect, Layer, Schema } from "effect"
-
-export class EmailClientError extends Schema.TaggedErrorClass<EmailClientError>()(
-  "EmailClientError",
-  {
-    reason: MyClientError
-  }
-) {}
-
-export interface EmailClientService {
-  sendEmail(params: SendEmailParams): Effect.Effect<EmailResult, EmailClientError>
-  getEmail(id: string): Effect.Effect<Email, EmailClientError>
-}
-
-export class EmailClient extends Context.Service<EmailClient, EmailClientService>()(
-  "myapp/email/EmailClient"
-) {
-  static readonly layerNoDeps = Layer.effect(
-    EmailClient,
-    Effect.gen(function*() {
-      const sdk = yield* MyClient
-
-      const sendEmail = Effect.fn("EmailClient.sendEmail")(function*(
-        params: SendEmailParams
-      ) {
-        yield* Effect.annotateCurrentSpan({ to: params.to })
-
-        return yield* sdk.use("emails.send", (client) =>
-          client.emails.send(params)
-        ).pipe(
-          Effect.mapError((reason) => new EmailClientError({ reason }))
-        )
-      })
-
-      const getEmail = Effect.fn("EmailClient.getEmail")(function*(id: string) {
-        yield* Effect.annotateCurrentSpan({ id })
-
-        return yield* sdk.use("emails.get", (client) =>
-          client.emails.get(id)
-        ).pipe(
-          Effect.mapError((reason) => new EmailClientError({ reason }))
-        )
-      })
-
-      return EmailClient.of({ sendEmail, getEmail })
-    })
-  )
-
-  static readonly layer = this.layerNoDeps.pipe(
-    Layer.provide(MyClient.layer)
-  )
-}
-```
-
-## Retry policy
-
-Use `Schedule` with typed SDK errors. Prefer retrying only errors that are known to be transient.
-
-```typescript
-import { Effect, Schedule } from "effect"
-
-const retryPolicy = Schedule.max([
-  Schedule.exponential("250 millis"),
-  Schedule.recurs(3)
-]).pipe(Schedule.jittered)
-
-const useWithRetry: MyClientService["use"] = Effect.fn("MyClient.use")(
-  function*<A>(
-    operation: string,
-    f: (client: ThirdPartyClient) => Promise<A>
-  ): Effect.fn.Return<A, MyClientError> {
-    yield* Effect.annotateCurrentSpan({ operation })
-
-    return yield* Effect.tryPromise({
-      try: () => f(client),
-      catch: (cause) => new MyClientError({ operation, cause })
-    }).pipe(
-      Effect.retry(retryPolicy)
-    )
-  }
-)
-```
-
-If only some failures are retryable, add a field to your error (for example `retryable: Schema.Boolean`) and use `Schedule.while(({ input }) => input.retryable)`.
-
-## Clients with lifecycle / cleanup
-
-If the SDK client must be closed, acquire it with `Effect.acquireRelease` inside the layer. Layer acquisition is scoped, so the release action runs when the layer is torn down.
-
-```typescript
-export class MyClient extends Context.Service<MyClient, MyClientService>()(
-  "myapp/integrations/MyClient"
-) {
-  static readonly layer = Layer.effect(
-    MyClient,
-    Effect.gen(function*() {
-      const apiKey = yield* Config.redacted("MY_CLIENT_API_KEY")
-
-      const client = yield* Effect.acquireRelease(
-        Effect.try({
-          try: () => new ThirdPartyClient({ apiKey: Redacted.value(apiKey) }),
-          catch: (cause) => new MyClientInstantiationError({ cause })
-        }),
-        (client) =>
-          Effect.tryPromise(() => client.close()).pipe(
-            Effect.catchCause((cause) => Effect.logWarning("failed to close client", cause))
-          )
-      )
-
-      const use: MyClientService["use"] = Effect.fn("MyClient.use")(
-        function*<A>(
-          operation: string,
-          f: (client: ThirdPartyClient) => Promise<A>
-        ): Effect.fn.Return<A, MyClientError> {
-          yield* Effect.annotateCurrentSpan({ operation })
-          return yield* Effect.tryPromise({
-            try: () => f(client),
-            catch: (cause) => new MyClientError({ operation, cause })
-          })
-        }
-      )
-
-      return MyClient.of({ use })
-    })
-  )
-}
-```
-
-## Test layer
-
-Keep tests independent of the real SDK by providing the same service with a fake implementation.
-
-```typescript
-export const MyClientTest = Layer.succeed(
-  MyClient,
-  MyClient.of({
-    use: Effect.fn("MyClient.useTest")(function*<A>(
-      operation: string,
-      _f: (client: ThirdPartyClient) => Promise<A>
-    ): Effect.fn.Return<A, MyClientError> {
-      return yield* new MyClientError({
-        operation,
-        cause: new Error("No test implementation registered")
-      })
-    })
-  })
-)
-```
-
-For richer tests, store expected responses in a `Ref` service and implement `use` by looking up the requested `operation`.
-
-## Real-world example: Stripe
-
-```typescript
-import Stripe from "stripe"
-import { Config, Context, Effect, Layer, Redacted, Schema } from "effect"
-
-export class StripeInstantiationError extends Schema.TaggedErrorClass<StripeInstantiationError>()(
-  "StripeInstantiationError",
-  {
-    cause: Schema.Defect()
-  }
-) {}
-
-export class StripeClientError extends Schema.TaggedErrorClass<StripeClientError>()(
-  "StripeClientError",
-  {
-    operation: Schema.String,
-    cause: Schema.Defect()
-  }
-) {}
-
-export interface StripeClientService {
-  use<A>(
-    operation: string,
-    f: (stripe: Stripe) => Promise<A>
-  ): Effect.Effect<A, StripeClientError>
-}
-
-export class StripeClient extends Context.Service<StripeClient, StripeClientService>()(
-  "myapp/billing/StripeClient"
-) {
-  static readonly layer = Layer.effect(
-    StripeClient,
-    Effect.gen(function*() {
-      const secretKey = yield* Config.redacted("STRIPE_SECRET_KEY")
-
-      const stripe = yield* Effect.try({
-        try: () => new Stripe(Redacted.value(secretKey)),
-        catch: (cause) => new StripeInstantiationError({ cause })
-      })
-
-      const use: StripeClientService["use"] = Effect.fn("StripeClient.use")(
-        function*<A>(
-          operation: string,
-          f: (stripe: Stripe) => Promise<A>
-        ): Effect.fn.Return<A, StripeClientError> {
-          yield* Effect.annotateCurrentSpan({ operation })
-          return yield* Effect.tryPromise({
-            try: () => f(stripe),
-            catch: (cause) => new StripeClientError({ operation, cause })
-          })
-        }
-      )
-
-      return StripeClient.of({ use })
-    })
-  ).pipe(Layer.withSpan("StripeClient.layer"))
-}
-
-export const createCustomer = Effect.fn("createCustomer")(function*(email: string) {
-  const stripe = yield* StripeClient
-
-  return yield* stripe.use("customers.create", (client) =>
-    client.customers.create({ email })
-  )
-})
-```
-
-## Common pitfalls
-
-- Use `class Name extends Context.Service<Name, ServiceShape>()("app/Name")` for service definitions.
-- Use `Schema.TaggedErrorClass` for typed service errors.
-- Do not expose the raw SDK client unless callers truly need it. Prefer named service methods or a narrow `use` escape hatch.
-- Pass an explicit `operation` string for telemetry and annotate the current span.
-- Do not log `Redacted.value(secret)` or include it in errors/spans.
-- Do not hide layer construction failures. Let configuration and instantiation errors remain in the layer error channel.
+- [`references/adapter-boundary.md`](./references/adapter-boundary.md): Read when: choosing domain methods versus a generic escape hatch, constructing the client, or mapping Promise failures.
+- [`references/retry-lifecycle-and-tests.md`](./references/retry-lifecycle-and-tests.md): Read when: adding retries, idempotency, redaction, telemetry, cleanup, or deterministic substitutes.

@@ -1,92 +1,65 @@
 ---
 name: effect-testing
-description: Test Effect code with @effect/vitest, behavior-first public boundaries, layer replacement, deterministic clocks/fibers/queues, typed error assertions, and in-process integration seams. Use when writing or reviewing tests for Effect services, layers, streams, HTTP APIs, process boundaries, workflows, retries, concurrency, typed failures, or regressions.
+description: Choose cross-cutting Effect test seams and deterministic evidence with layer replacement, logical time, concurrency coordination, typed failures, interruption, and cleanup. Use when those testing decisions are primary; use a protocol specialist for protocol-specific semantics.
 ---
 
-## Native Effect Standards
+## Rules
 
-- Import test APIs from `@effect/vitest` whenever the test runs Effect code.
-- Prefer `it.effect(...)` for normal Effect tests. Return an `Effect`; do not call `Effect.runPromise` inside a test.
-- Use `Effect.gen` for multi-step tests and keep assertions close to the Effect step that produced the value.
-- Test behavior through the same public boundary a caller uses: service methods, typed clients, streams, CLI/process services, or HTTP APIs.
-- Keep production composition intact. Replace only true external boundaries with `Layer.mock`, `Layer.succeed`, in-memory stores, in-process HTTP handlers, or scripted process handles.
-- Use deterministic coordination. Use `TestClock`, `Ref`, `Deferred`, `Queue`, scoped fibers, and in-process handlers instead of sleeps, timers, or uncontrolled external state.
-- Expected failures belong in the typed error channel. Assert tagged errors with `Effect.flip`, `Effect.exit`, or `Effect.result`.
-- Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Test through the public boundary used by a real caller and preserve production composition behind it.
+- Replace only external, expensive, nondeterministic, or destructive boundaries.
+- Coordinate concurrency with Effect test services and synchronization primitives, not elapsed wall time.
+- Assert stable behavioral outcomes, typed failures, protocol effects, and cleanup obligations.
 
-## Anti-Patterns to Avoid
+## Constraints
 
-- Do not import from `vitest` for Effect tests when `@effect/vitest` can run the Effect directly.
-- Do not call `Effect.runPromise` inside `it.effect`.
-- Do not use arbitrary sleeps, timers, real polling, or timing races.
-- Do not mock every dependency. Replace true boundaries only.
-- Do not assert private refs, queues, caches, span names, layer internals, or exact sequencing unless they are the public contract.
-- Do not accidentally share mutable state through `layer(...)`; reset state or build a per-test layer when isolation matters.
-- Do not commit focused/skipped tests such as `it.effect.only` or `it.effect.skip` unless there is an explicit temporary reason.
-- Do not use `any`, non-null assertions, unchecked type assertions, or `null` in new tests.
-- Do not probe errors with ad hoc `_tag` existence checks. Typed Effect error channels should already tell the test what can fail.
-- Do not use `Effect.orDie` or defects for expected failures.
-- Do not parse or stringify JSON in implementation boundaries. Use Schema codecs there; tests may provide encoded fixture strings when the public boundary consumes encoded data.
-- Do not hit real external services in unit or contract tests. Use handler-backed clients, in-process servers, fake process spawners, temporary files, in-memory stores, or clearly marked integration tests.
-- Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.
-- Do not invent generic `UnknownError`, `InternalError`, or stringly failures when the pattern calls for precise tagged errors.
+- A fake must implement the same semantic contract as the boundary it replaces.
+- Shared test layers may share state; choose sharing only when the suite intends it.
+- Live external checks are separately named smoke/integration tests, not normal behavioral tests.
 
 ## Knowledge Boundaries
 
-Design facts this knowledge expects the agent to consider:
-
-- public behavior or regression contract
-- service/API/stream/process/workflow boundary under test
-- external boundaries to replace
-- smallest relevant test command and wider verification scope
-
-Effect-native code should tend toward:
-
-- `@effect/vitest` tests that return Effects
-- focused layer-based test compositions
-- deterministic coordination with test services
-- typed success/failure assertions and regression coverage
-
 Applies to:
 
-- applying Effect testing patterns to implementation, refactoring, review, or tests
-- preserving typed Effect success, error, and context channels
-- keeping runtime-specific or external-system concerns at explicit boundaries
+- selecting unit, contract, in-process integration, and live smoke boundaries
+- layer replacement and state isolation
+- logical time, fibers, queues, deferreds, retries, interruption, and cleanup
+- typed success/failure and regression assertions
 
 Does not cover:
 
-- broad rewrites outside the user-requested behavior
-- replacing project conventions without evidence from local code or the bundled reference
-- live external integrations in normal tests unless the task is explicitly an integration smoke test
+- protocol-specific test semantics owned by HTTP, Stream, Platform, AI, Cluster, Workflow, Atom, Layer, or another specialized skill
+- property-law and generator design owned by `effect-fast-check`
+- mechanically detectable test API misuse
+- testing behavior already guaranteed by the compiler or an unwrapped dependency
 
-Failure modes this knowledge helps avoid:
+Decision inputs:
 
-- leaking low-level Effect or provider/runtime details through domain APIs
-- flattening typed errors, causes, or schema failures into unstructured strings
-- writing tests that depend on live services, wall-clock timing, or implementation internals
+- user-visible or caller-visible contract
+- smallest boundary that reproduces the behavior
+- nondeterministic capabilities to replace
+- coordination point and evidence that the changed path executed
 
-## Best-Practice Patterns
+## Patterns
 
-- Bundled `references/patterns-*` files contain source-pattern detail for designing Effect tests, replacing boundaries, or testing time/concurrency.
-- Use `it.effect`, `it.effect.each`, `it.effect.prop`, `layer`, and `it.layer` for Effect code instead of manually running promises inside tests.
-- Exercise the public caller-visible boundary and replace only true external systems or nondeterministic services.
-- Keep production composition intact and inject fakes through layers, handler-backed clients, fake process spawners, in-memory stores, or scoped fixtures.
-- Use `TestClock`, `Ref`, `Deferred`, `Queue`, scoped fibers, and in-process servers instead of sleeps or global state.
-- Assert expected failures with `Effect.flip`, `Effect.exit`, or `Effect.result`, preserving tagged error channels.
-- Name regression tests after the user-visible contract and broaden verification after focused checks pass.
+- Build the closest public composition that demonstrates the contract, then replace its true external edges with layers, handler-backed clients, fake spawners, or scoped fixtures.
+- Use logical time only after the tested fiber has reached the sleep, timeout, retry, or scheduling point; coordinate readiness explicitly.
+- Assert exact calls only when wire shape or invocation is the contract, such as method/path/body, CLI arguments, idempotency key, or cleanup call.
+- Assert typed failures through the error/result/exit shape that callers observe. Inspect Cause when defect or interruption classification matters.
+- For regression tests, name the broken behavior, reproduce through the public boundary, and assert the stable outcome that prevents recurrence.
+- Escalate verification fidelity when transport, middleware, serialization, lifecycle, or runtime behavior is itself under test.
 
 ## Gotchas
 
-- If Effect tests call `Effect.runPromise`, test services, interruption, and causes can be bypassed. Return the `Effect` from `it.effect`.
-- If every collaborator is mocked, the test proves a fake architecture. Replace only true process, network, time, storage, or external-system boundaries.
-- If tests assert private refs, queues, cache internals, or incidental call order, harmless refactors break the suite. Assert public outcomes and contracts.
-- If timing uses wall-clock sleeps, races hide on fast machines and fail in CI. Use `TestClock`, `yieldNow`, `Deferred`, and scoped fibers.
-- If mutable fake state is shared through a block layer unintentionally, tests pass or fail by order. Build per-test layers or reset backing `Ref`s.
-- If expected failures are turned into defects, tests cannot verify recovery behavior. Keep typed errors and assert tags/reasons directly.
+- Mocking every collaborator proves a duplicate implementation rather than the production graph.
+- Advancing TestClock before a child fiber reaches its timer creates a race disguised as a deterministic test.
+- Sharing a mutable block layer makes tests order-dependent unless state is reset or sharing is intentional.
+- Asserting private refs, queues, cache layout, or incidental call order makes harmless refactors look like regressions.
+- An in-memory fake that ignores uniqueness, ordering, transactions, or interruption can validate behavior the real boundary cannot provide.
+- A green command without observing the returned value, protocol request, emitted event, or cleanup can miss that the changed code never ran.
 
 ## References
 
-- [`references/patterns-01-effect-testing-patterns-for-agents.md`](./references/patterns-01-effect-testing-patterns-for-agents.md): Read when: you need source-pattern detail for Effect testing patterns for agents, First principles, Basic @effect/vitest shape.
-- [`references/patterns-02-modular-testable-services.md`](./references/patterns-02-modular-testable-services.md): Read when: you need source-pattern detail for Modular, testable services, Boundary replacement examples, Process boundary.
-- [`references/patterns-03-time-fibers-and-concurrent-behavior.md`](./references/patterns-03-time-fibers-and-concurrent-behavior.md): Read when: you need source-pattern detail for Time, fibers, and concurrent behavior, HTTP and external integration tests, Error handling patterns.
-- [`references/patterns-04-regression-and-contract-tests.md`](./references/patterns-04-regression-and-contract-tests.md): Read when: you need source-pattern detail for Regression and contract tests, Harness pattern, What to avoid.
+- [`references/public-boundaries-and-layers.md`](./references/public-boundaries-and-layers.md): Read when: choosing the test seam, production composition, fake state, or in-process integration boundary.
+- [`references/time-concurrency-and-cleanup.md`](./references/time-concurrency-and-cleanup.md): Read when: testing timers, retries, fibers, queues, interruption, streams, or finalizers.
+- [`references/failures-and-regressions.md`](./references/failures-and-regressions.md): Read when: asserting typed errors, causes, protocol contracts, or a regression.

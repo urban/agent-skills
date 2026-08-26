@@ -1,91 +1,63 @@
 ---
 name: effect-workflow
-description: Model durable Effect workflows with schema-defined payloads, deterministic idempotency keys, activities, durable deferreds/clocks/queues, engine layers, proxies, compensation, and public API tests. Use when designing or modifying Effect workflows, activities, durable waits, external completions, durable queues, workflow services, workflow HTTP/RPC proxies, compensation, or workflow tests.
+description: Design durable Effect workflows around deterministic identity, replay-safe activities, durable waits and queues, compensation, suspension, engine ownership, proxy semantics, and public API tests. Use when work must survive runner or process lifetime.
 ---
 
-## Native Effect Standards
+## Rules
 
-- Treat a workflow as a durable, schema-defined orchestration boundary.
-- Define workflows at module scope with `Workflow.make("StableTag", { payload, success, error, idempotencyKey })`. The first argument is the workflow tag and is exposed as `_tag`.
-- Use stable, deterministic idempotency keys derived from the logical payload. Do not use time, random values, counters, or mutable process state.
-- Register behavior with `Workflow.toLayer(...)`. Callers should use `execute`, `poll`, `interrupt`, `resume`, or proxy-generated APIs, not the implementation function directly.
-- Put durable or replay-sensitive side effects behind named primitives: `Activity.make` for retryable encoded steps, `DurableDeferred` for external completion, `DurableClock.sleep` for durable waits, and `DurableQueue` for worker-driven asynchronous work.
-- Keep the engine at the infrastructure edge. Use `WorkflowEngine.layerMemory` for local tests and `ClusterWorkflowEngine.layer` when executions must be durable across runners.
-- Use `Effect.fnUntraced` for project workflow bodies unless spans are intentionally needed.
-- Keep behavior behind domain services, layers, schemas, or pure helpers as appropriate because callers should depend on product capabilities, not low-level Effect plumbing.
+- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Treat workflow payload, result, expected failures, and idempotency key as a durable protocol.
+- Keep workflow bodies focused on orchestration; put domain behavior behind services and replay-sensitive side effects behind named durable primitives.
+- Derive stable execution and step identity from logical input, never ambient time, randomness, or process state.
+- Keep engine, storage, workers, and transport proxies at infrastructure boundaries.
 
-## Anti-Patterns to Avoid
+## Constraints
 
-- Do not put business logic, protocol parsing, HTTP clients, filesystem work, or vendor SDK calls directly in workflow orchestration code. Put them behind services and activities.
-- Do not use non-deterministic idempotency keys.
-- Do not generate activity, deferred, queue, or clock names from timestamps, random ids, or mutable counters.
-- Do not use plain `Effect.sleep` for long durable waits. Use `DurableClock.sleep`.
-- Do not coordinate suspended workflows with in-memory `Deferred`, `Queue`, or mutable module state. Use `DurableDeferred` or `DurableQueue`.
-- Do not expose generic errors such as `WorkflowFailed`, `UnknownError`, or raw defects for actionable failures.
-- Do not use `Effect.orDie` to hide expected workflow or activity failures.
-- Do not duplicate workflow payload and result schemas in HTTP/RPC layers when `WorkflowProxy` can derive them.
-- Do not call engine internals or engine-specific storage from application code.
-- Do not assume `execute(..., { discard: true })` returns the result; it returns the execution id.
-- Do not rely on nested activity compensation. Register compensation around top-level effects only.
-- Do not write tests that depend on wall-clock races. Use `TestClock` or poll deterministic public APIs.
-- Do not import from vendored reference repositories; use them only as read-only evidence when the current project has them.
-- Do not invent generic `UnknownError`, `InternalError`, or stringly failures when the pattern calls for precise tagged errors.
+- Effect Workflow is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
+- Every retryable or replayable side effect needs idempotency or deduplication; compensation is an additional business-reversal policy, not replay safety.
+- Long waits and external completion must use durable primitives when execution may move or restart.
+- Compensation scope and trigger semantics must be verified; it is not a substitute for idempotent activities.
 
 ## Knowledge Boundaries
 
-Design facts this knowledge expects the agent to consider:
-
-- workflow payload, success, error, and idempotency semantics
-- durable side effects, waits, external completions, and worker queues
-- domain services and activities involved
-- engine choice for tests or live cluster durability
-
-Effect-native code should tend toward:
-
-- module-scope workflow/activity/deferred/queue definitions
-- workflow layers that orchestrate services without owning their business logic
-- deterministic idempotency keys and stable step names
-- tests through execute/poll/resume with memory engine or appropriate live engine
-
 Applies to:
 
-- applying Effect Workflow patterns to implementation, refactoring, review, or tests
-- preserving typed Effect success, error, and context channels
-- keeping runtime-specific or external-system concerns at explicit boundaries
+- workflow/activity schemas and deterministic identity
+- durable clocks, deferreds, queues, retries, suspension, and compensation
+- memory versus cluster engine composition and proxy-generated APIs
+- execute, discard/start, poll, interrupt, resume, and deterministic tests
 
 Does not cover:
 
-- broad rewrites outside the user-requested behavior
-- replacing project conventions without evidence from local code or the bundled reference
-- live external integrations in normal tests unless the task is explicitly an integration smoke test
+- ordinary in-process orchestration that does not require durability
+- business logic belonging in domain services
 
-Failure modes this knowledge helps avoid:
+Decision inputs:
 
-- leaking low-level Effect or provider/runtime details through domain APIs
-- flattening typed errors, causes, or schema failures into unstructured strings
-- writing tests that depend on live services, wall-clock timing, or implementation internals
+- durability and replay requirements
+- logical idempotency key and step identity
+- retry safety, compensation action, and approval requirements
+- synchronous completion versus start-and-poll caller contract
 
-## Best-Practice Patterns
+## Patterns
 
-- Bundled `references/patterns-*` files contain source-pattern detail for defining workflows, activities, durable primitives, proxies, or tests.
-- Define `Workflow.make` at module scope with payload, success, error, and deterministic idempotency key schemas.
-- Keep workflow bodies as orchestration; put domain work behind services and retryable durable side effects behind `Activity.make`.
-- Use `DurableClock`, `DurableDeferred`, and `DurableQueue` for durable waits, external completion, and worker-driven work.
-- Keep engine layers at infrastructure/test composition, not hidden in reusable workflow modules.
-- Wrap workflows in domain services or generated proxies when callers should not depend on workflow internals.
-- Test through public `execute`, `poll`, `interrupt`, and `resume` APIs with `WorkflowEngine.layerMemory`, durable queue layers, and `TestClock`.
+- Use activities for encoded retryable steps whose results must survive replay. Make the activity name stable and its external effect idempotent.
+- Use durable clock for waits, durable deferreds for external completion, and durable queues for worker-owned execution.
+- Separate workflow definition, implementation layer, worker layers, engine/storage layer, and transport proxy so tests and deployments can choose each.
+- Put expected business failures in workflow/activity error schemas. Preserve defects as defects unless the workflow explicitly captures them for operational handling.
+- Prefer generated workflow proxies when they preserve the intended start/wait/poll semantics and avoid duplicate schema definitions.
+- Test through execute/poll/resume with deterministic engine composition; inspect storage only when replay or deduplication is the behavior.
 
 ## Gotchas
 
-- If idempotency keys use time, random values, counters, or process state, retries create duplicate logical executions. Derive keys from the payload meaning.
-- If business logic or HTTP clients live directly in the workflow body, replay and testing become brittle. Put domain work in services and durable effects in activities.
-- If long waits use plain `Effect.sleep`, workflow suspension and runner movement are not durable. Use `DurableClock.sleep`.
-- If external completion uses in-memory `Deferred` or module state, it disappears across runners. Use `DurableDeferred` and tokens.
-- If `execute(..., { discard: true })` is treated as a result, callers will mis-handle start-and-poll flows. It returns the execution id.
-- If compensation is nested inside activities or assumed to run on suspension, cleanup semantics are wrong. Register compensation around top-level effects only.
+- A volatile idempotency key creates a new execution on every retry instead of finding the same logical work.
+- An activity that charges, sends, or mutates without idempotency can repeat after recovery even when its code runs once in a happy-path test.
+- Plain sleeps and in-memory deferreds disappear when execution suspends or moves runners.
+- Treating start-with-discard as a result-returning call confuses execution identity with workflow success.
+- Nested compensation assumptions can leave partially completed side effects uncorrected; register compensation where the runtime guarantees it.
+- Hiding the engine inside a reusable workflow module prevents tests and deployments from choosing durability semantics.
 
 ## References
 
-- [`references/patterns-01-effect-workflow-patterns-for-agents.md`](./references/patterns-01-effect-workflow-patterns-for-agents.md): Read when: you need source-pattern detail for Effect Workflow patterns for agents, First principles, Behavior encapsulation.
-- [`references/patterns-02-use-durable-queues-for-worker-driven-work.md`](./references/patterns-02-use-durable-queues-for-worker-driven-work.md): Read when: you need source-pattern detail for Use durable queues for worker-driven work, Modular, testable, maintainable services, Separate definition, implementation, workers, and engine.
-- [`references/patterns-03-model-expected-failures-in-the-workflow-error-sc.md`](./references/patterns-03-model-expected-failures-in-the-workflow-error-sc.md): Read when: you need source-pattern detail for Model expected failures in the workflow error schema, Understand poll and result semantics, Use suspension and compensation intentionally.
+- [`references/identity-activities-and-durable-primitives.md`](./references/identity-activities-and-durable-primitives.md): Read when: defining workflow identity, activities, durable waits, deferreds, queues, retry, or compensation.
+- [`references/engines-proxies-and-testing.md`](./references/engines-proxies-and-testing.md): Read when: composing engines/workers/storage, exposing proxies, or testing execute/poll/resume and replay semantics.

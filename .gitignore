@@ -1,8 +1,18 @@
+# Ralph loop
+/.ralph-tm/HANDOFF.md
+/.ralph-tm/HANDOFF.md.tmp
+/.ralph-snapshot-*/
+
 # Misc
 .agents/
 .DS_Store
 /.tmp
 /tmp
+
+# Package artifacts
+/coverage/
+/dist/
+/node_modules/
 
 # Repos for AI reference
 /.dotai/repos/

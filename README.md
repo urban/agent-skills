@@ -22,13 +22,16 @@ The list below reflects git-tracked `SKILL.md` files.
 
 ### Engineering
 
+- `testing-strategy` — confidence-oriented test boundaries, real seams, faithful substitutes, and observable evidence.
 - `typescript` — pragmatic functional TypeScript style and constraints.
+- `typescript-project-hygiene` — compiler, module, configuration, and type-safety hygiene.
 
 ### Engineering with Effect
 
 Effect skills are knowledge skills: they teach current Effect-native authoring standards and focused package patterns.
 
 - `effect-ai` — Effect AI integrations, providers, tools, structured output, streaming, and tests.
+- `effect-application-architecture` — whole-application Effect topology across services, Layer graphs, composition roots, scopes, and public exports.
 - `effect-atom` — Effect Atom state modules, async lifecycles, React integration, optimistic updates, and tests.
 - `effect-client-wrapper` — wrappers for third-party Promise-based SDK clients with Effect services, typed errors, tracing, and dependency injection.
 - `effect-cluster` — Effect Cluster entities, RPC protocols, runners, persistence, proxies, and tests.
@@ -48,6 +51,7 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 ### In progress
 
 - `capture-decisions` — durable Markdown decision logs with rationale, consequences, and risks.
+- `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 
 ## What is specific to this repo
 
