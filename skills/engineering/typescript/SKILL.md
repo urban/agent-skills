@@ -22,6 +22,7 @@ description: Write TypeScript in a pragmatic functional style with expression-or
 
 ## Constraints
 
+- Do not encode fixed-arity parameters as rest tuples. Use ordinary named parameters in function declarations, function types, callbacks, and methods; reserve rest parameters for genuinely variadic APIs.
 - Do not introduce `any`; use `unknown`, generics, type guards, assertions at verified boundaries, or better domain types instead.
 - Do not introduce `null`; use `undefined`, optional properties, or discriminated unions for absence.
 - Do not introduce thrown exceptions for expected/domain/control-flow failures; return explicit typed results instead.
