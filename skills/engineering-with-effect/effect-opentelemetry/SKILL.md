@@ -6,6 +6,7 @@ description: Design Effect telemetry around operator-useful boundaries, stable n
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect installed Effect/OpenTelemetry layers, exporters, processors, propagation, and scheduling support before creating telemetry storage, batching loops, exporter lifecycles, or context propagation.
 - Instrument operator-meaningful behavior and latency boundaries, not every helper.
 - Keep telemetry transport/provider setup in layers at the application edge.
 - Treat span and metric names and their stable attributes as operator-facing contracts.
@@ -50,6 +51,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom telemetry store or export loop can duplicate standard processors while taking on batching, flushing, propagation, and shutdown correctness; prove the installed integration cannot meet the named requirement.
 - Spanning every helper creates trace noise and raises cost while hiding meaningful critical paths.
 - Catching failures to keep spans green changes business semantics and hides the original cause.
 - IDs, URLs with queries, error messages, prompts, and payloads can explode cardinality or leak sensitive data.

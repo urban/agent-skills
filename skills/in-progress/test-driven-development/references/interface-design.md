@@ -20,7 +20,7 @@ type Invoice = {
   readonly items: ReadonlyArray<{ readonly amountCents: number }>;
 };
 
-export class InvalidInvoiceError extends Schema.TaggedErrorClass<InvalidInvoiceError>()(
+export class InvalidInvoiceError extends Schema.TaggedError<InvalidInvoiceError>()(
   "InvalidInvoiceError",
   { message: Schema.String },
 ) {}

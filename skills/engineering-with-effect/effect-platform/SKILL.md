@@ -6,6 +6,7 @@ description: Design Effect platform boundaries for files, paths, processes, sock
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed platform services and runtime adapters before adding filesystem, process, socket, terminal, crypto, or lifecycle infrastructure; isolate only the concrete capability gap behind a narrow adapter.
 - Put application meaning behind a domain capability; use low-level platform services directly only in reusable platform-polymorphic helpers or adapters.
 - Keep Node, Bun, browser, Worker, and other runtime layers at explicit composition edges.
 - Decide resource lifetime before exposing handles, streams, subprocesses, servers, or temporary paths.
@@ -50,6 +51,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A runtime-specific helper can duplicate an installed platform service and leak portability or cleanup obligations into callers; verify the current platform surface before adding it.
 - A domain API returning file or process handles transfers lifecycle responsibility to callers, often unintentionally.
 - Catch-all fallback to an empty/default value can turn corrupted configuration or denied access into silent data loss.
 - Selecting a runtime adapter inside domain behavior couples every call to environment detection and complicates tests.

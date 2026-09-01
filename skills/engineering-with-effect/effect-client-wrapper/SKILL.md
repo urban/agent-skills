@@ -6,6 +6,7 @@ description: Wrap Promise-based third-party SDK clients behind Effect with narro
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Check the installed Effect packages and official integrations before wrapping an upstream SDK; use a custom wrapper only when no suitable integration owns the required provider, protocol, lifetime, and failure semantics.
 - Prefer domain methods over exposing the SDK. Keep a generic client `use` escape hatch only when wrapping the surface is impractical and leakage is deliberate.
 - Construct and configure the SDK inside a layer; keep credentials redacted until the exact constructor/request boundary.
 - Map constructor failures and operation failures separately when startup and request recovery differ.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- Wrapping an SDK before checking for an official Effect integration creates a second client, configuration, error, and lifecycle model; inspect the installed ecosystem first and name the remaining gap.
 - A generic `use(client => ...)` everywhere leaks SDK request and response types through the application and defeats the boundary.
 - Retrying every rejected Promise can repeat charges, sends, uploads, or mutations.
 - Logging an opaque constructor error may stringify configuration or credentials; sanitize deliberately.

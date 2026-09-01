@@ -10,6 +10,7 @@ description: Design Effect service boundaries that hide implementation dependenc
 - Make the public shape describe what callers can do, not the client, repository, runtime, or state used to do it.
 - Capture implementation dependencies during service construction unless pass-through requirements are intentionally part of the capability.
 - Expose only failures callers can handle; translate provider and platform failures at the boundary where their meaning is known.
+- Keep public failure variants fixed and safe. Include observed external values only when callers need them to act and the contract defines their sensitivity and size bounds.
 
 ## Constraints
 
@@ -45,6 +46,7 @@ Decision inputs:
 - Use parameterized layer factories when configuration or resource identity changes the service instance.
 - Prefer a small full fake for behavior tests. Use partial mocks only when the test intentionally proves that unimplemented capabilities are unreachable.
 - Preserve actionable distinctions such as not-found, conflict, unavailable, rejected, and invalid input; do not mirror every vendor error code in the domain.
+- Preserve two failure distinctions only when they lead to different recovery, rendering, retry, or remediation; retain safe diagnostic causes separately for operators.
 
 ## Gotchas
 
@@ -52,6 +54,7 @@ Decision inputs:
 - Ad-hoc threading of contextual service implementations hides requirements from composition and makes replacement inconsistent; capture those dependencies in construction. Explicit functional dependency injection remains valid when it is the intended interface.
 - Treating a constructor Effect as an already-wired layer leaves dependencies unresolved and ownership ambiguous; export the layer explicitly.
 - A broad infrastructure error may be typed but still unusable; map only the distinctions callers can act on and retain diagnostic cause data.
+- Public errors assembled from untrusted rows, paths, payloads, or exception text can leak sensitive or unbounded data; expose fixed variants and keep bounded evidence in operator diagnostics.
 - Shared mutable fake state can survive beyond one test scope; allocate it in a per-test layer unless sharing is the behavior under test.
 
 ## References

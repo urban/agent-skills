@@ -6,6 +6,7 @@ description: Reason about Effect Layer ownership, dependency visibility, memoize
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Use installed Layer, Scope, acquisition, memoization, and supervision primitives before introducing a custom container, resource manager, lifecycle registry, or background-worker owner.
 - Use layers to construct capabilities and own lifetimes; keep domain branching in the services they provide.
 - Choose composition by dependency graph and output visibility, not by whichever operator makes types pass.
 - Treat memoization and freshness as lifetime semantics: decide which consumers share an acquisition and when it is released.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom container or lifecycle registry can recreate Layer and Scope with weaker sharing, interruption, and release semantics; prove the ownership model cannot be expressed by the installed primitives.
 - Merging interdependent layers builds them as peers, so one cannot satisfy another merely by appearing earlier in the call.
 - Keeping dependencies in the output can turn implementation details into accidental public API; hide them unless access is intentional.
 - Recreating an equivalent layer value can defeat expected sharing; sharing follows layer identity and memoization context, not visual similarity.

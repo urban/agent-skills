@@ -6,6 +6,7 @@ description: Apply cross-cutting Effect v4 judgment about direct computations, f
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed Effect version, packages, existing adapters, and authoritative module surface before inventing infrastructure or relying on recalled APIs; route capability-specific selection to the narrow specialist.
 - Start from the computation contract: success value, expected failures, required services, interruption behavior, and resource lifetime.
 - Keep recoverable outcomes in the error channel only when a caller can make a meaningful decision from them; treat broken invariants and non-recoverable implementation faults as defects.
 - Preserve boundary ownership: services own capabilities, layers own construction and lifetime, schemas own representation changes, and streams own incremental protocols.
@@ -59,6 +60,7 @@ Route by the primary decision:
 
 ## Gotchas
 
+- A custom queue, scheduler, retry loop, cache, serializer, or lifecycle manager can duplicate an Effect capability the project already ships; prove the semantic gap against the installed version before owning a parallel mechanism.
 - A generic tagged error can satisfy types while destroying recovery semantics; model the decision the caller actually makes.
 - Converting every dependency failure into a domain error bloats public contracts with non-actionable infrastructure detail; translate only actionable distinctions.
 - Detached fibers can outlive the resources and request that created them; choose detachment only with explicit ownership and shutdown semantics.

@@ -6,6 +6,7 @@ description: Design Effect Stream sources and protocols with explicit ownership,
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect installed Stream, Queue, PubSub, Sink, Channel, scheduling, and framing support before building a custom buffer, subscription loop, or stream protocol; custom machinery needs a named backpressure, delivery, framing, portability, or performance gap.
 - Expose a domain stream when callers need values over time; keep producer handles private unless callers truly own their lifecycle.
 - Separate source adaptation, framing/decoding, domain transformation, recovery, and terminal consumption.
 - Choose buffering and concurrency from producer/consumer behavior and ordering requirements.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom queue, framing loop, or subscription manager can recreate Stream semantics with weaker interruption and cleanup; identify what the installed primitives cannot express before owning it.
 - Exposing a Queue or socket instead of a stream makes every caller responsible for backpressure and shutdown.
 - Assuming each chunk is a complete UTF-8 string or JSON value fails on split code points and partial frames.
 - An unbounded or poorly chosen callback buffer moves overload from backpressure into memory growth or silent loss.

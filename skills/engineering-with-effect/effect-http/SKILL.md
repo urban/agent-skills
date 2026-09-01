@@ -6,6 +6,7 @@ description: Design Effect HTTP boundaries around shared contracts, status seman
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed Effect HTTP, HttpApi, runtime, and official protocol integrations before adding a custom transport, router, codec, retry loop, or streaming bridge.
 - For first-party APIs, make one shareable schema contract the source for handlers, clients, and documentation.
 - For outbound HTTP, let one service own one remote protocol, including base URL, authentication, status interpretation, retries, timeouts, and body codecs.
 - Treat transport failure, protocol status, and body decoding as distinct failure classes when callers respond differently.
@@ -50,6 +51,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom transport or protocol layer can duplicate HttpClient, HttpApi, Schema, Stream, or an official integration while losing their status, scope, and interruption semantics; name the unsupported requirement first.
 - Hand-parsed handler input drifts from generated clients and OpenAPI; put the rule in the endpoint schema or domain service.
 - Centralizing a client but leaving retries and status filters at call sites still creates divergent protocol behavior.
 - Retrying a write after a connection failure can duplicate side effects even when the response was never received; require idempotency evidence.

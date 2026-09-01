@@ -22,7 +22,7 @@ These signals assume an Effect codebase that uses public Effect APIs, `Layer` wi
 
 - Extract repeated effectful logic into a named `Effect.fn("...")`.
 - Move boundary wiring into `ServiceMap.Service` + static `Layer`.
-- Replace untyped failures with `Schema.TaggedErrorClass` errors.
+- Replace untyped schema-backed failures with self-typed `Schema.TaggedError` classes.
 - Collapse branching into focused domain operations with `Effect.catchTag`.
 - Use `Effect.acquireRelease` for resource lifecycles instead of manual cleanup.
 

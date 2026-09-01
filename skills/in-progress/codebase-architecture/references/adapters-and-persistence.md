@@ -35,6 +35,8 @@ Keep these inside the persistence implementation:
 
 Return parsed domain values and caller-actionable failures. Preserve safe diagnostic causes where operators need them, but do not make every caller interpret raw rows, driver errors, or ORM exceptions.
 
+A separate query or adapter operation is justified when it preserves a meaningful caller-visible distinction such as missing storage, malformed structure, conflict, or incompatibility. Collapse operations only when merging those outcomes is an accepted contract change, not merely because one query would be shorter.
+
 ## Representation boundary
 
 Treat raw rows and ORM models as infrastructure DTOs. Decode or construct domain values before they cross into application logic. This catches corrupt or legacy data at the boundary and prevents storage optionality from becoming domain optionality.

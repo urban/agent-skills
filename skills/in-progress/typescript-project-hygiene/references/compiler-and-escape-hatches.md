@@ -30,6 +30,14 @@ Choose `module` and `moduleResolution` from the actual package and runtime contr
 
 Inspect the existing config before changing it. For legacy code, prefer a bounded migration or newly scoped package over hiding thousands of diagnostics with casts.
 
+## Compiler and diagnostic ownership
+
+Use TypeScript compilation for language and project-reference soundness. Treat framework-aware or advisory diagnostics as a separate configured layer whose recommended profile and severity policy must be inspected rather than guessed. Do not blanket-enable every experimental, nursery, pedantic, or advisory rule, and do not turn all warnings into errors without reviewing whether the resulting rules express project policy.
+
+Keep tests under the same correctness baseline as implementation code. Add an override only for a real test-runtime or generated-fixture distinction, not to excuse large examples or broad style violations.
+
+Run the repository's configured validation commands after TypeScript or diagnostic configuration changes. If a change affects inference across project references, use the repository-supported forced or clean build so stale incremental information cannot masquerade as a successful check; do not hardcode one package manager or command into a reusable rule.
+
 ## Escape-hatch hierarchy
 
 Before asserting, try:
@@ -61,4 +69,4 @@ return input as UserId
 
 Do not introduce `any` for untyped interop; contain the value as `unknown`, then parse, narrow, or adapt it. If a third-party declaration itself contains `any`, keep that unsafety behind one adapter rather than reproducing it in project-owned types.
 
-Do not use a file-wide suppression when one cast is exceptional. Revisit escape hatches when dependency types or TypeScript capabilities improve.
+Do not use source-level suppression to make project-owned code pass. Fix the type, function shape, or module boundary first. When a rule verifiably misinterprets an established construct, prefer the narrowest centralized file-pattern override with a reason, leave the rule active elsewhere, and revisit the exception when tool support changes. Do not weaken a rule globally when one boundary contains the incompatibility.

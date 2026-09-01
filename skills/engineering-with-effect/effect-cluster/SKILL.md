@@ -6,6 +6,7 @@ description: Decide when Effect Cluster entity semantics fit, then design identi
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed Cluster entity, RPC, persistence, runner, and delivery primitives before creating an actor registry, mailbox, placement protocol, or supervision loop.
 - Use an entity when per-identity state, serialized message handling, passivation, or clustered placement is essential.
 - Define the message protocol before handlers; payload, success, business errors, primary key, and persistence annotations are durable contracts.
 - Keep per-entity state inside entity construction and hide raw sharding/entity clients behind domain capabilities where appropriate.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom actor registry or mailbox can recreate Cluster with weaker identity, placement, passivation, and delivery semantics; identify the capability the installed entity model cannot satisfy.
 - Using Cluster as a generic RPC wrapper adds placement, mailbox, passivation, and delivery complexity without stateful benefit.
 - Module-level state survives and shares differently from entity state, breaking passivation and restart assumptions.
 - Forking stateful handlers introduces races within one identity despite actor-style expectations.

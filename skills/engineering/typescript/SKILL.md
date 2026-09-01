@@ -5,15 +5,17 @@ description: Write TypeScript in a pragmatic functional style with expression-or
 
 ## Rules
 
+- Treat project-, framework-, and library-specific guidance as authoritative for overlapping decisions; use this skill as the TypeScript baseline where narrower guidance does not apply.
 - Write TypeScript as functional, declarative code by default because readers should see the data transformation and domain intent without mentally executing step-by-step mutation.
 - Keep the core pure and push effects, mutation, I/O, time, randomness, and framework boundaries to the edges.
 - Prefer expressions over statements because expressions produce values, compose naturally, and make data flow easier to follow.
 - Prefer `const fn = (...) => ...` for almost all functions, including exports, because it keeps function values consistent with partial application and composition.
-- Annotate exported/public function return types as API contracts; let internal helper return types be inferred unless inference becomes unclear or recursive.
+- Annotate a public return type when it defines an intentional abstraction, prevents an unstable inferred API, or improves unusable diagnostics. Preserve precise inference when a typed builder, class factory, or similar implementation is the authoritative contract.
 - Prefer compiler inference over redundant annotations for initialized variables and private helpers.
 - Prefer immutable data and non-mutating updates; local mutation is allowed only when fully encapsulated inside an otherwise pure function.
 - Prefer native TypeScript/JavaScript collection methods such as `.map`, `.filter`, `.reduce`, `.flatMap`, `.find`, `.some`, `.every`, `.toSorted`, and `.toReversed` before adding helper wrappers.
 - Prefer the most direct representation of current behavior. Add a helper only when it centralizes meaningful logic, names domain policy, enforces an invariant, or creates a real seam.
+- Name modules and helpers for the action or concept they own, and extract a helper only when it takes responsibility for one coherent transformation, I/O boundary, or policy decision.
 - Use manual currying and partial application when it creates reusable, readable functions; keep data arguments last for curried helpers.
 - Model domain states, variants, absence, and expected failures explicitly with TypeScript types, especially discriminated unions, branded types, generics, and `satisfies`.
 - Use advanced types pragmatically: make illegal states unrepresentable, but do not turn the type system into a puzzle.
@@ -42,7 +44,7 @@ description: Write TypeScript in a pragmatic functional style with expression-or
 - If you force pointfree style, currying, or advanced conditional types past the point of readability, the next edit becomes slower and riskier. Prefer a named intermediate, pointed callback, or simpler type when it communicates intent better.
 - If mutation leaks across a function boundary, readers must track temporal state and aliasing to understand correctness. Keep mutation local, hidden, and returned as an immutable result.
 - If statement-heavy code grows around temporary variables and control flags, the real value being produced gets buried under sequencing. Prefer expressions and named transformations that return the value directly.
-- If an exported `const` function relies on inferred return type, accidental implementation changes can silently change the public API. Add the return type at the boundary even when inference is obvious.
+- If every exported function repeats its inferred return type, builder- and factory-derived APIs can widen or drift from their implementation; annotate only when the signature is an intentional public abstraction or needs stability beyond the implementation.
 
 ## References
 

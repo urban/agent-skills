@@ -6,6 +6,7 @@ description: Design Effect AI capabilities with domain-owned behavior, provider 
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed Effect AI modules, provider packages, routing, tool, structured-output, and streaming support before creating provider infrastructure or broad SDK wrappers.
 - Put product AI behavior behind domain capabilities; provider requests, prompt assembly, and response parts are implementation details unless passthrough is the product.
 - Keep provider/model selection, credentials, transports, and fallback plans at adapter or layer boundaries.
 - Use schemas for structured output and tools; decide what invalid output means for the product.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- Custom provider routing or tool machinery can duplicate installed Effect AI support while leaking provider types and lifecycle policy; identify the unsupported product semantic before extending the platform.
 - Scattered model calls turn prompt text and provider response shape into accidental product API.
 - Schema-valid output can still violate product invariants; validate semantic constraints after generation.
 - Provider fallback after tools have run can repeat side effects; fallback boundaries must account for completed tool calls.

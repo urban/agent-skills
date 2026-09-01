@@ -20,12 +20,14 @@ const count: number = 5
 const isActive = (user: User): boolean => user.active
 ```
 
-Annotate exported/public function return types:
+Annotate an exported/public return type when it defines a deliberate abstraction or stabilizes an otherwise implementation-sensitive API:
 
 ```ts
 export const fetchUser = (id: UserId): Promise<User> =>
   repository.findUser(id)
 ```
+
+Preserve inference when the implementation is itself the authoritative contract, such as a typed builder, class factory, or declaration helper whose inferred literals, brands, dependencies, failures, or input/output representations would be duplicated or widened by a broad annotation. Verify the inferred public type with the compiler rather than widening the implementation to satisfy a redundant annotation.
 
 Prefer exported `const` functions over named function declarations unless the surrounding code has a strong existing convention or a platform requires declarations.
 
@@ -33,7 +35,7 @@ Prefer exported `const` functions over named function declarations unless the su
 
 Add explicit types when inference cannot communicate the intended contract:
 
-- exported/public function return types
+- public functions whose intended abstraction is not already expressed by an authoritative implementation
 - recursive functions
 - empty arrays or objects that are populated later
 - intentional literal unions or narrower types

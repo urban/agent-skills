@@ -6,6 +6,7 @@ description: Design Effect Atom state around identity, AsyncResult lifecycle, ca
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed Atom identity, family, async lifecycle, cache, disposal, registry, and optimistic facilities before introducing parallel state, cache, or subscription machinery.
 - Model asynchronous atom values as a lifecycle, not as loaded data with fallback placeholders.
 - Make cache identity explicit; every field that isolates state belongs in the family key.
 - Let atom modules own queries, mutations, refresh, derived views, optimistic transitions, and cache policy; components render and dispatch.
@@ -49,6 +50,7 @@ Decision inputs:
 
 ## Gotchas
 
+- A custom cache or subscription layer beside Atom can split identity, disposal, refresh, and failure semantics; prove the installed primitives cannot express the required lifecycle first.
 - Flattening failure or loading to an empty collection makes real empty data indistinguishable from an unavailable request.
 - A family key missing scope or mode fields leaks values across users, tenants, views, or test cases.
 - Duplicating remote data in component state splits optimistic updates from invalidation and refresh.
