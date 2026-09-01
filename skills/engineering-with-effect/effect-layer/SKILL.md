@@ -43,8 +43,10 @@ Decision inputs:
 
 - Merge layers only when they are independent at that stage. Configure dependent layers first, then merge the configured results that may safely build in parallel.
 - Use dependency-hiding composition for implementation details; retain dependencies in the output only when downstream code or a test harness intentionally needs them.
+- Use `Layer.provide` to satisfy and hide construction dependencies; use `Layer.provideMerge` only when retaining the provided capabilities in the resulting graph is intentional.
 - Acquire clients, handles, subscriptions, and background fibers in scoped construction so interruption and scope closure run finalizers.
 - Use dynamic unwrapping when configuration selects an implementation; keep the selected layer's requirements and errors honest.
+- Provide a Layer inside an operation only when runtime policy deliberately owns that Layer's activation or lifetime boundary; keep acquisition scoped and the wrapped Effect semantically transparent.
 - Give request-bound or tenant-bound resources a request/tenant scope and independent memoization boundary. Share process-wide pools through one stable layer value.
 - Build test state in the layer scope and expose a harness service only when assertions need controlled observability.
 
@@ -57,6 +59,7 @@ Decision inputs:
 - Freshening a subtree duplicates acquisition and finalization; this can multiply sockets, pools, or background workers.
 - Converting construction errors to defects too early removes fallback and startup-reporting choices from the application edge.
 - Manual builds inside service methods create nested lifetimes that are difficult to observe and release correctly.
+- Wrapping a prepared Layer in a thunk does not improve acquisition timing because Layer construction is already deferred; represent runtime selection with an Effect and `Layer.unwrap` only when selection is genuinely effectful.
 
 ## References
 

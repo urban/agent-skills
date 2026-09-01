@@ -14,7 +14,7 @@ description: Apply cross-cutting Effect v4 judgment about direct computations, f
 
 ## Constraints
 
-- Target the current Effect v4 API exposed by the project; do not preserve an older idiom merely because it appears in existing prose or examples.
+- Target the current Effect v4 API exposed by the project and verify exact signatures against the installed release and its authoritative sources.
 - Do not turn application policy into a universal Effect rule. Local architecture and enabled automation profiles remain authoritative.
 - Do not duplicate guidance owned by any narrower Effect skill.
 

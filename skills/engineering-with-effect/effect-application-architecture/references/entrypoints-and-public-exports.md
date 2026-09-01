@@ -25,6 +25,8 @@ Audit publicness through distinct channels:
 
 Supported callers may need canonical domain contracts, expected error types, public service contracts or named Effect operations, a supported Layer for an embedding host, and stable configuration types the host intentionally supplies. Keep private feature services, concrete adapters, provider clients, transaction handles, resource constructors, and internal configuration out of those channels unless the caller deliberately owns them.
 
+An individual service class owns its default construction Layer; a composition root owns the larger graph that assembles several capabilities. When a supported package API exposes a service's default Layer at top level, export a direct alias of the class-owned Layer rather than defining another implementation. Keep application graph names and exports attached to the composition boundary that owns their broader scope.
+
 Not every TypeScript export is supported API, and omission from a root barrel is not access control when a build or export map exposes the path. Not every application needs one public facade or one exported Layer: an embedding host may need several capabilities, while a closed executable may expose no supported Layer. Match each visibility channel to actual caller requirements rather than exposing the assembled graph.
 
 ## Close requirement and output leaks

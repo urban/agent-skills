@@ -14,6 +14,8 @@ Ordinary shapes commonly include:
 
 A reusable function may still return an `Effect` and declare requirements. That alone does not require a new service. Promote a capability to `Context.Service` when callers need a coherent runtime identity with replaceability, shared state, configuration, owned resources, or construction that captures implementation dependencies.
 
+Use `Context.Reference` when contextual lookup and a replaceable default are the abstraction, but coherent behavior and resource ownership are not. Configuration values, feature switches, clocks, and replaceable recipes can fit this shape. Keep a service for capabilities that own reusable operations, dependencies, or resources.
+
 An operation-local value may be contextual when a framework protocol or dynamic propagation contract requires service lookup. Provide it only inside the owning request, run, transaction, tool, or subscription scope; the exception changes access, not lifetime.
 
 ## Private feature capabilities
