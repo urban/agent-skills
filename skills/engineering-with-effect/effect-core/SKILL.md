@@ -1,11 +1,12 @@
 ---
 name: effect-core
-description: Apply cross-cutting Effect v4 judgment about direct computations, function boundaries, expected failures versus defects, requirements, causes, interruption, and fiber/resource ownership. Use when those are the primary concern and no narrower Effect skill applies.
+description: Route ambiguous Effect tasks to one primary specialist and apply core Effect v4 semantics for computations, expected failures versus defects, requirements, causes, interruption, and fiber ownership. Use when those semantics are the primary concern or no narrower specialist fits. Do not load it as a general prerequisite for application architecture, service, Layer, or testing work.
 ---
 
 ## Rules
 
 - Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Choose one primary Effect skill by the decision that owns the task; add another only when the task contains a separate, substantive decision in that skill’s scope.
 - Inspect the installed Effect version, packages, existing adapters, and authoritative module surface before inventing infrastructure or relying on recalled APIs; route capability-specific selection to the narrow specialist.
 - Start from the computation contract: success value, expected failures, required services, interruption behavior, and resource lifetime.
 - Keep recoverable outcomes in the error channel only when a caller can make a meaningful decision from them; treat broken invariants and non-recoverable implementation faults as defects.
@@ -25,10 +26,11 @@ Applies to:
 - choosing direct `Effect` values versus reusable effectful functions
 - deciding expected failure versus defect policy
 - reasoning about context requirements, interruption, causes, and fiber lifetime
-- selecting the specialized boundary that should own further design
+- selecting one primary specialist when an Effect task is ambiguous
 
 Does not cover:
 
+- whole-application topology, one capability’s service contract, Layer graph and lifetime mechanics, or test evidence when one of those is the primary decision
 - protocol-specific semantics already owned by a specialized Effect skill
 - lint-detectable syntax preferences or diagnostic catalogs
 
@@ -45,11 +47,12 @@ Route by the primary decision:
 
 | Decision | Specialist |
 | --- | --- |
-| Whole-application topology, composition roots, or public application surface | `effect-application-architecture` |
-| Capability contract or dependency capture | `effect-service` |
-| Construction graph, sharing, or scopes | `effect-layer` |
+| Cross-capability topology, composition roots, or public application surface | `effect-application-architecture` |
+| One capability’s contract, public failures, or dependency capture | `effect-service` |
+| Construction of already-chosen capabilities, sharing, freshness, or scopes | `effect-layer` |
+| Test seam, deterministic coordination, replacement boundary, or cleanup evidence | `effect-testing` |
 | Encoded/domain representation | `effect-schema` |
-| HTTP, Stream, platform, AI, Atom, Cluster, Workflow, Optic, telemetry, testing, or property laws | Matching specialized skill |
+| HTTP, Stream, platform, AI, Atom, Cluster, Workflow, Optic, telemetry, or property laws | Matching specialized skill |
 
 - Return a direct Effect when no reusable function boundary is needed. Use an Effect function when parameters, tracing, or a stable operation boundary add meaning.
 - Translate external failures once, at the boundary that understands both the external protocol and the domain contract. Preserve the original cause when it aids diagnosis.
@@ -66,6 +69,7 @@ Route by the primary decision:
 - Detached fibers can outlive the resources and request that created them; choose detachment only with explicit ownership and shutdown semantics.
 - Catching a cause for telemetry and returning success changes the operation, not just its observability; re-emit the original cause unless recovery is intentional.
 - Providing dependencies deep inside reusable behavior can shorten scopes or duplicate resources; capture them in the owning layer or at the true runtime edge.
+- Loading this skill as a universal Effect baseline makes its cross-cutting vocabulary co-trigger with the actual owner and produces conflicting advice; select the primary specialist directly unless routing or core runtime semantics are genuinely part of the task.
 
 ## References
 

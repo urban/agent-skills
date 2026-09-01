@@ -1,6 +1,6 @@
 ---
 name: effect-layer
-description: Reason about Effect Layer ownership, dependency visibility, memoized sharing, freshness, construction failures, and scoped lifetime. Use when composing service graphs or debugging surprising acquisition, reuse, release, or test isolation.
+description: Compose already-chosen Effect capabilities through Layer ownership, dependency visibility, memoized sharing, freshness, construction failures, and scoped lifetime. Use when build, acquisition, reuse, or release semantics are the primary decision. Do not use to design a service API, whole-application topology, or test strategy.
 ---
 
 ## Rules
@@ -30,6 +30,8 @@ Applies to:
 Does not cover:
 
 - service contract design beyond implications for the layer graph
+- cross-capability application topology, public facades, or composition-root placement
+- test seam selection or behavioral evidence beyond Layer-specific isolation mechanics
 - mechanical nesting or provide-shape diagnostics
 
 Decision inputs:

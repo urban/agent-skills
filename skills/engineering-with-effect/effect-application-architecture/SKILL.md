@@ -1,6 +1,6 @@
 ---
 name: effect-application-architecture
-description: Translate whole-application architecture into Effect topology across ordinary values, Context services, Layer provider and output graphs, composition roots, provision scopes, hidden requirements, and transaction-scoped values. Use when deciding the Effect runtime shape of an application across multiple capabilities rather than one service or Layer.
+description: Design whole-application Effect topology across ordinary values, services, Layer graphs, composition roots, provision scopes, and public surfaces. Use when the primary decision spans multiple capabilities or runtime ownership domains. Do not use for one service contract, Layer operator and lifetime mechanics, or test evidence.
 ---
 
 ## Rules
@@ -35,6 +35,7 @@ Does not cover:
 
 - detailed `Context.Service` contract and error design
 - mechanical Layer composition, memoization, freshness, or manual build APIs
+- test seams, deterministic coordination, fake fidelity, or cleanup evidence
 - schema representation, platform protocol, test, telemetry, or workflow mechanics
 - framework-neutral module, entrypoint, authorization, transaction-versus-workflow, or project governance policy
 

@@ -1,6 +1,6 @@
 ---
 name: effect-service
-description: Design Effect service boundaries that hide implementation dependencies while exposing stable domain capabilities, actionable failures, and intentional resource ownership. Use when the primary task is shaping an application capability, dependency capture, or replaceability and no narrower integration skill applies.
+description: Design one coherent Effect capability contract that hides implementation dependencies and exposes stable operations, actionable failures, and intentional replaceability. Use when that service boundary is the primary decision and no narrower integration specialist applies. Do not use for whole-application topology, Layer graph mechanics, or test strategy.
 ---
 
 ## Rules
@@ -31,7 +31,9 @@ Applies to:
 
 Does not cover:
 
+- whole-application capability topology, composition roots, or public application facades
 - detailed Layer graph composition or SDK-specific retry semantics
+- test seam selection, deterministic coordination, or integration-test evidence
 - repository path rules that happen to require service classes
 
 Decision inputs:

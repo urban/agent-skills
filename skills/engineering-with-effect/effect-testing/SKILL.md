@@ -1,6 +1,6 @@
 ---
 name: effect-testing
-description: Choose cross-cutting Effect test seams and deterministic evidence with layer replacement, logical time, concurrency coordination, typed failures, interruption, and cleanup. Use when those testing decisions are primary; use a protocol specialist for protocol-specific semantics.
+description: Choose cross-cutting Effect test seams and deterministic evidence through layer replacement, logical time, concurrency coordination, typed failures, interruption, and cleanup. Use when test boundary or evidence design is the primary decision. Do not load it merely because implementation work includes tests; use the protocol specialist for protocol-specific test semantics.
 ---
 
 ## Rules
@@ -28,6 +28,7 @@ Applies to:
 
 Does not cover:
 
+- application topology, service contract, or Layer construction decisions merely exercised by a test
 - protocol-specific test semantics owned by HTTP, Stream, Platform, AI, Cluster, Workflow, Atom, Layer, or another specialized skill
 - property-law and generator design owned by `effect-fast-check`
 - mechanically detectable test API misuse

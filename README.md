@@ -35,7 +35,7 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 - `effect-atom` — Effect Atom state modules, async lifecycles, React integration, optimistic updates, and tests.
 - `effect-client-wrapper` — wrappers for third-party Promise-based SDK clients with Effect services, typed errors, tracing, and dependency injection.
 - `effect-cluster` — Effect Cluster entities, RPC protocols, runners, persistence, proxies, and tests.
-- `effect-core` — cross-cutting Effect v4 standards for services, layers, errors, streams, schemas, observability, and tests.
+- `effect-core` — core computation, failure/defect, Cause, interruption, and fiber semantics, plus routing for ambiguous Effect tasks.
 - `effect-fast-check` — property-based tests for Effect code.
 - `effect-http` — Effect HTTP APIs, clients, schema bodies, status/error mapping, and in-process tests.
 - `effect-layer` — Effect Layer composition, dependency wiring, scoped resources, sharing, and test layers.
@@ -67,7 +67,7 @@ These skills follow a few strong conventions:
 
 - Read a skill's `SKILL.md` first.
 - If you want the clearest picture of this repo's conventions, start with `skills/productivity/build-a-skill/`.
-- For Effect work, start with `skills/engineering-with-effect/effect-core/`, then add narrower Effect skills as needed.
+- For Effect work, choose one primary skill from `skills/engineering-with-effect/README.md`; add another only for a separate, substantive decision in its scope.
 
 ## License
 
