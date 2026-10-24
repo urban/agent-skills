@@ -20,7 +20,7 @@ entrypoint program
 
 Pure domain modules do not appear in the Layer graph merely because feature implementations import them. A source import is not automatically a runtime requirement.
 
-Compose by actual requirements and outputs. Dependencies used only to construct a private feature or facade should disappear from the downstream output. Keep a dependency visible only when another intentional consumer needs it. Operator choice, memoization, freshness, and scoped construction remain Layer-level mechanics rather than application-topology policy.
+Compose by actual requirements and outputs. Use `Layer.provide` to satisfy construction dependencies without publishing them; retain them with `Layer.provideMerge` only when another intentional consumer needs them. Hiding a dependency from the output does not release it early: captured resources must remain alive for the consuming capability's lifetime.
 
 ## Composition boundaries
 
@@ -49,11 +49,11 @@ Capture common implementation dependencies once during Layer construction. A com
 
 ## Lifetime alignment
 
-The outer composition boundary owns the application scope, while individual Layers own acquisition and release for the resources they provide. Align each resource with the narrowest correct sharing domain:
+The composition boundary opens or receives a scope; resource constructors used by Layers register release with that scope. A Layer value is a construction recipe, not an already running resource container. Align each resource with the narrowest correct sharing domain:
 
 - application-wide pools, exporters, and supervised infrastructure live in the application scope
 - tenant- or configuration-specific clients live with that identity
 - request or job resources live in the corresponding nested scope
 - transaction values live only inside the transaction owner's callback
 
-Do not reconstruct equivalent Layer values as an accidental way to request freshness. If sharing or isolation matters, make the lifetime boundary explicit and apply the focused Layer guidance for the operator-level design.
+Scope ownership and instance identity are separate decisions. Within a shared memoization domain, reusing a Layer value shares its construction; separate runtimes normally have separate memo maps. Reconstructing equivalent Layer values can duplicate resources, while opening a nested scope alone does not guarantee a new instance. Make tenant or configuration identity explicit in the graph rather than expecting a scope to replace a dependency already captured by a parent service.

@@ -5,60 +5,101 @@
 Design both sides:
 
 - `Type`: canonical value domain code consumes.
-- `Encoded`: value accepted from or emitted to the boundary.
+- `Encoded`: value accepted from or emitted to the boundary; not necessarily a JSON string.
 
-Examples include string timestamps decoded to date values, nullable legacy fields decoded to one absence representation, snake-case wire keys decoded to domain names, and unbranded strings decoded to branded identifiers.
+Examples include string timestamps decoded to date values, nullable legacy fields decoded to one absence representation, snake-case wire keys decoded to domain names, and strings decoded to branded identifiers.
 
-Define the schema implementation first and derive its representations:
+Derive representations from the schema so the contract owns both shapes:
 
 ```ts
+import { Schema } from "effect"
+
 export const DocumentMetadata = Schema.Struct({
   documentId: Schema.String,
-})
+}).pipe(Schema.encodeKeys({ documentId: "document_id" }))
+
 export type DocumentMetadata = typeof DocumentMetadata.Type
 export type EncodedDocumentMetadata = typeof DocumentMetadata.Encoded
+
+Schema.decodeUnknownSync(DocumentMetadata)({ document_id: "doc-1" })
+// { documentId: "doc-1" }
+Schema.encodeSync(DocumentMetadata)({ documentId: "doc-1" })
+// { document_id: "doc-1" }
 ```
 
-Do not repeat the decoded shape in a handwritten type or annotate the initialized schema with a broad `Schema.Codec`, `Schema.Class`, or field-map type. Those annotations can discard literal, brand, field-modifier, and encoded information. Keep an independent type when no schema represents it, such as an application result assembled from already-derived domain types.
+`encodeKeys` maps domain keys to encoded keys; it is not an alias policy that accepts both spellings. A rename's compatibility policy still needs a deliberate decision.
 
-Build schema unions from implementations and derive the union type:
+## Boundary validation
 
-```ts
-export const RejectionReason = Schema.Union([
-  InvalidDatabase,
-  IncompatibleFormat,
-])
-export type RejectionReason = typeof RejectionReason.Type
-```
+Unknown external input needs runtime validation before the domain trusts it. `decodeUnknownEffect` exposes that boundary; `decodeEffect` accepts statically typed encoded input but still performs validation and transformation. Typed input can violate checks, so typed decoding can still fail. Encoding also validates; it is not an unchecked serializer.
 
-Use `satisfies` for schema options or annotations that need checking without replacing the object's inferred type.
-
-## Trust-aware decoding
-
-- Unknown external input needs runtime validation before the domain trusts it.
-- Preserve known static input types rather than unnecessarily erasing them at the boundary.
-- Encoding from untrusted decoded input requires validation; encoding an existing domain value should preserve its static type.
-- Give raw database rows, provider payloads, and other boundary-specific representations their own schemas when their names, optionality, or primitive representations differ from the domain.
-- Decide driver compatibility at the boundary. Accept multiple primitive representations only when the supported client contract requires them; otherwise reject the extra representation instead of carrying normalization through the application.
+Give raw database rows and provider payloads separate schemas when names, optionality, or primitive representations differ from the domain. Accept multiple driver representations only when the supported client contract requires them; otherwise reject the extra representation instead of spreading normalization through the application.
 
 ## Absence
 
-Choose one semantic:
-
-| Wire/domain need | Representation decision |
+| Meaning | Boundary design |
 | --- | --- |
-| Field may be missing | Optional key |
-| Field exists and may hold undefined | Required/optional value containing undefined |
-| Peer sends null | Accept null on encoded side, normalize on decoded side |
-| Absence is manipulated explicitly | Option |
-| Variants have distinct data | Tagged union |
+| A key may be absent, but a present value must be valid | `Schema.optionalKey(S)`; explicit undefined is rejected unless `S` accepts it |
+| Missing and explicit undefined are both permitted | `Schema.optional(S)`; equivalent to `optionalKey(UndefinedOr(S))` |
+| A required key may contain undefined | `Schema.UndefinedOr(S)` without optional-key wrapping |
+| A peer requires a nullable key, domain uses explicit absence | `Schema.OptionFromNullOr(S)`; `None` encodes as null |
+| Legacy missing, undefined, and null all mean absence | `Schema.OptionFromOptionalNullOr(S)`; choose how `None` encodes |
+| Omission and clear have different meanings | Preserve presence separately from the nullable value, or use tagged commands |
 
-## Classes and brands
+For a replacement payload where all legacy absence spellings mean the same thing:
 
-Use brands for structurally identical values that must not mix. Derive the brand type from its schema unless a verified compiler or tooling limitation requires a documented exception.
+```ts
+import { Option, Schema } from "effect"
 
-Use classes for ordinary data only when runtime identity or methods are required. Plain wire DTOs normally remain structures. Schema-backed failures are different: when they need Error identity and yieldable behavior, use Effect's self-typed `Schema.TaggedError<Self>()` class directly and do not add a parallel alias.
+const Profile = Schema.Struct({
+  nickname: Schema.OptionFromOptionalNullOr(Schema.String, {
+    onNoneEncoding: null,
+  }),
+})
 
-## JSON
+Schema.decodeUnknownSync(Profile)({}) // { nickname: Option.none() }
+Schema.decodeUnknownSync(Profile)({ nickname: null }) // same domain value
+Schema.encodeSync(Profile)({ nickname: Option.none() }) // { nickname: null }
+```
 
-Compose JSON string parsing with the domain schema. This keeps syntax, wire-shape, transformation, and domain validation in one typed boundary.
+Without options, `OptionFromOptionalNullOr` encodes `None` by omitting the key. This collapses input distinctions permanently; it is inappropriate for a patch where omission means “leave unchanged” and null means “clear”.
+
+## Defaults
+
+A default is a policy for absent data, not recovery from invalid data:
+
+- `withConstructorDefault` applies only during `make*`, not decoding or encoding.
+- `withDecodingDefaultKey` fills a missing key with an **encoded** value before the field's decoding transformations. It does not default a present undefined value.
+- `withDecodingDefault` also fills explicit undefined. Null and malformed present values are not default triggers.
+- Use the `Type` variants when the default is already a decoded value rather than an encoded value. For example, a numeric domain default for `FiniteFromString` is a number, not its string encoding.
+
+```ts
+import { Effect, Schema } from "effect"
+
+const Settings = Schema.Struct({
+  retryLimit: Schema.FiniteFromString.pipe(
+    Schema.withDecodingDefaultKey(Effect.succeed("3")),
+  ),
+})
+
+Schema.decodeUnknownSync(Settings)({}) // { retryLimit: 3 }
+Schema.decodeUnknownSync(Settings)({ retryLimit: "5" }) // { retryLimit: 5 }
+Schema.encodeSync(Settings)({ retryLimit: 5 }) // { retryLimit: "5" }
+// { retryLimit: undefined }, { retryLimit: null }, and malformed strings fail decoding.
+```
+
+Decoding defaults encode with `"passthrough"` by default. The alternative `encodingStrategy: "omit"` always omits the field, not just values equal to the default. This can destroy edits during read-modify-write.
+
+Use a default for an evolving payload only if absence has a defensible historical meaning. If “not recorded” differs from a real zero, false, or current timestamp, preserve an unknown/absent state instead.
+
+## Classes, brands, and JSON
+
+Use brands for structurally identical values that must not mix. Branding does not add a runtime validity rule: compose checks for syntax/range and keep database existence checks or authorization in the application layer.
+
+Use classes for ordinary data only when runtime identity or methods matter. Plain wire DTOs normally remain structures. Schema-backed failures may intentionally need Error identity and yieldability; those are different from ordinary DTOs.
+
+Use `Schema.fromJsonString(DomainSchema)` for a JSON-text boundary. It parses JSON into the domain schema's encoded representation, then decodes it; encoding runs the reverse path before serialization. Do not confuse a schema's `Encoded` object with serialized JSON text.
+
+## Source anchors
+
+Effect v4: `packages/effect/src/Schema.ts` (`encodeKeys`, optionality, decoding defaults, Option codecs, `fromJsonString`); `packages/effect/test/schema/Schema.test.ts` (matching suites for omission, null, transformed fields, and defaults).

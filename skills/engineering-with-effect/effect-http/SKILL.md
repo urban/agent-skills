@@ -5,8 +5,7 @@ description: Design Effect HTTP boundaries around shared contracts, status seman
 
 ## Rules
 
-- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
-- Inspect the installed Effect HTTP, HttpApi, runtime, and official protocol integrations before adding a custom transport, router, codec, retry loop, or streaming bridge.
+- Prefer Effect's HTTP, HttpApi, and streaming boundaries over custom transport or codec layers unless the protocol has an unsupported requirement.
 - For first-party APIs, make one shareable schema contract the source for handlers, clients, and documentation.
 - For outbound HTTP, let one service own one remote protocol, including base URL, authentication, status interpretation, retries, timeouts, and body codecs.
 - Treat transport failure, protocol status, and body decoding as distinct failure classes when callers respond differently.
@@ -14,9 +13,9 @@ description: Design Effect HTTP boundaries around shared contracts, status seman
 
 ## Constraints
 
-- Effect HTTP and HttpApi are currently exposed through unstable v4 module surfaces; verify imports and API details against the installed release.
+- In Effect v4, HTTP and HttpApi use `effect/http` and `effect/http-api`; these modules remain marked unstable.
 - Retry only operations and failure classes that are safe to repeat; idempotency is a protocol decision.
-- Do not discard a non-success response body when it carries domain meaning.
+- Do not bypass declared HttpApi error decoding with a blanket success-status filter.
 - Streaming bodies must preserve backpressure, interruption, and scope ownership across the HTTP boundary.
 
 ## Knowledge Boundaries
@@ -44,23 +43,24 @@ Decision inputs:
 
 - Keep shared API modules free of server-only and runtime-only dependencies. Handlers should adapt decoded HTTP input to domain services, not reimplement domain rules.
 - Apply base URL, authentication, common headers, cookies, and transport policy once to the client used by the protocol service.
-- Use a blanket success-status filter only when all non-success bodies are irrelevant. Otherwise branch on status and decode the corresponding schema.
+- With a raw HttpClient, choose the status policy explicitly: receiving a 4xx/5xx response is not itself a failed effect. Decode meaningful error bodies before mapping to domain failures.
 - Map transport, timeout, status, and decode failures into the smallest caller-actionable taxonomy, preserving causes for diagnosis.
 - Use schema body helpers for known payloads and Stream for incremental bodies; bridge Web APIs in one adapter when the runtime requires them.
-- Test contracts without the public internet: handler-backed clients for contract logic, in-process servers for routing/middleware/transport, and logical time for retry policy.
+- Choose tests by fidelity: `HttpApiTest.groups` exercises the generated contract pipeline without sockets; a local server adds runtime transport behavior.
 
 ## Gotchas
 
 - A custom transport or protocol layer can duplicate HttpClient, HttpApi, Schema, Stream, or an official integration while losing their status, scope, and interruption semantics; name the unsupported requirement first.
 - Hand-parsed handler input drifts from generated clients and OpenAPI; put the rule in the endpoint schema or domain service.
-- Centralizing a client but leaving retries and status filters at call sites still creates divergent protocol behavior.
+- Centralizing a client but leaving retries and status filters at call sites still creates divergent protocol behavior; keep policy with the protocol owner, with operation-specific safety decisions.
 - Retrying a write after a connection failure can duplicate side effects even when the response was never received; require idempotency evidence.
-- Filtering status before reading a meaningful error body destroys details needed for product decisions.
-- Global transport mocks can make tests pass while application code bypasses the intended Effect HTTP layer.
-- A stream response that outlives its request scope can lose its body or leak a connection; make body consumption and ownership explicit.
+- A success-status filter on the client supplied to HttpApi can turn declared domain errors into generic `HttpClientError`s before the generated decoder runs; leave status/schema dispatch to HttpApi.
+- `retryTransient` classifies failures, not idempotency, and is unbounded without a limit; constrain attempts and elapsed time instead of applying it indiscriminately to a shared client.
+- Handler-backed tests do exercise routing and middleware, but not socket aborts or unread-body draining; use a local server when those behaviors matter.
+- Closing a request scope before consuming its response stream aborts the body; do not return a stream from an already-completed `Effect.scoped` block.
 
 ## References
 
 - [`references/inbound-contracts.md`](./references/inbound-contracts.md): Read when: defining a shared HttpApi, error statuses, or thin handlers.
 - [`references/outbound-protocols.md`](./references/outbound-protocols.md): Read when: designing a remote-protocol service, status handling, retries, timeouts, or transport layers.
-- [`references/http-testing.md`](./references/http-testing.md): Read when: choosing handler-backed versus in-process-server verification or testing time-based client policy.
+- [`references/http-testing.md`](./references/http-testing.md): Read when: choosing in-memory versus local-server tests, asserting streaming ownership, or testing time-based client policy.

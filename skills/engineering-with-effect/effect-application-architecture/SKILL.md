@@ -8,7 +8,7 @@ description: Design whole-application Effect topology across ordinary values, se
 - Start from domain and application capabilities, then translate only runtime-bearing capabilities into services and Layer providers.
 - Keep schemas, canonical values, pure policy, immutable intents, and operation-local or transaction-scoped values ordinary unless they have an independent runtime identity or an enforced scoped Context contract.
 - Use public facades to hide private feature topology when that reduces caller burden; expose multiple capabilities when callers genuinely need independently useful surfaces.
-- Give each runtime ownership and sharing domain an explicit, identifiable composition boundary that assembles the graph complete for that domain and owns its scope.
+- Give each runtime ownership and sharing domain an explicit composition boundary that assembles its graph and owns or receives its resource scope; use a host-owned `ManagedRuntime` when independent JavaScript invocations must share services.
 - Resolve configuration at the composition or adapter edge, capture implementation dependencies during construction, and hide private services from downstream outputs.
 - Assign transaction, client, process, subscription, and background-fiber lifetime to one clear scope owner; keep transaction-scoped values within the lifetime where their observations remain valid.
 - Provide long-lived dependencies once per sharing domain, use nested provision for bounded lifetimes, and make public exports reveal supported capabilities rather than infrastructure topology.
@@ -72,7 +72,6 @@ Translate the application by semantic role:
 - Keep the public Layer output as narrow as the supported application surface. Requirements used to construct it are not automatically outputs.
 - Share one configured graph across a complete multi-operation Effect program when those operations occupy one ownership domain; use nested graphs for request-, run-, tenant-, job-, or framework-owned lifetimes.
 - Keep transaction-current views as ordinary callback-scoped values by default; make them contextual only when a caller or framework protocol deliberately enforces transaction-local Context.
-- Route detailed decisions to the narrow owner: service shape to `effect-service`, graph and lifetime mechanics to `effect-layer`, boundary representations to `effect-schema`, runtime resources to `effect-platform`, evidence to `effect-testing`, telemetry to `effect-opentelemetry`, and durable orchestration to `effect-workflow`.
 
 ## Gotchas
 
@@ -82,8 +81,8 @@ Translate the application by semantic role:
 - If Layer construction embeds business branching, alternate provision paths can change application policy and runtime wiring becomes a second application layer; keep Layers focused on construction and lifetime.
 - If Layer output includes every construction requirement, private adapters become reachable and tests start depending on internals; hide requirements and expose only intentional capabilities.
 - If a transaction-current view is installed as a long-lived service, its validity can outlive the transaction that produced it; pass it as an ordinary scoped value unless context is an enforced part of the transaction API.
-- If an entrypoint rebuilds the long-lived graph for each public call, equivalent-looking operations can use different clients, caches, or scopes; provide once per sharing domain.
-- If an internal module is omitted from package exports but still appears in a public service requirement or return type, the topology leaks through types anyway; close both exports and public contracts.
+- If a host creates a `ManagedRuntime` per callback, it loses cross-invocation sharing; if it never disposes the runtime, resources outlive the host. Bind one runtime to the intended host lifetime and dispose it at shutdown.
+- If an invocation overrides a private dependency after a facade has captured it, the facade still uses the original instance; rebuild the facade for that identity or deliberately leave the dependency invocation-local.
 
 ## References
 

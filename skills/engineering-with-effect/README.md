@@ -1,8 +1,10 @@
 # Engineering with Effect
 
-Effect-specific knowledge skills for writing Effect-native code with current standards and best practices.
+Knowledge skills for Effect v4, focused on semantic intent, architecture, runtime ownership, and structural design decisions.
 
-These skills are intended to be used with the [`dotai` CLI](https://github.com/urban/dotai).
+Guidance applies across Effect v4 projects, not a pinned minor or patch release. Resolve unstable APIs, package exports, and provider capabilities against the project's installed packages.
+
+Use alongside type-aware linting and LSP diagnostics: these skills complement automated checks rather than repeat syntax, style, or compile-time type rules. They are intended for use with the [`dotai` CLI](https://github.com/urban/dotai).
 
 ## Primary routing
 

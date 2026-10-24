@@ -1,23 +1,23 @@
 ---
 name: effect-workflow
-description: Design durable Effect workflows around deterministic identity, replay-safe activities, durable waits and queues, compensation, suspension, engine ownership, proxy semantics, and public API tests. Use when work must survive runner or process lifetime.
+description: Design durable Effect workflows around deterministic identity, replay-safe activities, durable waits and queues, compensation, suspension, and engine ownership. Use when work must survive runner or process lifetime.
 ---
 
 ## Rules
 
-- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
-- Inspect the installed workflow engine, durable activities, waits, queues, retry, compensation, and proxy semantics before building custom orchestration or persistence machinery.
-- Treat workflow payload, result, expected failures, and idempotency key as a durable protocol.
-- Keep workflow bodies focused on orchestration; put domain behavior behind services and replay-sensitive side effects behind named durable primitives.
-- Derive stable execution and step identity from logical input, never ambient time, randomness, or process state.
-- Keep engine, storage, workers, and transport proxies at infrastructure boundaries.
+- Treat workflow tags, payload/result/error schemas, idempotency keys, and step names as a durable protocol; changes can affect executions already in storage.
+- Keep workflow bodies focused on replayable orchestration; put domain behavior behind services and externally visible effects behind named activities or durable workers.
+- Derive execution and step identity from logical input, never ambient time, randomness, or process state. Record nondeterministic decisions in an activity when replay must reuse them.
+- Assume an external effect can succeed before its activity result is recorded. Use downstream idempotency or deduplication, not activity memoization alone.
+- Prefer engine-owned timers, signals, and persisted queues over custom replay loops unless a specific durability requirement is missing.
+- Keep engine, storage, worker lifetime, and transport proxies at infrastructure boundaries.
 
 ## Constraints
 
-- Effect Workflow is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
-- Every retryable or replayable side effect needs idempotency or deduplication; compensation is an additional business-reversal policy, not replay safety.
-- Long waits and external completion must use durable primitives when execution may move or restart.
-- Compensation scope and trigger semantics must be verified; it is not a substitute for idempotent activities.
+- This guidance targets Effect v4's unstable `effect/workflow` surface.
+- Durable primitives inherit their guarantees from the engine and backing stores; an in-memory engine does not survive process loss.
+- Compensation is business reversal of a successful step after terminal workflow failure, not an atomic rollback or replay-safety mechanism.
+- Use durable waits and external completion when execution may move or restart; process-local resources cannot represent persistent workflow state.
 
 ## Knowledge Boundaries
 
@@ -26,7 +26,7 @@ Applies to:
 - workflow/activity schemas and deterministic identity
 - durable clocks, deferreds, queues, retries, suspension, and compensation
 - memory versus cluster engine composition and proxy-generated APIs
-- execute, discard/start, poll, interrupt, resume, and deterministic tests
+- execute, discard/start, poll, interrupt, resume, and behavioral tests
 
 Does not cover:
 
@@ -35,29 +35,30 @@ Does not cover:
 
 Decision inputs:
 
-- durability and replay requirements
-- logical idempotency key and step identity
+- durability and replay requirements, including existing stored executions
+- logical idempotency key and distinct step identities
 - retry safety, compensation action, and approval requirements
 - synchronous completion versus start-and-poll caller contract
 
 ## Patterns
 
-- Use activities for encoded retryable steps whose results must survive replay. Make the activity name stable and its external effect idempotent.
-- Use durable clock for waits, durable deferreds for external completion, and durable queues for worker-owned execution.
-- Separate workflow definition, implementation layer, worker layers, engine/storage layer, and transport proxy so tests and deployments can choose each.
-- Put expected business failures in workflow/activity error schemas. Preserve defects as defects unless the workflow explicitly captures them for operational handling.
-- Prefer generated workflow proxies when they preserve the intended start/wait/poll semantics and avoid duplicate schema definitions.
-- Test through execute/poll/resume with deterministic engine composition; inspect storage only when replay or deduplication is the behavior.
+- Model activities as stored step outcomes, including expected failures, rather than exactly-once side effects. Give repeated logical steps distinct stable names.
+- Use `Activity.retry` around an activity when retries need distinct recorded attempts. Keep the downstream idempotency key stable across attempts unless each attempt intentionally represents a new external operation.
+- Use durable clocks for waits, deferreds for external completion, and queues when a separately owned worker pool should process the step.
+- Register compensation around the activity at workflow level, where replay can rebuild the finalizer from the recorded success value.
+- Put expected business failures in error schemas. Defects remain distinct from typed failures, but `Workflow.CaptureDefects` defaults to true and records them in result exits; choose failure/suspension policy deliberately.
+- Separate workflow definition, handler registration, workers, engine/storage, and proxy layers so tests and deployments can choose each.
 
 ## Gotchas
 
-- A custom durable queue, scheduler, or replay loop can become a partial workflow engine without deterministic identity, suspension, or recovery guarantees; prove the installed workflow primitives miss a named semantic requirement.
-- A volatile idempotency key creates a new execution on every retry instead of finding the same logical work.
-- An activity that charges, sends, or mutates without idempotency can repeat after recovery even when its code runs once in a happy-path test.
-- Plain sleeps and in-memory deferreds disappear when execution suspends or moves runners.
-- Treating start-with-discard as a result-returning call confuses execution identity with workflow success.
-- Nested compensation assumptions can leave partially completed side effects uncorrected; register compensation where the runtime guarantees it.
-- Hiding the engine inside a reusable workflow module prevents tests and deployments from choosing durability semantics.
+- A key based on request time starts new work on every client retry; a key omitting a tenant or business-operation dimension can join unrelated work. Define the logical operation before choosing the key.
+- Reusing an activity name in a loop reuses that step's recorded outcome for the same attempt. Include a stable item identity, not replay-dependent ordering.
+- A suspended activity has no completed outcome to memoize, so its body runs again. Isolate side effects before waits into completed activities and still make external mutations idempotent.
+- Retrying an activity with ordinary `Effect.retry` outside it can replay the same stored failure. Use `Activity.retry` to advance the recorded attempt identity.
+- A short `DurableClock.sleep` is in-memory by default, so recovery can restart its delay. Choose its threshold according to whether the deadline must be durably scheduled.
+- Start-with-discard returns execution identity, not business success. Polling can return `None` for either unknown or running work; do not interpret it as a distinct not-found state.
+- Compensation inside an activity belongs to that activity's execution scope, not the later workflow failure. Wrap the activity at workflow level; suspension alone must not trigger reversal.
+- A generated proxy does not expose every engine operation. Add explicit boundary operations when callers need polling or interruption rather than assuming they are generated.
 
 ## References
 

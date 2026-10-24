@@ -2,80 +2,65 @@
 
 ## Default class-owned shape
 
-A concrete `Context.Service` class owns its default constructor and default Layer. This keeps the capability identity, construction requirements, and supported wiring discoverable from one symbol while preserving constructor and Layer replacement as separate seams.
+Keep `make` and `layer` discoverable on a concrete service class, while allowing callers to replace the implementation at the Context key. These members are an authoring convention, not an automatic consequence of `Context.Service`.
 
 ```ts
-export class Service extends Context.Service<Service, Shape>()(
-  "@scope/package/Service",
-) {
-  static readonly make = Effect.gen(function* () {
-    const dependency = yield* Dependency
+import { Context, Effect, Layer } from "effect"
 
-    return Service.of({
-      operation: dependency.operation,
+class StockLedger extends Context.Service<StockLedger, {
+  readonly available: (sku: string) => Effect.Effect<number>
+}>()("@shop/StockLedger") {}
+
+export class Availability extends Context.Service<Availability, {
+  readonly canSupply: (sku: string, quantity: number) => Effect.Effect<boolean>
+}>()("@shop/Availability") {
+  static readonly make = Effect.gen(function* () {
+    const ledger = yield* StockLedger
+
+    return Availability.of({
+      canSupply: (sku, quantity) => ledger.available(sku).pipe(
+        Effect.map((available) => quantity > 0 && available >= quantity),
+      ),
     })
   })
 
-  static readonly layer = Layer.effect(Service, Service.make).pipe(
-    Layer.provide(Dependency.layer),
-  )
+  static readonly layer = Layer.effect(Availability, Availability.make)
 }
 ```
 
-- Use a stable, package-qualified service key.
-- Acquire implementation dependencies once in `make` and close over them in the returned operations.
-- Construct the service value with `Service.of`.
-- Define the default Layer from the class-owned constructor and satisfy private construction requirements there.
-- Leave requirements on service operations only when callers intentionally own them.
+This capability answers a read-only availability question; it does **not** promise an atomic reservation. If callers need a reservation invariant, expose a reservation operation rather than making them compose a check and a write.
 
-## Pure construction
+The layer requires `StockLedger` at construction, but `canSupply` closes over the selected ledger. `Availability.of` returns its argument unchanged: it does not construct, acquire, or wire anything. `Layer.effect` runs `make` in the layer's scope. Use `Layer.provide` on the default layer when a particular adapter is intentionally part of that default; otherwise retain its construction input for external wiring.
 
-Keep no-dependency construction as an Effect without adding an empty generator:
+Keep acquisition failures on `make` / `layer` distinct from failures of the returned operations. A successful construction does not imply that later network calls cannot fail.
 
-```ts
-export class Service extends Context.Service<Service, Shape>()(
-  "@scope/package/Service",
-) {
-  static readonly make = Effect.succeed(Service.of({ operation }))
+## Pure and scoped construction
 
-  static readonly layer = Layer.effect(Service, Service.make)
-}
-```
+For an already-available immutable implementation, `Layer.succeed(Service, implementation)` is enough. Keep `make = Effect.succeed(implementation)` when a named constructor seam is useful, not solely to force a uniform ceremony.
 
-The uniform constructor seam lets tests and alternate application compositions replace construction without inventing another convention.
+For mutable state, allocate inside the constructor effect rather than at module initialization. For an owned client or subscription, acquire with `Effect.acquireRelease` inside `make` and build with `Layer.effect`. The layer supplies the scope; closing it releases the resource even if a caller retained the service object. Do not return that object from a temporary scope and continue using it afterward.
 
-## Parameterized construction
+## Parameterized construction and identity
 
-When explicit options determine service behavior or identity, make both class members functions of the same domain options:
+When domain options select behavior, expose matching `make(options)` and `layer(options)` members. Options should be domain data, not a bag of optional dependency overrides. Keep a separately named seam such as `makeWith` for deliberate adapter replacement.
 
-```ts
-export class Service extends Context.Service<Service, Shape>()(
-  "@scope/package/Service",
-) {
-  static readonly make = Effect.fn("Service.make")(function* (
-    options: Options,
-  ) {
-    const dependency = yield* Dependency
-    return Service.of(makeShape(options, dependency))
-  })
+Distinguish three identities:
 
-  static readonly layer = (options: Options): Layer.Layer<Service> =>
-    Layer.effect(Service, Service.make(options)).pipe(
-      Layer.provide(Dependency.layer),
-    )
-}
-```
+- **Context key:** the string identifies the runtime slot. Different classes using the same string collide; different options do not create additional slots.
+- **Service value:** a constructor can produce multiple implementations of the same capability. Select the implementation for a given context, or model explicit instance lookup if several must coexist.
+- **Layer value:** reusing the same layer shares acquisition within a shared build/memoization boundary. A factory that constructs a new layer on each call creates distinct layer values even for equal options; equal options are not a cache key. Reusing a layer across independent sibling `Effect.provide` calls does not itself promise one shared acquisition.
 
-Options should be explicit domain data rather than a collection of optional implementation overrides. When options change Layer identity, choose them at the composition boundary and reuse the resulting Layer value wherever acquisition should be shared.
+Choose and retain the parameterized layer value where sharing is intended; do not change the capability key merely to force fresh acquisition.
 
 ## Variants and public aliases
 
-Name deliberate variants by policy, such as `layerTest`, `layerCached`, or `makeWith`. Keep `make` and `layer` as the discoverable defaults.
+Name deliberate variants by policy, such as `layerTest`, `layerCached`, or `makeWith`. Keep `make` and `layer` as the discoverable defaults when those defaults exist.
 
-Export a package-level Layer only when embedding callers intentionally consume it. Make that export a direct alias of the class-owned Layer so the package surface has one default implementation:
+Export a package-level default Layer only when embedding callers intentionally consume it; make it a direct alias of the class-owned Layer rather than constructing a second default. Application composition roots remain separate because they assemble several capabilities and own a broader runtime boundary.
 
-```ts
-export const layer = Service.layer
-```
+## Source anchors (Effect v4)
 
-Application composition roots remain separate from individual service classes because they assemble several capabilities and own a broader runtime and scope boundary.
+- `packages/effect/src/Context.ts`: `Service`, `ServiceProto.of`, and string-key lookup.
+- `packages/effect/src/Layer.ts`: `effect` / `effectContext` supply the layer scope.
+- `packages/effect/src/Effect.ts`: `provide` documents enclosing reuse versus sibling builds.
+- `packages/effect/test/Layer.test.ts`: “sharing with merge”, “finalizers”, and “memoizes composed layers by identity”.

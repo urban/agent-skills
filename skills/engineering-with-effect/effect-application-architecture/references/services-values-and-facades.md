@@ -14,7 +14,7 @@ Ordinary shapes commonly include:
 
 A reusable function may still return an `Effect` and declare requirements. That alone does not require a new service. Promote a capability to `Context.Service` when callers need a coherent runtime identity with replaceability, shared state, configuration, owned resources, or construction that captures implementation dependencies.
 
-Use `Context.Reference` when contextual lookup and a replaceable default are the abstraction, but coherent behavior and resource ownership are not. Configuration values, feature switches, clocks, and replaceable recipes can fit this shape. Keep a service for capabilities that own reusable operations, dependencies, or resources.
+Use `Context.Reference` when absence should intentionally fall back to a default, not merely because the value is small or configurable. Its default is evaluated lazily and cached on the key, not allocated per request or runtime. A required deployment setting or acquired client should not silently fall back; pass validated values to construction or require a service. Context lookup itself does not own resource release.
 
 An operation-local value may be contextual when a framework protocol or dynamic propagation contract requires service lookup. Provide it only inside the owning request, run, transaction, tool, or subscription scope; the exception changes access, not lifetime.
 
@@ -47,4 +47,35 @@ Capture implementation requirements while constructing private features and faca
 
 A service's contextual requirements, method inputs, successes, failures, and returned values all contribute to the public contract. Hiding an internal module from exports is insufficient if a public type still mentions its service or representation.
 
-Detailed service granularity, constructor shapes, method errors, and fake implementations belong to service-boundary guidance. Application architecture decides where the service sits and whether it is public; it does not redefine those mechanics.
+### Capture fixes dependency identity
+
+```ts
+import { Context, Effect, Layer } from "effect"
+
+class Inventory extends Context.Service<Inventory, {
+  readonly reserve: (sku: string) => Effect.Effect<void>
+}>()("shop/Inventory") {}
+
+class Dispatch extends Context.Service<Dispatch, {
+  readonly schedule: (sku: string) => Effect.Effect<void>
+}>()("shop/Dispatch") {}
+
+class Fulfillment extends Context.Service<Fulfillment, {
+  readonly fulfill: (sku: string) => Effect.Effect<void>
+}>()("shop/Fulfillment") {
+  static readonly layer = Layer.effect(Fulfillment, Effect.gen(function*() {
+    const inventory = yield* Inventory
+    const dispatch = yield* Dispatch
+    return {
+      fulfill: (sku: string) => Effect.gen(function*() {
+        yield* inventory.reserve(sku)
+        yield* dispatch.schedule(sku)
+      })
+    }
+  }))
+}
+```
+
+The facade owns the ordering policy; the composition boundary only selects providers. This sketch assumes scheduling may follow reservation without atomicity; it does not implement rollback or durable delivery.
+
+Providing the private Layers to `Fulfillment.layer` with `Layer.provide` produces a public Layer exposing only `Fulfillment`. Its operations close over those private instances. Overriding `Inventory` around a later call cannot replace the captured instance. For tenant-specific dependencies, construct the facade in that tenant's graph; for deliberately invocation-local context, perform lookup during the operation instead of capturing it. Do not capture request or transaction state in a host-lived facade.

@@ -1,35 +1,64 @@
 # Composition and lifetimes
 
-## Graph semantics
+## Construction dependencies and output visibility
 
-- Merge independent providers whose requirements are already satisfied at that stage.
-- Supply dependencies to a provider before merging it with peers that consume its output.
-- Use `Layer.provide` when supplied dependency outputs are implementation details that should disappear from the resulting graph.
-- Use `Layer.provideMerge` only when downstream composition or a harness intentionally consumes the supplied capabilities as part of the result.
-- Treat a Layer value as an already deferred acquisition recipe; wrapping it in a zero-argument function changes the API without adding useful laziness.
-- Use `Layer.unwrap` when an Effect genuinely selects or constructs a Layer at runtime, with its requirements and construction failures represented honestly.
+`consumer.pipe(Layer.provide(dependency))` builds the dependency first, feeds its Context into consumer construction, and returns only the consumer's output. `provideMerge` does the same wiring but retains both outputs. Hiding a dependency is not early release: it remains owned by the build's scope.
 
-## Sharing
+For already-chosen recipes `PoolLive`, `RepositoryLive` and `ReporterLive`, where both consumers require the pool:
 
-A layer value is memoized within its memoization context. Decide the sharing domain:
+```ts
+import { Layer } from "effect"
 
-| Resource | Typical sharing |
+// Both consumers receive the same pool acquisition in this build.
+const Internal = Layer.merge(RepositoryLive, ReporterLive).pipe(
+  Layer.provide(PoolLive)
+)
+
+// Alternatively, configure each consumer, then merge; stable PoolLive identity
+// still permits sharing within the graph.
+const Configured = Layer.merge(
+  RepositoryLive.pipe(Layer.provide(PoolLive)),
+  ReporterLive.pipe(Layer.provide(PoolLive))
+)
+```
+
+Neither result exports the pool. Use `provideMerge(PoolLive)` instead when downstream code intentionally needs pool access. `Layer.merge(PoolLive, RepositoryLive)` does not wire the pool into repository construction: peers build concurrently from the same inputs.
+
+Context service identity and Layer sharing identity are different. Context uses the service's string key; memoization uses the Layer object. Distinct providers for the same service key can both acquire resources even though only one value survives in the output. For duplicate keys, `merge`/`mergeAll` keep the later provider's value; `provideMerge` keeps the consumer's value over the dependency's. Avoid using collisions as an implicit implementation-selection mechanism.
+
+## Sharing boundaries
+
+A memo map caches acquisitions by layer identity, not by service key or construction inputs. Reuse a stable recipe for consumers that should share. Do not reuse the same input-dependent recipe under different configurations in one map and expect distinct instances.
+
+| Boundary | Sharing behavior |
 | --- | --- |
-| Process-wide pool or telemetry exporter | One application scope |
-| Tenant-specific client | One tenant/config identity |
-| Request I/O handle | One request scope |
-| Test mutable state | One test unless sharing is intentional |
+| One composed graph | Repeated memoized layer values share, including concurrent consumers |
+| `Layer.build` / `buildWithScope` | Forks the ambient memo map, or creates a root if none exists |
+| Nested `Effect.provide` with a layer | Reuses entries already present in the ambient map; new acquisitions stay local to its child map |
+| `Effect.provide(effect, layer, { local: true })` | Uses an independent root map, without ambient acquisition reuse |
+| `Layer.buildWithMemoMap` | Uses exactly the supplied map and scope; appropriate when the host must coordinate sharing explicitly |
+| `Layer.fresh(subtree)` | Builds that subtree with a new root map on every build, while keeping the supplied scope |
 
-Freshness creates another acquisition. It is correct for independent state, not as a generic repair for accidental mutation or unclear ownership.
+A child memo map can reuse entries already built in its parent, but does not publish its own new entries back to the parent. Sibling builds therefore do not automatically share newly created resources. Two separate builds in the same scope are not, by that fact alone, one memoization domain.
 
-## Scoped construction
+Memoized acquisitions can have multiple scope owners. Closing one owner does not release a resource still observed by another; the last owner closes the acquisition scope and removes the entry. The map alone does not keep resources alive forever.
 
-Acquire owned resources in layer construction and register release in the same scope. Interruption during partial graph construction must still release resources already acquired.
+`fresh` isolates the subtree from outside memoization but preserves normal sharing *inside* that build. It does not clone preconstructed values or recreate dependencies already captured in closures. Keep expensive global pools outside a fresh request-state subtree and feed them in intentionally rather than freshening an entire graph.
 
-Manual layer building is justified at runtime boundaries such as request-specific memoization, plugin isolation, or a host that explicitly manages a child scope. It is not ordinary service-method composition.
+## Scoped construction and host ownership
 
-Providing a Layer inside a service operation is justified only when runtime policy deliberately controls activation or lifetime at that operation boundary. Capture the Layer recipe during service construction, acquire it in the operation scope, and preserve the wrapped Effect's success, expected failure, defect, and interruption semantics. State the lifetime reason near the boundary so nested provision is recognizable as ownership rather than incidental wiring.
+`Layer.effect` runs acquisition in the layer scope. Put `Effect.acquireRelease` or scope finalizers there; do not close an inner `Effect.scoped` around acquisition and then export the already-released handle. For background work, use scope-bound fiber ownership rather than detached workers.
 
-## Construction failures
+Sequential dependency construction gives dependents a chance to finalize before their dependencies. Parallel peer construction does not establish a total acquisition or finalization order. On failed or interrupted construction, acquired resources must still be released; test observable cleanup rather than relying on peer ordering.
 
-Keep failures typed while callers can select fallback, report configuration, or retry startup. Convert them to defects only at a final boundary where continued operation is impossible and no caller can recover.
+Manual building belongs at boundaries whose host explicitly owns the scope, such as plugin lifetimes. Use services only while their owner remains open. A returned Context is a lookup structure, not a transferable resource owner.
+
+For repeated calls from a non-Effect host, `ManagedRuntime.make(layer)` lazily builds and caches the graph. Separate runtimes have separate memo maps by default; supplying the same map intentionally shares matching layer identities across them. Each runtime still needs disposal. Disposal interrupts and awaits its managed request fibers before releasing its layer resources; shared resources survive until the last observing owner closes. Do not reuse a disposed runtime.
+
+Operation-local provision is appropriate for deliberate activation or lifetime policy, not incidental wiring. Its scope closes when the wrapped operation exits, but default memo-map inheritance may reuse outer acquisitions. Choose isolation explicitly when state must be independent.
+
+## Deferred selection and construction failures
+
+An ordinary layer recipe defers effectful acquisition, not arbitrary JavaScript used to create the recipe. `Layer.suspend(() => recipe)` defers recipe creation; `Layer.unwrap(effectSelectingRecipe)` supports effectful selection. Their selection is shared with the resulting memoized layer, not repeated for every service-method invocation.
+
+Keep construction failures recoverable while a caller can select a fallback, report configuration, or retry startup. Convert them to defects only at a boundary where no caller can recover. `ManagedRuntime` caches a failed build as well as a successful one: repeating or retrying host calls will see that failure again. Apply recovery inside construction or dispose and create a new runtime.
