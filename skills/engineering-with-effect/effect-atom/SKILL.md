@@ -5,17 +5,18 @@ description: Design Effect Atom state around identity, AsyncResult lifecycle, ca
 
 ## Rules
 
-- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Let the registry own values, subscriptions, and resources; share stable atom definitions rather than mirroring their state in another cache.
 - Model asynchronous atom values as a lifecycle, not as loaded data with fallback placeholders.
-- Make cache identity explicit; every field that isolates state belongs in the family key.
+- Make cache identity explicit; every field that isolates state belongs in the family key or registry boundary.
 - Let atom modules own queries, mutations, refresh, derived views, optimistic transitions, and cache policy; components render and dispatch.
-- Choose disposal, idle retention, and process-wide retention from state ownership and staleness requirements.
+- Choose disposal and idle retention from state ownership; choose freshness and invalidation separately.
+- Decide mutation overlap policy before enabling concurrency: cancellation, serialization, and independent operations have different domain consequences.
 
 ## Constraints
 
-- Effect reactivity is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
+- The `effect/reactivity` surface is unstable; the registry, not a module-level atom definition, owns live state.
 - Loading, refreshing, failure, and successful empty data must remain distinguishable unless the domain intentionally merges them.
-- Optimistic transitions need rollback/reconciliation semantics for failure and concurrent mutations.
+- Optimistic transitions need reconciliation semantics for failure and overlapping mutations; they are not server-side concurrency control.
 - Causes may be formatted at the display boundary but should not be discarded earlier.
 
 ## Knowledge Boundaries
@@ -29,7 +30,7 @@ Applies to:
 Does not cover:
 
 - generic React architecture or raw transport implementation
-- syntax rules around direct storage or HTTP access
+- server-side transaction protocols or SSR serialization design
 
 Decision inputs:
 
@@ -40,21 +41,23 @@ Decision inputs:
 
 ## Patterns
 
-- Use a family when input changes identity. Prefer structural keys with all tenant, entity, scope, mode, and filter fields that separate cached values.
-- Render Initial, Success, Failure, and waiting/refresh states deliberately. A refreshing Success can show stale data while indicating progress.
-- Put derived selection beside the owning atom and preserve the source lifecycle instead of copying values into component state.
-- Keep optimistic reducers pure and define what happens on rejection, overlap, server normalization, and invalidation.
-- Reserve keep-alive for true application-lifetime state; use ordinary disposal or bounded idle retention for remote caches.
-- Test through a registry/provider, replace runtime services or seed state, and assert lifecycle transitions and isolation between keys.
+- Use a family when input changes identity. Use immutable value keys containing the tenant, entity, scope, mode, and filters that separate cached values.
+- Render Initial, Success, Failure, and `waiting` deliberately. Retained data can accompany either a refreshing Success or a Failure with `previousSuccess`.
+- Put derived selection beside the owning atom; `Atom.mapResult` preserves lifecycle instead of copying successful values into component state.
+- Keep optimistic reducers pure; reconcile with the authoritative query rather than treating provisional values as committed writes.
+- Reserve keep-alive for intentional registry-lifetime retention. Use idle TTL for reuse and refresh/invalidation for freshness.
+- Test the real graph through fresh registries or providers, replacing runtime layers at service boundaries and controlling request completion order.
 
 ## Gotchas
 
-- Flattening failure or loading to an empty collection makes real empty data indistinguishable from an unavailable request.
-- A family key missing scope or mode fields leaks values across users, tenants, views, or test cases.
-- Duplicating remote data in component state splits optimistic updates from invalidation and refresh.
-- Keeping every atom alive turns a lazy graph into an unbounded process cache.
-- A reducer that assumes one mutation at a time can roll back newer successful state when requests finish out of order.
-- Mocking atom definitions proves a different graph; replace services or registry inputs instead.
+- Creating atoms during each render gives each render a new state identity; keep definitions stable or select a stable family member instead.
+- Flattening Initial or Failure to an empty collection hides unavailable requests; render lifecycle separately from successful empty data.
+- Omitting tenant/scope fields shares family state across domains, while mutating an already-hashed key corrupts lookup assumptions; use complete immutable keys.
+- An idle TTL only controls retention, not data age; pair it with an explicit stale-data and invalidation policy.
+- Keeping every family member alive retains nodes and resources until registry disposal; bound remote caches instead.
+- Treating optimistic rollback as a saved-snapshot restore can overwrite newer state; reconcile against the latest source and test reversed completion orders.
+- A promise-mode React setter observes the atom's next settled result, not a write-specific response; serialize calls or isolate mutation atoms when callers need correlation.
+- A provider boundary isolates values and default runtime services, not just rendering; place shared consumers under the same registry and do not expect cross-registry invalidation broadcasts.
 
 ## References
 

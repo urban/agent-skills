@@ -8,6 +8,7 @@ description: Design framework-neutral TypeScript architecture around deep domain
 - Preserve correctness, safety, and debuggability first; then follow established project architecture, improve the local design, and avoid unrelated migrations.
 - Inspect existing domain types, modules, services, adapters, persistence conventions, error handling, tests, and observability before introducing another pattern or dependency.
 - Build deep modules that hide meaningful behavior and invariants behind a cohesive, low-burden interface.
+- Let public application operations expose the meaningful order of domain decisions; extract helpers only when they own one coherent I/O, decoding, or policy concern rather than to satisfy a size metric.
 - Keep domain modules focused on valid values and pure behavior; keep application modules focused on capabilities that coordinate dependencies and effects.
 - Let a consumer depend on the smallest meaningful capability it uses while allowing a wider concrete adapter to satisfy that structural shape.
 - Audit existing adapters before creating one: reuse when possible, extend when the capability remains cohesive, and create a new adapter only for a genuinely separate reason to change.
@@ -61,6 +62,7 @@ Failure modes this knowledge helps avoid:
 - Give an application module a domain capability name such as `PasswordReset` or `SubscriptionLifecycle`; inject dependencies once rather than passing a generic dependency bag through every call.
 - Let the consuming module declare a narrow structural dependency. Do not split the concrete adapter merely to make its interface textually identical to each consumer shape.
 - Treat raw rows and ORM entities as infrastructure DTOs. Persistence adapters expose meaningful domain operations, parsed values, and caller-actionable failures.
+- Preserve separate persistence operations or queries when they maintain a caller-visible failure distinction; collapse them only when the simpler classification is an accepted contract change.
 - Before adding a meaningful adapter, record what was inspected and why reuse or extension would create bad coupling. Preserve the decision in the repository's established ADR or decision-log format when the choice is difficult to reverse or surprising without context.
 - Parse and authenticate at an entrypoint, then pass a domain-specific principal such as `Session`, `AdminUser`, or `CommandActor` to shared policy.
 - For retryable state changes that are not inherently repeat-safe, use an idempotency key, natural unique constraint, deduplication record, guarded state transition, or transactional outbox/inbox where duplicates can occur.
@@ -70,6 +72,7 @@ Failure modes this knowledge helps avoid:
 - If a wrapper mirrors every dependency method, callers learn the wrapper and the dependency while gaining no locality. Move normalization, policy, or invariants behind it, or remove it.
 - If an agent creates a new adapter before inspecting existing ones, one remote system acquires several inconsistent error, retry, and telemetry policies. Reuse or cohesively extend the existing owner first.
 - If repository methods return ORM rows, schema and storage changes propagate into application logic. Decode at the persistence seam and return domain values.
+- If helper extraction hides identity, compatibility, range, or other semantic decisions behind generic orchestration, the public operation becomes shorter but harder to audit; extract boundary work and keep policy visible.
 - If controllers enforce authorization independently, a CLI or worker eventually bypasses a rule. Authenticate at the edge but keep authorization decisions in shared policy.
 - If a network call occurs inside a database transaction, latency and partial failure hold locks while atomicity still stops at the network. Commit local intent and coordinate the external effect separately.
 - If every retry generates a new identity, at-least-once delivery becomes duplicate business action. Derive identity from the logical command and enforce it at the state-changing boundary.

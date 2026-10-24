@@ -1,31 +1,32 @@
 ---
 name: effect-cluster
-description: Decide when Effect Cluster entity semantics fit, then design identity, message protocols, state ownership, concurrency, persistence, delivery errors, runners, and public client tests. Use for stateful per-identity behavior, not generic RPC.
+description: Design Effect Cluster entity identity, protocols, activation state, concurrency, persistence, delivery guarantees, and runner ownership. Use for stateful per-identity behavior and its public-client tests, not generic RPC.
 ---
 
 ## Rules
 
-- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
-- Use an entity when per-identity state, serialized message handling, passivation, or clustered placement is essential.
-- Define the message protocol before handlers; payload, success, business errors, primary key, and persistence annotations are durable contracts.
-- Keep per-entity state inside entity construction and hide raw sharding/entity clients behind domain capabilities where appropriate.
-- Choose sequential or concurrent handling from state-transition safety, not throughput preference alone.
+- Use an entity when per-identity coordination, serialized message handling, passivation, or clustered placement is essential; do not build a parallel actor registry or placement loop.
+- Treat entity type, entity ID, RPC tag, payload, result, and command primary key as protocol contracts, including compatibility with stored requests and replies.
+- Allocate per-identity state in the effect passed to `Entity.toLayer`; reconstruct authoritative state from durable storage rather than assuming an activation survives.
+- Choose concurrency from state-transition safety, not throughput preference alone. Default sequential handling is local to one entity activation, not a cross-entity transaction.
+- Separate business outcomes from delivery failures at the domain or proxy boundary, where callers can choose backpressure, retry, or unavailability behavior.
+- Keep runner transport, storage, and shard configuration at infrastructure edges; expose domain capabilities instead of leaking raw clients where that would obscure ownership.
 
 ## Constraints
 
-- Effect Cluster is currently exposed through an unstable v4 module surface; verify imports and API details against the installed release.
-- Persisted messages require storage, deterministic identity, replay safety, and duplicate-handling policy.
-- Delivery failures and business failures are separate contracts.
-- Fire-and-forget client semantics do not remove server-side durability or error considerations.
+- The `effect/cluster` surface is unstable.
+- `ClusterSchema.Persisted` persists mailbox requests and replies, not entity memory, and requires a real `MessageStorage` implementation.
+- Durable delivery does not make external side effects exactly-once. Handlers must tolerate replay after defects, ownership changes, and transaction failures.
+- Discard sends do not report handler completion or business failure; volatile discard is not durable submission.
 
 ## Knowledge Boundaries
 
 Applies to:
 
-- entity suitability, identity, state, passivation, and handler concurrency
-- RPC schemas, delivery failures, persistence, primary keys, and transactions
-- test, local, and clustered runner composition
-- domain/proxy adapters and public-client verification
+- entity suitability, identity, activation state, passivation, and concurrency
+- protocol compatibility, delivery failures, persistence, deduplication, and transactions
+- test, single-process, and distributed runner ownership
+- domain/proxy adapters and public-client tests
 
 Does not cover:
 
@@ -34,29 +35,30 @@ Does not cover:
 
 Decision inputs:
 
-- state partition key and ownership
+- partition key, authoritative state store, and reconstruction cost
 - ordering and concurrency invariants
-- replay/idempotency and persistence guarantees
-- caller response to mailbox, duplicate, persistence, or transport failure
+- replay/idempotency and command identity semantics
+- caller response to storage, capacity, or routing failure
 
 ## Patterns
 
-- Keep default sequential processing when handlers mutate shared entity state. Fork only read-only or commutative work with explicit safety reasoning.
-- Put business validation failures in RPC schemas. Translate cluster delivery failures at the boundary that can choose retry, backpressure, conflict, or unavailability behavior.
-- Use stable primary keys for commands that must deduplicate or reject duplicate in-flight work.
-- Keep runner, storage, shard configuration, and proxy generation at infrastructure edges.
-- Test through entity clients or domain services. Inspect storage internals only for persistence, replay, deduplication, or transaction semantics.
+- Keep default sequential processing for shared state transitions. `Rpc.fork` bypasses that serialization; reserve it for work whose overlap is safe.
+- Use persisted command primary keys to identify one logical operation across retries, not to represent a business lock. Duplicates can join the original request or reuse its stored reply.
+- Design recovery and passivation together: a new activation must rebuild usable state even when earlier requests have already completed and will not replay.
+- Match tests to the boundary: `Entity.makeTestClient` for per-ID behavior; `TestRunner.layer` with the real entity client for mailbox and recovery semantics; SQL and transport tests for guarantees the in-memory runtime cannot prove.
 
 ## Gotchas
 
-- Using Cluster as a generic RPC wrapper adds placement, mailbox, passivation, and delivery complexity without stateful benefit.
-- Module-level state survives and shares differently from entity state, breaking passivation and restart assumptions.
-- Forking stateful handlers introduces races within one identity despite actor-style expectations.
-- Persistence without idempotent effects replays external side effects after retries or recovery.
-- Mapping mailbox-full and duplicate-processing to one internal error prevents callers from applying backpressure or conflict handling.
-- Handler-only tests miss serialization, entity identity, mailbox, and delivery behavior.
+- A persisted counter stored only in a `Ref` resets after passivation: mailbox durability is not state persistence. Store authoritative transitions durably and rebuild activation state.
+- Raising entity concurrency or returning `Rpc.fork` can overlap handlers for the same ID. Keep state transitions serialized unless the domain proves overlap safe.
+- Reusing a command key with a changed payload can return the old result rather than run the new intent. Give distinct operations distinct keys and handle conflicting reuse explicitly.
+- Retrying a payment after a handler defect can charge twice even with persisted messages. Carry the logical command key into the external system's idempotency contract.
+- Treating `AlreadyProcessingMessage` as a business conflict confuses duplicate envelopes with domain contention. Storage-backed duplicate calls normally observe the original operation; model conflicts in the RPC's business errors.
+- Returning success from a discard endpoint means submission, not successful handling. Use request/reply when the caller needs the business outcome.
+- A passing `makeTestClient` test does not prove serialization, persistence, or shard handoff; exercise those boundaries with the runtime that owns them.
+- Starting several `SingleRunner` processes does not create a distributed cluster: its communication and health services are no-ops. Use coordinated runner storage and a real transport for multiple runners.
 
 ## References
 
-- [`references/entity-protocols-and-state.md`](./references/entity-protocols-and-state.md): Read when: deciding entity suitability, message schemas, state ownership, concurrency, or passivation.
-- [`references/persistence-delivery-and-runners.md`](./references/persistence-delivery-and-runners.md): Read when: choosing persistence, primary keys, delivery-error mapping, proxies, runner layers, or tests.
+- [`references/entity-protocols-and-state.md`](./references/entity-protocols-and-state.md): Read when: deciding entity identity, protocol compatibility, state ownership, concurrency, or passivation.
+- [`references/persistence-delivery-and-runners.md`](./references/persistence-delivery-and-runners.md): Read when: choosing persistence, command keys, transactions, delivery-error mapping, proxies, runner layers, or recovery tests.

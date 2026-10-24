@@ -12,6 +12,10 @@ When several calls are represented by one public operation, its implementation L
 
 A conventional executable bridge hands the prepared Effect program and graph to the runtime and publishes the terminal process or protocol result. A framework-hosted or reactive application may instead establish an outer registry or host lifetime while nested graphs serve mounted features or invocations. Runtime-specific adapters belong at the edge that owns their scope.
 
+For a JavaScript host with separate callbacks or Promise-based invocations, keep a `ManagedRuntime.make(applicationLayer)` for the host's sharing domain. It builds lazily and caches the context across runs; dispose it when that host lifetime ends. Disposal interrupts and awaits runtime-managed fibers before releasing Layer resources, so the host must decide when ongoing invocations should stop. Do not dispose after each call unless each call intentionally owns an isolated runtime.
+
+A failed Layer build is cached too. Put an intended acquisition retry policy inside the Layer, or dispose and recreate the runtime to attempt a fresh build; another `runPromise` is not a new initialization attempt.
+
 Several runtimes may reuse a Layer-producing module while retaining distinct composition boundaries for their final ownership domains. Reusable domain and application modules do not import those runtime choices.
 
 ## Public Effect surface
@@ -25,6 +29,8 @@ Audit publicness through distinct channels:
 
 Supported callers may need canonical domain contracts, expected error types, public service contracts or named Effect operations, a supported Layer for an embedding host, and stable configuration types the host intentionally supplies. Keep private feature services, concrete adapters, provider clients, transaction handles, resource constructors, and internal configuration out of those channels unless the caller deliberately owns them.
 
+A service key does not automatically construct a provider. A Layer may live on the service class or in a provider module; keep each implementation defined once. The composition boundary owns the larger graph and adapter choices. Export a supported construction Layer only when an embedding caller needs it, without making the closed executable's production graph the default public contract.
+
 Not every TypeScript export is supported API, and omission from a root barrel is not access control when a build or export map exposes the path. Not every application needs one public facade or one exported Layer: an embedding host may need several capabilities, while a closed executable may expose no supported Layer. Match each visibility channel to actual caller requirements rather than exposing the assembled graph.
 
 ## Close requirement and output leaks
@@ -33,4 +39,4 @@ Hiding an internal module path is insufficient when a public operation still req
 
 Layer output is another visibility channel. A private service left in the output remains available downstream even when absent from the root barrel. Conversely, a narrow Layer output does not help if public method signatures mention internal types. Close package reachability, documented support, requirements, signatures, and Layer-output leaks together.
 
-At an actual supported package boundary, entrypoint adapters and public-boundary tests should import through documented application entrypoints so accidental leaks remain observable. Closed executables and unpublished examples may intentionally use direct internal imports; do not mistake those imports for a compatibility contract.
+At an actual supported package boundary, entrypoint adapters and public-boundary tests should import through documented application entrypoints so accidental leaks remain observable. Closed executables and unpublished examples may intentionally use direct internal imports; do not mistake those imports for a compatibility contract. Package export wildcards can still expose internal paths omitted from a barrel; use explicit public paths or exclusions when reachability must be restricted.

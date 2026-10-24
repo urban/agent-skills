@@ -13,7 +13,7 @@ Skills are grouped by category under `skills/`:
 
 ## Skills
 
-The list below reflects git-tracked `SKILL.md` files.
+The list below highlights available skills, including drafts.
 
 ### Productivity
 
@@ -22,7 +22,6 @@ The list below reflects git-tracked `SKILL.md` files.
 
 ### Engineering
 
-- `testing-strategy` — confidence-oriented test boundaries, real seams, faithful substitutes, and observable evidence.
 - `typescript` — pragmatic functional TypeScript style and constraints.
 - `typescript-project-hygiene` — compiler, module, configuration, and type-safety hygiene.
 
@@ -35,7 +34,7 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 - `effect-atom` — Effect Atom state modules, async lifecycles, React integration, optimistic updates, and tests.
 - `effect-client-wrapper` — wrappers for third-party Promise-based SDK clients with Effect services, typed errors, tracing, and dependency injection.
 - `effect-cluster` — Effect Cluster entities, RPC protocols, runners, persistence, proxies, and tests.
-- `effect-core` — cross-cutting Effect v4 standards for services, layers, errors, streams, schemas, observability, and tests.
+- `effect-core` — core computation, failure/defect, Cause, interruption, and fiber semantics, plus routing for ambiguous Effect tasks.
 - `effect-fast-check` — property-based tests for Effect code.
 - `effect-http` — Effect HTTP APIs, clients, schema bodies, status/error mapping, and in-process tests.
 - `effect-layer` — Effect Layer composition, dependency wiring, scoped resources, sharing, and test layers.
@@ -50,8 +49,12 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 
 ### In progress
 
-- `capture-decisions` — durable Markdown decision logs with rationale, consequences, and risks.
+- `capture-decisions` — non-engineering decisions with rationale, consequences, and risks.
 - `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
+- `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.
+- `testing-strategy` — fewer, higher-value black-box tests and fast, trustworthy feedback.
+- `to-spec` — reviewed product/feature contracts and execution handoffs.
+- `write-adr` — engineering decisions, alternatives, evidence, and supersession.
 
 ## What is specific to this repo
 
@@ -67,7 +70,7 @@ These skills follow a few strong conventions:
 
 - Read a skill's `SKILL.md` first.
 - If you want the clearest picture of this repo's conventions, start with `skills/productivity/build-a-skill/`.
-- For Effect work, start with `skills/engineering-with-effect/effect-core/`, then add narrower Effect skills as needed.
+- For Effect work, choose one primary skill from `skills/engineering-with-effect/README.md`; add another only for a separate, substantive decision in its scope.
 
 ## License
 

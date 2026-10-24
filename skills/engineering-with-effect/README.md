@@ -1,8 +1,23 @@
 # Engineering with Effect
 
-Effect-specific knowledge skills for writing Effect-native code with current standards and best practices.
+Knowledge skills for Effect, focused on semantic intent, architecture, runtime ownership, and structural design decisions.
 
-These skills are intended to be used with the [`dotai` CLI](https://github.com/urban/dotai).
+Use current Effect-native APIs. Resolve unstable APIs, package exports, and provider capabilities against the project's installed packages.
+
+Use alongside type-aware linting and LSP diagnostics: these skills complement automated checks rather than repeat syntax, style, or compile-time type rules. They are intended for use with the [`dotai` CLI](https://github.com/urban/dotai).
+
+## Primary routing
+
+Choose one primary skill by the decision that owns the task. Add another only when the task contains a separate, substantive decision in its scope.
+
+| Primary decision | Skill |
+| --- | --- |
+| Core computation, failure/defect, Cause, interruption, or ambiguous routing | `effect-core` |
+| Runtime topology spanning multiple capabilities or ownership domains | `effect-application-architecture` |
+| One coherent capability contract and its public failures | `effect-service` |
+| Construction, dependency visibility, sharing, freshness, or scoped lifetime | `effect-layer` |
+| Cross-cutting test seam, deterministic coordination, or cleanup evidence | `effect-testing` |
+| Protocol or package-specific behavior | The matching specialist below |
 
 ## Sibling skills
 
@@ -11,7 +26,7 @@ These skills are intended to be used with the [`dotai` CLI](https://github.com/u
 - [effect-atom](./effect-atom/SKILL.md) — Effect Atom state modules, async lifecycles, service-backed data access, React hooks, optimistic updates, and tests.
 - [effect-client-wrapper](./effect-client-wrapper/SKILL.md) — Effect service wrappers around Promise-based third-party SDK clients.
 - [effect-cluster](./effect-cluster/SKILL.md) — Effect Cluster entities, typed RPC protocols, runners, persistence, proxies, actor-style state, and tests.
-- [effect-core](./effect-core/SKILL.md) — Core Effect-native TypeScript standards for effects, services, layers, errors, schemas, streams, observability, and tests.
+- [effect-core](./effect-core/SKILL.md) — Core computation and runtime semantics plus routing when no narrower specialist clearly owns the decision.
 - [effect-fast-check](./effect-fast-check/SKILL.md) — Property-based testing for Effect code with @effect/vitest, schema-derived arbitraries, and deterministic boundaries.
 - [effect-http](./effect-http/SKILL.md) — Effect HTTP APIs, typed clients, schema bodies, outbound services, transport layers, status mapping, and in-process tests.
 - [effect-layer](./effect-layer/SKILL.md) — Effect Layer composition, dependency wiring, scoped resources, sharing semantics, typed construction errors, and test layers.

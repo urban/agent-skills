@@ -5,7 +5,7 @@ description: [TODO: Brief description of the capability or domain expertise. Use
 
 ## Rules
 
-[TODO: Add agent-facing standards, defaults, and judgment rules. Use instructional voice: do X because Y.]
+[TODO: Add agent-facing standards, defaults, and judgment rules. Use instructional voice: do X because Y. For engineering skills, teach semantic and architectural decisions that remain after automated checks pass, not routine tool diagnostics.]
 
 ## Constraints
 

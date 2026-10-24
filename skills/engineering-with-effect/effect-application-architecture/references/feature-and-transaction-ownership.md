@@ -12,9 +12,9 @@ Do not create a service merely because code belongs to a feature. Pure feature p
 
 One persistence capability should own the database client and complete transaction scope. A transaction-current semantic view supplied to feature policy is usually an ordinary value passed only within the transaction callback. Making that view a globally discoverable service obscures its lifetime and can permit reuse after the transaction closes.
 
-Leave a transaction value contextual only when caller-supplied transaction context or a framework protocol is a deliberate, enforced contract. Its provider must be nested inside the transaction scope rather than included in the long-lived application Layer.
+Distinguish an application transaction view from a persistence driver's transaction propagation. Effect's `SqlClient.withTransaction` uses a client-specific transaction service internally so statements share the current connection and nested transactions can use savepoints. That does not justify publishing a transaction handle in the application graph or capturing it in a long-lived feature.
 
-The same exception applies to other operation-local values required by a framework protocol or dynamic propagation contract: provide them only inside the owning request, run, transaction, tool, or subscription scope. Contextual discoverability must not extend their valid lifetime.
+When a framework protocol deliberately requires contextual operation-local state, provide it only inside the owning scope. Contextual discoverability does not extend validity or prevent an escaped value or closure from retaining an expired handle.
 
 A Layer can own the client or pool used to start transactions without turning an individual transaction handle into an application-wide capability. Consistency, commit uncertainty, retry, and transaction-versus-workflow policy belong to framework-neutral architecture guidance.
 
@@ -22,6 +22,6 @@ A Layer can own the client or pool used to start transactions without turning an
 
 The Layer constructing a client, pool, process, subscription, server, or exporter owns acquisition and release. The composition root chooses the enclosing provision scope and sharing domain, while feature services consume semantic capabilities rather than managing raw handles.
 
-A detached fiber or background loop likewise needs an explicit scope, supervisor, and shutdown owner. Keep these ownership decisions visible in the provider graph without exposing the concrete resource as part of the public application output.
+A background loop likewise needs an explicit lifetime and shutdown owner; detaching it from the caller does not assign it to the application. Attach service-owned work to the resource scope or host runtime that must stop it before releasing its dependencies, without exposing the concrete fiber as public application output.
 
 If a public operation returns a raw handle or transaction session, lifecycle responsibility has moved to the caller. Make that transfer only when handle control is intentionally part of the public capability.

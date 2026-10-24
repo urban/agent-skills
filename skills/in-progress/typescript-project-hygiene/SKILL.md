@@ -7,11 +7,12 @@ description: Maintain TypeScript project boundaries through strict compiler sett
 
 - Enable strict compiler checks that expose unsafe absence, indexing, overrides, and switch fallthrough unless a documented compatibility constraint prevents them.
 - Import from the module that owns an abstraction and export only the surface callers should use.
-- Prefer type-only imports and exports when a symbol has no runtime role.
+- Follow the project’s explicit type-import policy. Otherwise prefer type-only imports and exports when a symbol has no runtime role and the configured compiler and lint rules support that form.
 - Name files for the concept they own and split by independent reasons to change, not arbitrary line counts.
 - Treat casts as proof obligations rather than routine ways to silence the compiler; do not introduce `any` or non-null assertions.
 - Parse configuration once at startup or the earliest boundary into typed, redacted domain configuration.
 - Keep module import evaluation free of application I/O, resource acquisition, ambient time/random reads, handler registration, and server startup.
+- Do not use source-level diagnostic suppressions for project-owned code: fix the code first, then use the narrowest centralized configuration override only for a verified tool false positive.
 
 ## Constraints
 
@@ -21,6 +22,7 @@ description: Maintain TypeScript project boundaries through strict compiler sett
 - Do not read `process.env` throughout application modules.
 - Do not export internals solely so a test can reach them.
 - Do not add a barrel, namespace, singleton, or shared prelude as a default convenience.
+- Do not weaken a diagnostic globally when an exact file pattern or boundary override covers a verified incompatibility.
 
 ## Knowledge Boundaries
 
@@ -41,6 +43,7 @@ Decision inputs:
 
 - package and runtime module system
 - existing compiler and lint configuration
+- configured validation commands, automation profiles, project references, and incremental-build behavior
 - public package entrypoints versus internal source modules
 - runtime ownership of configuration, import-time registration, resources, and global state
 
@@ -59,7 +62,10 @@ Failure modes this knowledge helps avoid:
 - Keep helpers private unless multiple production callers share them. Test through the owning public behavior rather than widening exports.
 - Use precise filenames such as `email-address.ts` or `billing-period.ts`; avoid catch-all `utils.ts`, `helpers.ts`, `common.ts`, and `misc.ts`.
 - Permit a small `prelude.ts` only for ubiquitous, domain-neutral primitives. Keep product policy and feature helpers in their owning modules.
-- At an unavoidable cast, state the invariant already established and why TypeScript cannot express it. Scope any lint disable to the exact line and rule.
+- At an unavoidable cast, state the invariant already established and why TypeScript cannot express it. Do not pair it with a source-level diagnostic suppression; contain a verified false positive in centralized configuration.
+- Separate compiler soundness from advisory or framework-aware lint diagnostics. Start from the project’s supported recommended profiles; do not blanket-enable experimental, nursery, pedantic, or warning-denial modes without reviewing their semantics.
+- Prefer fixing a diagnostic in source. If a rule fundamentally misreads an established construct, keep the rule enabled elsewhere and document the narrowest centralized override that contains the false positive.
+- Run the project’s configured validation commands after compiler or lint changes. When project references or inference changes can reuse stale build information, use the project-supported forced or clean typecheck rather than inventing a universal command.
 - Decode environment input once, wrap secrets before they enter application code, and unwrap only at the exact adapter call that needs the raw value.
 - Create connections, servers, subscriptions, and mutable registries in bootstrap or an explicit resource owner; do not acquire them during module evaluation.
 
@@ -72,9 +78,11 @@ Failure modes this knowledge helps avoid:
 - If a module opens a connection or registers a handler at import time, test order and tool discovery change runtime behavior. Move acquisition and registration into explicit bootstrap.
 - If import evaluation reads a clock, RNG, or mutable singleton, merely importing a module becomes nondeterministic and order-dependent. Defer that read to an explicit runtime owner.
 - If strict flags are enabled without scoping a legacy migration, unrelated work balloons into a repository rewrite. Keep the target baseline explicit and adopt it through bounded changes.
+- If an agent copies a preferred import spelling or diagnostic profile over explicit local policy, valid code starts failing for stylistic rather than semantic reasons; inspect the configured toolchain and preserve the repository’s chosen contract.
+- If an inline suppression hides a real issue or a repeated false positive, later reviewers cannot tell policy from expedience; fix the source or centralize one documented, bounded override.
 
 ## References
 
-- [`references/compiler-and-escape-hatches.md`](./references/compiler-and-escape-hatches.md): Read when: selecting strict compiler flags, containing untyped interop, or justifying a cast or lint suppression.
+- [`references/compiler-and-escape-hatches.md`](./references/compiler-and-escape-hatches.md): Read when: selecting strict compiler flags, containing untyped interop, justifying a cast, or containing a verified diagnostic false positive.
 - [`references/imports-exports-and-files.md`](./references/imports-exports-and-files.md): Read when: designing imports, package entrypoints, barrels, export surfaces, namespaces, filenames, or a prelude.
 - [`references/configuration-and-module-effects.md`](./references/configuration-and-module-effects.md): Read when: loading configuration, handling secrets, acquiring resources, avoiding import-time effects, or isolating ambient state.

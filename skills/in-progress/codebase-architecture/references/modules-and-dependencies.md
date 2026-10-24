@@ -17,6 +17,8 @@ Use orthogonality as a diagnostic for unrelated co-change, not as a demand that 
 
 Split a module when its operations use unrelated dependencies, express unrelated capabilities, or change for independent product reasons. Do not split merely because a file or class crossed an arbitrary size.
 
+Apply the same test to helpers inside an application operation. Extract a helper when it owns one coherent concern, such as one query plus structural decoding, one remote interaction, or one policy transformation. Keep the public operation readable as the ordered application decision, and keep identity, compatibility, authorization, version, and value-range policy visible there when those choices define its behavior. A line-count limit alone does not create a responsibility.
+
 ## Domain modules
 
 A domain module centers on one valid concept or tightly related type family. Its surface may include:

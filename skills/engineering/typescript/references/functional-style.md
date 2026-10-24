@@ -12,6 +12,7 @@ Use this reference when implementing or refactoring TypeScript transformations.
 - Prefer `const fn = (...) => ...` for nearly all functions.
 - Prefer native collection methods before introducing a helper.
 - Use named intermediate functions or variables when they clarify the transformation.
+- Name files and helpers for the action or concept they own rather than incidental state or generic categories such as `helpers`.
 
 ## Expression-oriented code
 
@@ -120,6 +121,8 @@ const hasRole = (role: Role) => (user: User) => user.roles.includes(role)
 const admins = users.filter(hasRole("admin"))
 const editors = users.filter(hasRole("editor"))
 ```
+
+Extract a helper when it takes responsibility for one coherent concern, such as decoding one boundary value, performing one I/O interaction, or applying one policy decision. Do not extract merely to satisfy a line-count metric; keep semantic ordering and compatibility decisions visible in the public operation.
 
 ## Manual currying and partial application
 

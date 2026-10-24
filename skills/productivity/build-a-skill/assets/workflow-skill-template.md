@@ -17,7 +17,7 @@ description: [TODO: Brief description of the workflow. Use when specific conditi
 
 ## Workflow
 
-[TODO: Add the ordered execution steps. Skip obvious advice. Focus on sequence, decisions, gates, and redirects away from default agent behavior.]
+[TODO: Add the ordered execution steps. Skip obvious advice. Focus on sequence, decisions, gates, and redirects away from default agent behavior. For engineering skills, prioritize semantic and architectural judgment; keep necessary tool commands without duplicating their diagnostics as manual checks.]
 
 ## Gotchas
 

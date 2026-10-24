@@ -12,7 +12,7 @@ import type { PasswordResetRequest } from "./password-reset"
 
 Namespace imports can preserve the shape of a function-oriented domain module. Named imports suit classes and focused helpers. This is not permission to use the TypeScript `namespace` declaration, which introduces a separate legacy module model and should be reserved for required interop.
 
-Use `import type` and `export type` when the binding has no runtime role. This makes runtime dependencies visible and avoids accidental emitted imports under stricter module settings.
+Follow an explicit repository import policy first. Otherwise use `import type` and `export type` when the binding has no runtime role and the configured compiler and lint rules support that spelling. This makes runtime dependencies visible and avoids accidental emitted imports under stricter module settings. Some projects intentionally use import type expressions or another mechanically enforced form; do not replace that local contract with a universal preference.
 
 ## Barrels and package entrypoints
 

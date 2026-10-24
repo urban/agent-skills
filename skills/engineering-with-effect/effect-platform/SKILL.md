@@ -5,15 +5,15 @@ description: Design Effect platform boundaries for files, paths, processes, sock
 
 ## Rules
 
-- Run the project’s configured `@effect/tsgo` diagnostics and locally selected automation profiles; this skill covers judgment beyond those checks.
+- Inspect the installed platform services and runtime adapters before adding filesystem, process, socket, terminal, crypto, or lifecycle infrastructure; isolate only the concrete capability gap behind a narrow adapter.
 - Put application meaning behind a domain capability; use low-level platform services directly only in reusable platform-polymorphic helpers or adapters.
-- Keep Node, Bun, browser, Worker, and other runtime layers at explicit composition edges.
+- Keep runtime layers and the host's main runner at explicit composition edges; providing capabilities and owning application shutdown are separate responsibilities.
 - Decide resource lifetime before exposing handles, streams, subprocesses, servers, or temporary paths.
 - Preserve platform reason details until a domain boundary can translate the distinctions callers need.
 
 ## Constraints
 
-- Some v4 platform capabilities, including process APIs, remain under unstable module surfaces; verify imports and API details against the installed release.
+- A portable capability does not guarantee every target supplies it or preserves identical OS behavior; choose adapters and supported semantics deliberately.
 - Do not claim portability while a reusable domain module depends on a runtime-specific adapter.
 - Temporary resources and owned handles must be scoped or have an equally explicit release owner.
 - A fallback must recover only the failures it semantically handles; absence is not malformed data or permission failure.
@@ -29,7 +29,7 @@ Applies to:
 
 Does not cover:
 
-- mechanical diagnostics for direct runtime imports
+- syntax, import linting, or compile-time requirement checks
 - detailed HTTP or Stream protocol semantics
 
 Decision inputs:
@@ -42,20 +42,20 @@ Decision inputs:
 ## Patterns
 
 - Capture platform services while constructing a domain service when platform access is an implementation detail. Leave requirements visible for genuinely reusable platform helpers.
-- Compose one runtime adapter set at the application edge; use dynamic selection only when one artifact intentionally supports multiple runtimes.
-- Use scoped temporary files/directories and scoped process/server acquisition so interruption performs cleanup.
-- Expose process output as Stream and input as Sink when data is incremental; keep raw process handles private unless process control is the capability.
-- Translate not-found, permission, timeout, already-exists, and invalid-argument distinctions only when domain callers act differently.
-- Use focused fake services for behavior tests and scoped real resources for platform integration tests.
+- Portable services live in `effect` (for example `effect/FileSystem` and `effect/process/ChildProcessSpawner`); runtime implementations come from adapters such as `@effect/platform-node`. Select portable capabilities and runtime adapters at the composition edge.
+- Keep resource consumption inside the owning scope, or let the caller's scope own acquisition. A stream or path returned from a completed local scope can outlive its underlying resource.
+- Separate command output, exit status, and termination policy. Output collection alone is not evidence of command success.
+- Preserve platform failure details through infrastructure layers; translate only distinctions that domain callers can act on.
 
 ## Gotchas
 
-- A domain API returning file or process handles transfers lifecycle responsibility to callers, often unintentionally.
-- Catch-all fallback to an empty/default value can turn corrupted configuration or denied access into silent data loss.
-- Selecting a runtime adapter inside domain behavior couples every call to environment detection and complicates tests.
-- Collecting subprocess output without a bound or concurrent stderr drain can deadlock or exhaust memory.
-- Temporary resources created outside a scope survive failures and make tests order-dependent.
-- Replacing every platform error with one generic error erases remediation such as create, request permission, retry, or fix input.
+- A runtime helper can duplicate an existing capability and spread host assumptions into callers; prefer the installed service and isolate only the actual gap.
+- Returning a handle or temp path from `Effect.scoped` closes its owner before the caller uses it; consume it within the scope or acquire in the caller's scope.
+- Catch-all fallback can turn denied access or corrupted configuration into silent data loss; recover only the intended absence and propagate other failures.
+- Adapter selection inside domain behavior couples every call to environment detection; select at composition time and inject the capability.
+- Waiting on a raw process's exit without consuming piped output can deadlock; drain both channels concurrently or use the spawner's draining helpers. Whole-output helpers still require a size policy.
+- A timeout does not guarantee prompt subprocess cleanup: Node termination can wait indefinitely without escalation; choose `forceKillAfter` when bounded shutdown is required.
+- Matching `NotFound` as the outer error tag misses wrapped filesystem failures; inspect `PlatformError.reason._tag` and retain the original failure when it is not recoverable.
 
 ## References
 
