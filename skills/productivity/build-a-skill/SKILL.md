@@ -10,6 +10,7 @@ description: Creates high-quality workflow skills or knowledge/capability/domain
 - Keep `SKILL.md` as the entrypoint, not the whole skill, because monolithic skills waste context and are harder to compose.
 - Write for agents, not humans, because README-style explanation dilutes triggerability and execution.
 - Skip obvious advice and spend tokens on failure-prone decisions, because agents already know generic patterns.
+- For engineering skills, prioritize semantic and architectural judgment: domain invariants, boundaries, ownership, failure semantics, and trade-offs that can remain wrong even when linting and type checking pass.
 - Redirect the agent away from default habits when those habits would produce a weak skill.
 - Use progressive disclosure aggressively: keep core execution or core knowledge in `SKILL.md`, move conditional detail into `references/`.
 - Design for loose composition at runtime: make the `description` and `Use when ...` trigger strong enough that an agent can choose the skill without hidden coupling.
@@ -32,6 +33,7 @@ description: Creates high-quality workflow skills or knowledge/capability/domain
 - Composition guidance must follow [`references/composability-checklist.md`](./references/composability-checklist.md).
 - The produced skill must be atomic: do not depend on other skills, and vendor any reused contract into local bundled resources instead.
 - Do not add “helpful” extras that change scope.
+- Do not turn engineering skills into manual checklists for diagnostics already covered by the project's formatter, linter, compiler, or language server (LSP). Keep tool commands when needed, but explain diagnostic details only when they affect a semantic decision or require non-obvious remediation.
 - Any missing high-impact detail that changes behavior must be captured as `TODO: Confirm`.
 - `Gotchas` is required and should be one of the strongest sections in the skill.
 
@@ -83,6 +85,8 @@ Execute in this order unless the user already provided equivalent inputs. If a s
    - decisions the agent should be able to make differently after loading the skill
    - preferred patterns, anti-patterns, and examples worth bundling
    - stale defaults or hallucination-prone habits the skill must override
+
+   For engineering skills, apply [`references/engineering-judgment.md`](./references/engineering-judgment.md) to identify decisions that remain after automated checks pass and distinguish them from checks already owned by project tooling.
 
    If user input is incomplete, mark unknown high-impact details as `TODO: Confirm`.
 
@@ -142,7 +146,7 @@ Execute in this order unless the user already provided equivalent inputs. If a s
 - If `SKILL.md` tries to hold everything, future skills duplicate buried rules instead of composing with reusable references or scripts.
 - If the `description` is vague, agents cannot select the skill at runtime and authors try to compensate with tighter coupling.
 - If you model shared guidance as another skill dependency instead of vendoring the needed contract into local bundled resources, the skill stops being atomic and becomes harder to package, reuse, and route reliably.
-- If `Gotchas` only restate generic rules, they do not change behavior. Write them from observed failure patterns.
+- If `Gotchas` restate generic rules or tool diagnostics, they consume context without improving judgment. Write observed failure patterns; for engineering skills, prefer code that passes automated checks but still violates domain intent or architectural boundaries.
 
 ## Deliverables
 
@@ -161,6 +165,7 @@ Required artifacts:
 ## References
 
 - [`references/skill-archetypes.md`](./references/skill-archetypes.md): Read when: deciding whether to create a workflow skill or a knowledge/capability skill, especially for hybrid requests.
+- [`references/engineering-judgment.md`](./references/engineering-judgment.md): Read when: creating or refactoring an engineering skill so its guidance teaches semantic and architectural decisions instead of duplicating automated diagnostics.
 - [`assets/workflow-skill-template.md`](./assets/workflow-skill-template.md): Read when: drafting or refactoring a workflow skill entrypoint `SKILL.md`.
 - [`assets/knowledge-skill-template.md`](./assets/knowledge-skill-template.md): Read when: drafting or refactoring a knowledge/capability skill entrypoint `SKILL.md`.
 - [`references/frontmatter.md`](./references/frontmatter.md): Read when: naming the skill, writing the description, or confirming that the skill stays atomic without cross-skill dependency metadata.
