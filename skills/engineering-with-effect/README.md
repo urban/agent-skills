@@ -1,8 +1,8 @@
 # Engineering with Effect
 
-Knowledge skills for Effect v4, focused on semantic intent, architecture, runtime ownership, and structural design decisions.
+Knowledge skills for Effect, focused on semantic intent, architecture, runtime ownership, and structural design decisions.
 
-Guidance applies across Effect v4 projects, not a pinned minor or patch release. Resolve unstable APIs, package exports, and provider capabilities against the project's installed packages.
+Use current Effect-native APIs. Resolve unstable APIs, package exports, and provider capabilities against the project's installed packages.
 
 Use alongside type-aware linting and LSP diagnostics: these skills complement automated checks rather than repeat syntax, style, or compile-time type rules. They are intended for use with the [`dotai` CLI](https://github.com/urban/dotai).
 

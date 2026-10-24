@@ -12,7 +12,7 @@ Translate unknown external values defensively. Preserve safe codes, statuses, bo
 
 ## Cancellation is a transport contract
 
-The Promise thunk receives an `AbortSignal` when it declares an ordinary parameter, for example `try: (signal) => sdkCall(signal)`. Forward it using the SDK's documented request options. Effect v4 uses the thunk's runtime arity to decide whether to allocate a controller: rest forwarding and default-valued signal parameters can silently lose the signal.
+The Promise thunk receives an `AbortSignal` when it declares an ordinary parameter, for example `try: (signal) => sdkCall(signal)`. Forward it using the SDK's documented request options. Effect uses the thunk's runtime arity to decide whether to allocate a controller: rest forwarding and default-valued signal parameters can silently lose the signal.
 
 Interruption aborts that signal but cannot force the SDK or provider to stop. If cancellation is unsupported, document that in-flight work can outlive the fiber and use provider deadlines or an explicit SDK cancellation handle where available. Do not claim an Effect timeout rolls back remote work.
 

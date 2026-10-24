@@ -57,8 +57,6 @@ Use live-provider checks only as explicit smoke evaluations of availability and 
 
 ## Source anchors
 
-Effect v4 source paths:
-
 - `packages/effect/src/ai/Tool.ts`: `FailureMode`, `needsApproval`, `failureResultSchema`, behavior annotations.
 - `packages/effect/src/ai/Toolkit.ts`: handler context capture, parameter decoding, failure/result encoding, stream handling.
 - `packages/effect/src/ai/LanguageModel.ts`: `generateContent`, `streamContent`, `executeApprovedToolCalls`, `resolveToolCalls`, validation modes.

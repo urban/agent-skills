@@ -10,7 +10,7 @@ For mutations, create or accept the provider idempotency key at the logical-oper
 
 ## Lifetime belongs to the owner
 
-Construct an owned SDK in `Layer.effect(Service, acquisition)` and use `Effect.acquireRelease` inside that acquisition when close, flush, or shutdown is required. In Effect v4, `Layer.effect` runs acquisition in the layer's scope, which owns release; do not wrap acquisition in an inner `Effect.scoped` that closes before consumers use the returned service. Share the same layer value within a composition when callers should share one client; repeatedly creating layer values can create distinct clients.
+Construct an owned SDK in `Layer.effect(Service, acquisition)` and use `Effect.acquireRelease` inside that acquisition when close, flush, or shutdown is required. `Layer.effect` runs acquisition in the layer's scope, which owns release; do not wrap acquisition in an inner `Effect.scoped` that closes before consumers use the returned service. Share the same layer value within a composition when callers should share one client; repeatedly creating layer values can create distinct clients.
 
 A wrapper given an externally managed client borrows it. It can expose the same narrow capability without registering shutdown. Do not invent cleanup for a resource-free SDK, or close a shared client after each request. Coordinate in-flight operations with shutdown, especially when the SDK ignores cancellation and work can outlive the requesting fiber.
 

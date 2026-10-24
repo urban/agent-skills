@@ -9,7 +9,7 @@ description: Compose already-chosen Effect capabilities through Layer ownership,
 - Use layers to construct capabilities and own lifetimes; keep domain branching in the services they provide.
 - Choose composition by dependency graph and output visibility, not by whichever operator makes types pass.
 - Treat memoization and freshness as lifetime semantics: choose both the sharing domain and the scope owner; neither substitutes for the other.
-- Keep recoverable construction failures typed until a boundary has enough context to recover, substitute, or terminate.
+- Keep recoverable construction failures typed until a boundary has enough context to recover, substitute, or terminate; scope optional-infrastructure recovery to construction rather than the wrapped program's failures.
 
 ## Constraints
 
@@ -47,6 +47,7 @@ Decision inputs:
 - Use `Layer.provide` to satisfy and hide construction dependencies; use `Layer.provideMerge` only when retaining the provided capabilities in the resulting graph is intentional.
 - Use `Layer.effect` with `Effect.acquireRelease` for owned clients, handles, and subscriptions; it supplies the layer scope. Attach background fibers to that scope as well.
 - Use `Layer.suspend` to defer recipe creation, and `Layer.unwrap` when an Effect selects an implementation. Neither is a per-call factory once the layer is shared.
+- Select `Layer.empty` for disabled additive infrastructure; when the program still needs a capability, select an alternate implementation, using a no-op only when its behavior satisfies the product contract.
 - Provide a Layer inside an operation only when runtime policy deliberately owns that Layer's activation or lifetime boundary; keep acquisition scoped and the wrapped Effect semantically transparent.
 - Give request-bound or tenant-bound resources an appropriate scope and sharing boundary. Reuse already-built global dependencies only when that inheritance is intentional.
 - Use one `ManagedRuntime` for repeated host calls that should share a built graph; its owner must dispose it.
@@ -65,5 +66,5 @@ Decision inputs:
 
 ## References
 
-- [`references/composition-and-lifetimes.md`](./references/composition-and-lifetimes.md): Read when: choosing composition operators, sharing versus freshness, manual build boundaries, or scoped acquisition.
+- [`references/composition-and-lifetimes.md`](./references/composition-and-lifetimes.md): Read when: choosing composition operators, sharing versus freshness, scoped acquisition, disabled branches, or optional construction recovery.
 - [`references/test-layers.md`](./references/test-layers.md): Read when: designing isolated fake state, harness services, or scoped test resources.

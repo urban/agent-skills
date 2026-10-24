@@ -14,7 +14,7 @@ description: Design Effect Atom state around identity, AsyncResult lifecycle, ca
 
 ## Constraints
 
-- The Effect v4 reactivity surface is unstable; the registry, not a module-level atom definition, owns live state.
+- The `effect/reactivity` surface is unstable; the registry, not a module-level atom definition, owns live state.
 - Loading, refreshing, failure, and successful empty data must remain distinguishable unless the domain intentionally merges them.
 - Optimistic transitions need reconciliation semantics for failure and overlapping mutations; they are not server-side concurrency control.
 - Causes may be formatted at the display boundary but should not be discarded earlier.

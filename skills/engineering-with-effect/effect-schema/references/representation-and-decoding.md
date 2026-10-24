@@ -102,4 +102,4 @@ Use `Schema.fromJsonString(DomainSchema)` for a JSON-text boundary. It parses JS
 
 ## Source anchors
 
-Effect v4: `packages/effect/src/Schema.ts` (`encodeKeys`, optionality, decoding defaults, Option codecs, `fromJsonString`); `packages/effect/test/schema/Schema.test.ts` (matching suites for omission, null, transformed fields, and defaults).
+Source anchors: `packages/effect/src/Schema.ts` (`encodeKeys`, optionality, decoding defaults, Option codecs, `fromJsonString`); `packages/effect/test/schema/Schema.test.ts` (matching suites for omission, null, transformed fields, and defaults).

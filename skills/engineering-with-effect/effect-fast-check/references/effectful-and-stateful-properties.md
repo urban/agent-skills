@@ -14,7 +14,7 @@ Generated inputs are not cloned. Copy a generated array before testing an in-pla
 
 ## Model-based laws
 
-Represent a command sequence as data, for example an `Arbitrary.array(commandArbitrary)`, and interpret it against both the real service and a simpler model. Native `Arbitrary` is not a fast-check command runner: the test owns command interpretation, validity, and observations.
+Represent a command sequence as data, for example an `Arbitrary.array(commandArbitrary)`, and interpret it against both the real service and a simpler model. The test owns command interpretation, validity, and observations.
 
 For an inventory reservation service, a model can track only available units and reservation IDs mapped to quantities, while the implementation manages storage and concurrency. Useful observations include:
 
@@ -37,6 +37,6 @@ The failure report contains the shrunk input and a replay token. Reuse it throug
 
 An `Exhausted` result means too many candidates were discarded, not that the law passed. Fix the generator or its domain assumptions before increasing discard limits. A `ReplayMismatch` means the recorded failure no longer reproduces; it is not a successful property run.
 
-Raising checker `concurrency` evaluates independent cases speculatively; it is not a way to explore races inside one command sequence. It preserves results only for deterministic generators and independent, repeatable properties. To test concurrent service behavior, model concurrent operations and their allowed observations explicitly inside each isolated evaluation.
+To test concurrent service behavior, model concurrent operations and their allowed observations explicitly inside each isolated evaluation. Generate the scenario, then coordinate its fibers so the relevant operations overlap; sampling more command sequences does not itself exercise a race.
 
-Source anchors (Effect v4): `packages/effect/src/Arbitrary.ts` (`checkEffect`, `CheckOptions`, `Replay`), `packages/vitest/src/internal/internal.ts` (`normalizeProperty`, `runCheck`, `makeTester`), and `packages/effect/src/testing/TestClock.ts`. Failure shrinking, interruption, and timeout cleanup are tested in `packages/vitest/test/index.test.ts`; ordered concurrent checking, replay, and inherited scope are tested in `packages/effect/test/arbitrary/Arbitrary.concurrency.test.ts`.
+Source anchors: `packages/effect/src/Arbitrary.ts` (`checkEffect`, `CheckOptions`, `Replay`), `packages/effect/src/internal/arbitrary/runner.ts` (`checkEffect`, `evaluateProperty`), `packages/vitest/src/internal/internal.ts` (`normalizeProperty`, `runCheck`, `makeTester`), and `packages/effect/src/testing/TestClock.ts`. Failure shrinking, interruption, and timeout cleanup are tested in `packages/vitest/test/index.test.ts`; checking and replay are tested in `packages/effect/test/arbitrary/Arbitrary.test.ts`.

@@ -50,8 +50,6 @@ Expose text deltas or domain events rather than provider-specific part variants 
 
 ## Source anchors
 
-Effect v4 source paths:
-
 - `packages/effect/src/ai/Model.ts`: `Model`, `captureRequirements`, metadata.
 - `packages/effect/src/ExecutionPlan.ts` and `packages/effect/src/internal/executionPlan.ts`: layer selection and whole-effect attempts.
 - `packages/effect/src/ai/LanguageModel.ts`: `generateObject`, `resolveStructuredOutput`.

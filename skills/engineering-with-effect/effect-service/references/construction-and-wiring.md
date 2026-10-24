@@ -58,7 +58,7 @@ Name deliberate variants by policy, such as `layerTest`, `layerCached`, or `make
 
 Export a package-level default Layer only when embedding callers intentionally consume it; make it a direct alias of the class-owned Layer rather than constructing a second default. Application composition roots remain separate because they assemble several capabilities and own a broader runtime boundary.
 
-## Source anchors (Effect v4)
+## Source anchors
 
 - `packages/effect/src/Context.ts`: `Service`, `ServiceProto.of`, and string-key lookup.
 - `packages/effect/src/Layer.ts`: `effect` / `effectContext` supply the layer scope.

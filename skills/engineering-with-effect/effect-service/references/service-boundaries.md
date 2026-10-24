@@ -39,7 +39,7 @@ A complete deterministic substitute can use `Layer.succeed(Service, Service.of(f
 
 A partial `Layer.mock` is appropriate when unimplemented operations are intentionally unreachable; accessing them defects rather than supplying meaningful default behavior. A narrowly named class-owned constructor seam such as `makeWith` can replace a private client or resource recipe without exporting it as a production capability.
 
-## Source anchors (Effect v4)
+## Source anchors
 
 - `packages/effect/src/Context.ts`: `Key`, `ServiceProto.evaluate`, `use`, `Reference`, and `getDefaultValue`.
 - `packages/effect/src/Effect.ts`: `service`, `serviceOption`, and `provideService`.

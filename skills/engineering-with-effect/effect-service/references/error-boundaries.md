@@ -39,7 +39,7 @@ const loadInitialDraft = (
 
 The unavailable and malformed cases remain failures; a single catch-all returning an empty string would erase the distinction that protects existing user data.
 
-## Source anchors (Effect v4)
+## Source anchors
 
 - `packages/effect/src/Effect.ts`: `mapError`, `catchTag`, `catchDefect`, and `tryPromise`.
 - `packages/effect/test/Effect.test.ts`: `catchTag`, `tryPromise`, and mixed-cause mapping / recovery tests.

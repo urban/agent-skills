@@ -30,10 +30,10 @@ For a stateful fake, model the relevant failure rules as well as happy-path valu
 
 Allocate mutable state during layer acquisition, not in module-level variables or a prebuilt mutable object passed to `Layer.succeed`. Rebuilding a layer cannot isolate an object it reuses from outside acquisition.
 
-`it.layer` / `layer` share a built layer across a block by default. Use `{ buildPerTest: true }` for fresh services released after each test. Enclosing shared layers remain shared; nesting a per-test child does not rebuild its shared parent. Blocks inside a per-test block are also built per test.
+`it.layer` / `layer` share a built graph across a block. For per-test resources, provide a fixture Layer inside each test Effect and allocate mutable state during acquisition. Use `Effect.provide(testProgram, FixtureLive, { local: true })` when the fixture must not reuse an outer acquisition of the same Layer. Nested layer blocks establish another block lifetime; they do not make each test's state independent.
 
-Default layer blocks also share their test services, including clock progress. Per-test construction gives fresh test services unless an enclosing shared block owns them. Separate blocks are isolated by default, but a deliberately reused memo map can change sharing.
+Layer blocks also share their test services, including clock progress. A per-test fixture does not reset an enclosing block's shared clock. Use standalone `it.effect` tests when each test needs a fresh test environment. Separate layer blocks are isolated by default, but a deliberately reused memo map can change sharing.
 
 Share only when setup cost or the intended scenario justifies it. If shared state needs serialized access, set `{ concurrent: false }` on the named layer suite; anonymous layer blocks inherit enclosing concurrency. Serialization prevents overlap, not leakage between tests. Prefer independent scenario state over a chain of tests that must run in a particular order.
 
-Source anchors (Effect v4): `packages/vitest/src/internal/internal.ts` (`makeLayer`), `packages/vitest/test/build-per-test.test.ts`, `packages/vitest/test/isolation.test.ts`, `packages/vitest/test/nested-isolation.test.ts`, `packages/vitest/test/layer-concurrency.test.ts`, `packages/effect/src/http-api/HttpApiTest.ts`, `packages/effect/src/rpc/RpcTest.ts`.
+Source anchors: `packages/vitest/src/internal/internal.ts` (`makeLayer`), `packages/vitest/test/isolation.test.ts`, `packages/vitest/test/nested-isolation.test.ts`, `packages/vitest/test/layer-concurrency.test.ts`, `packages/effect/src/http-api/HttpApiTest.ts`, `packages/effect/src/rpc/RpcTest.ts`.

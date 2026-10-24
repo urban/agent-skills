@@ -4,7 +4,7 @@
 
 Useful laws include idempotence, ordering, commutativity, monotonicity, invariant preservation, and error classification. Define the observation and equivalence relation before choosing inputs: sorting preserves a multiset, not element identity; normalization is idempotent, not necessarily reversible.
 
-Effect v4 uses native `Arbitrary` from `effect`. `@effect/vitest` accepts schemas and native arbitraries directly; its property engine is not a fast-check adapter.
+Use native `Arbitrary` from `effect`. `@effect/vitest` accepts schemas and native arbitraries directly.
 
 `Arbitrary.schema(codec)` generates the decoded `Type`, as does passing a schema directly to `it.prop` or `it.effect.prop`. This does not explore the original codec's accepted wire spellings.
 
@@ -65,4 +65,4 @@ Use custom generation when schema derivation is sparse or unavailable. Unsupport
 
 A custom shrinker should describe semantic simplifications, remain deterministic and terminating, and preserve domain relationships. The runner validates its candidates against the decoded schema, but cannot infer application invariants absent from that schema. Rejected candidates still consume the shrink budget. A bounded shrink result is the best failure found, not proof of global minimality.
 
-Source anchors (Effect v4): `packages/effect/src/Arbitrary.ts` (`schema`, `flatMap`, `SchemaOptions`), `packages/effect/src/Schema.ts` (`toEncoded`), and `packages/effect/src/testing/TestSchema.ts` (`verifyRoundTripEffect`). Derivation, custom shrink, and exhaustion cases are exercised in `packages/effect/test/arbitrary/Arbitrary.test.ts`; equivalence-aware round trips are exercised in `packages/effect/test/testing/TestSchema.test.ts`.
+Source anchors: `packages/effect/src/Arbitrary.ts` (`schema`, `flatMap`, `SchemaOptions`), `packages/effect/src/Schema.ts` (`toEncoded`), and `packages/effect/src/testing/TestSchema.ts` (`verifyRoundTripEffect`). Derivation, custom shrink, and exhaustion cases are exercised in `packages/effect/test/arbitrary/Arbitrary.test.ts`; equivalence-aware round trips are exercised in `packages/effect/test/testing/TestSchema.test.ts`.

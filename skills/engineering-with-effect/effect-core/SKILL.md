@@ -1,6 +1,6 @@
 ---
 name: effect-core
-description: Apply core Effect semantics for expected failures versus defects, Cause, interruption, fiber ownership, and function/runtime boundaries. Use when deciding recovery policy, cancellation behavior, or who owns concurrent work in Effect v4. Not a general prerequisite for application architecture, service, Layer, or testing work.
+description: Apply core Effect semantics for expected failures versus defects, Cause, interruption, fiber ownership, and function/runtime boundaries. Use when deciding recovery policy, cancellation behavior, or who owns concurrent work in Effect. Not a general prerequisite for application architecture, service, Layer, or testing work.
 ---
 
 ## Rules
@@ -12,7 +12,6 @@ description: Apply core Effect semantics for expected failures versus defects, C
 
 ## Constraints
 
-- Use Effect v4 semantics; do not assume older Cause trees or fork ownership behavior.
 - Do not turn application policy into a universal Effect rule.
 - Keep whole-application topology, service design, and Layer construction outside this skill’s scope.
 

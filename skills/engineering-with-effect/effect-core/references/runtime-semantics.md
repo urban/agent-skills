@@ -23,7 +23,7 @@ Use `Effect.try` / `Effect.tryPromise` when a foreign API’s throws or rejectio
 
 ## Causes and recovery
 
-In Effect v4, `Cause` holds a `reasons` array of `Fail`, `Die`, and `Interrupt` entries, not a sequential/parallel tree. A cause can contain multiple kinds; extracting the first error is not a complete account of the failure.
+`Cause` holds a `reasons` array of `Fail`, `Die`, and `Interrupt` entries. A cause can contain multiple kinds; extracting the first error is not a complete account of the failure.
 
 Typed recovery such as `catch` and `catchTag` is not full-cause recovery. If a cause contains a defect, typed recovery is skipped and ordinary typed failures are promoted to defects, preserving reason order and interrupts. An interrupt reason alongside a typed error does not by itself block typed recovery. Distinguish these data-level rules from a live interruption request: an interrupted fiber can skip handlers in an interruptible region, so `catchCause` is not a way to make canceled work continue.
 

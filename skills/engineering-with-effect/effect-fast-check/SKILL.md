@@ -22,7 +22,7 @@ description: Design property tests for Effect behavior by choosing meaningful la
 Applies to:
 
 - invariants, round trips, idempotence, ordering, commutativity, monotonicity, and error classification
-- Effect v4 native `Arbitrary` and `@effect/vitest` properties, schema-derived and custom generators
+- native `Arbitrary` and `@effect/vitest` properties, schema-derived and custom generators
 - state-machine/model-based properties for Effect services
 - shrinking, run-count, and deterministic-layer decisions
 

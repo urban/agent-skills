@@ -16,4 +16,4 @@ Exact invocation assertions are appropriate for protocol contracts: HTTP method/
 
 Exercise the path that distinguishes the fix from the old behavior: a retry test needs the transient failure before recovery; a deduplication test needs overlapping callers; a cleanup test needs completed acquisition before cancellation. Avoid wrapping the entire test in retries to hide a missing coordination point—retry behavior belongs to the operation under test, not the evidence collector.
 
-Source anchors (Effect v4): `packages/effect/src/Effect.ts` (`result`, `exit`), `packages/effect/src/Cause.ts` (`hasInterrupts`, `hasInterruptsOnly`), `packages/effect/test/Exit.test.ts`, `packages/vitest/test/timeout.test.ts` (finalizer-defect reporting).
+Source anchors: `packages/effect/src/Effect.ts` (`result`, `exit`), `packages/effect/src/Cause.ts` (`hasInterrupts`, `hasInterruptsOnly`), `packages/effect/test/Exit.test.ts`, `packages/vitest/test/timeout.test.ts` (finalizer-defect reporting).

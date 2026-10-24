@@ -82,4 +82,4 @@ Test the contract, not merely whether sample values construct:
 
 ## Source anchors
 
-Effect v4: `packages/effect/src/Schema.ts` (`decodeTo`, `SchemaError`, `TaggedError`), `SchemaGetter.ts` (`transform`, `transformEffect`), `SchemaAST.ts` (`ParseOptions`), and `SchemaParser.ts`; `packages/effect/test/schema/Schema.test.ts` (`decodeTo`, `onExcessProperty`, default and error-adapter suites) and `SchemaGetter.test.ts` (issue reporting).
+Source anchors: `packages/effect/src/Schema.ts` (`decodeTo`, `SchemaError`, `TaggedError`), `SchemaGetter.ts` (`transform`, `transformEffect`), `SchemaAST.ts` (`ParseOptions`), and `SchemaParser.ts`; `packages/effect/test/schema/Schema.test.ts` (`decodeTo`, `onExcessProperty`, default and error-adapter suites) and `SchemaGetter.test.ts` (issue reporting).

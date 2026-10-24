@@ -42,7 +42,7 @@ Decision inputs:
 ## Patterns
 
 - Capture platform services while constructing a domain service when platform access is an implementation detail. Leave requirements visible for genuinely reusable platform helpers.
-- In Effect v4, portable services live in `effect` (for example `effect/FileSystem` and `effect/process/ChildProcessSpawner`); runtime implementations come from adapters such as `@effect/platform-node`. Select capabilities at the edge rather than recreating older platform package boundaries.
+- Portable services live in `effect` (for example `effect/FileSystem` and `effect/process/ChildProcessSpawner`); runtime implementations come from adapters such as `@effect/platform-node`. Select portable capabilities and runtime adapters at the composition edge.
 - Keep resource consumption inside the owning scope, or let the caller's scope own acquisition. A stream or path returned from a completed local scope can outlive its underlying resource.
 - Separate command output, exit status, and termination policy. Output collection alone is not evidence of command success.
 - Preserve platform failure details through infrastructure layers; translate only distinctions that domain callers can act on.

@@ -32,6 +32,22 @@ Native scope finalization flushes remaining buffered data and waits for tracked 
 
 For a checkpoint while the native layer is still alive, obtain `OtlpExporter.Flusher` from an individual signal layer. Its `flush` drains exporters registered with the shared `layerFlusher`; it cannot fail, has no built-in timeout, and only waits for exports it initiates, not already-running interval exports. Bound it with `Effect.timeoutOption` when the caller has a latency budget. Share one registry across the signals you intend to drain; flushing a fresh unrelated registry is a successful no-op.
 
+## Construction visibility versus runtime contribution
+
+Keep private construction dependencies hidden by default. Telemetry composition must also preserve the tracer/logger contribution while the instrumented program executes; successful construction of a span is insufficient evidence of that propagation.
+
+Providing observability only as a hidden dependency of `Layer.span` makes it available during span construction but omits its tracer/logger context from the resulting graph. When the complete invocation needs that context, retain observability intentionally:
+
+```ts
+const invocationTelemetry = Layer.span("Application.run").pipe(
+  Layer.provideMerge(observabilityLive)
+)
+```
+
+Use `provideMerge` when the dependency's context must reach downstream execution; prefer `provide` for private construction dependencies. The desired behavior is that the handler's children use the selected tracer and parent, logs use the selected logger, and the invocation span ends with the invocation's exit before exporter resources flush and release.
+
+Source anchors: `packages/effect/src/Layer.ts` (`provide`, `provideMerge`, `span`); `packages/effect/src/observability/OtlpTracer.ts` and `packages/effect/src/observability/OtlpLogger.ts` (`layer`).
+
 ## Tests at the semantic seam
 
 Use `Tracer.make` with `Tracer.NativeSpan` to inspect ownership without any collector. This example distinguishes a real parent chain from two spans that merely have correct names:
@@ -68,13 +84,15 @@ it.effect("invoice span owns the repository child and records failure", () => {
 })
 ```
 
+When provision semantics are the claim, install the tracer/logger through the production Layer composition rather than directly on the test Effect. Direct installation can bypass the missing runtime contribution. Capture child spans and handler logs, and observe span completion before exporter release; checking only the constructor's root span or a successful flush cannot establish those properties.
+
 Add domain cases for handled failures versus failed attempts and interrupted consumption. For serialization tests, assert that a business error becomes an exception event while pure interruption remains Unset with `effect.fiber.interrupted`. Native span state retains an Effect exit; it is not itself an OTLP status code.
 
 Use a fresh `Metric.MetricRegistry` (`new Map()`) for isolated metric tests and provide that same registry to the producer/exporter and the instrumented program. The default registry is shared; creating another metric value with the same name does not isolate state. Assert the expected series/attributes, not just a global count. For delta temporality, cover successive exports and failed delivery without manually resetting counters.
 
 For native exporter tests, use a fake `HttpClient` to capture encoded requests and control response status. Use `TestClock` for intervals and retry delays, and `Deferred` barriers to distinguish request start from completion. Closing a scope while a fake request is blocked tests whether shutdown really waits; a timeout case tests bounded shutdown. A successful immediate HTTP response alone cannot expose that race. For SDK tracing, use `InMemorySpanExporter` and `SimpleSpanProcessor`; inspect finished spans before provider teardown when the in-memory exporter clears its data on shutdown.
 
-## Source anchors (Effect v4)
+## Source anchors
 
 - Configuration/lifecycle: `packages/effect/src/observability/Otlp.ts`, `OtlpExporter.ts`, `OtlpMetrics.ts`; `packages/opentelemetry/src/NodeSdk.ts`, `OtelLogger.ts`, `OtelMetrics.ts`.
 - Test models: `packages/effect/test/Tracer.test.ts`, `packages/effect/test/observability/OtlpExporter.test.ts`, `OtlpTracer.test.ts`, `OtlpMetrics.test.ts`; `packages/opentelemetry/test/OtelTracer.test.ts`.

@@ -55,6 +55,7 @@ Decision inputs:
 ## Gotchas
 
 - A service shaped like its SDK becomes an alias rather than a boundary; provider changes then propagate through the application.
+- A service whose only job is wrapping arbitrary Effects to install context or own resources makes every caller responsible for coverage; use the complete invocation's provision boundary instead. Keep a service when its methods expose coherent application or integration behavior.
 - Capturing the current user or transaction in an application-lived constructor freezes request context and can cross tenant boundaries; accept it per operation or resolve it in deliberately request-bound effects.
 - Treating a constructor Effect as an already-wired layer leaves dependencies unresolved and ownership ambiguous; export the layer explicitly.
 - Different classes or option sets do not create distinct Context slots when the string key is the same; use meaningful package-qualified keys and explicit instance selection when implementations must coexist.

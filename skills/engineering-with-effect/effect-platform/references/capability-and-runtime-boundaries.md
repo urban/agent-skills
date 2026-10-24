@@ -8,7 +8,7 @@ Leave platform requirements explicit for reusable helpers whose purpose is files
 
 ## Runtime edges
 
-In Effect v4, capability definitions are in `effect`; process command descriptions and spawning are under `effect/process`, not an `unstable` import path. Runtime packages supply implementations. `NodeServices.layer`, `BunServices.layer`, and `DenoServices.layer` provide filesystem, paths, crypto, child processes, stdio, and terminal services. They do not provide every transport or server: select those layers separately.
+Capability definitions are in `effect`; process command descriptions and spawning are under `effect/process`. Runtime packages supply implementations. `NodeServices.layer`, `BunServices.layer`, and `DenoServices.layer` provide filesystem, paths, crypto, child processes, stdio, and terminal services. They do not provide every transport or server: select those layers separately.
 
 Choose only capabilities the deployment supports. Browser adapters are not substitutes for an OS filesystem or child-process service. Dynamic selection is appropriate only when one deployed artifact genuinely supports multiple runtimes; runtime-specific static imports can still make a supposedly portable bundle unloadable.
 

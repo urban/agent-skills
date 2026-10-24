@@ -14,7 +14,7 @@ description: Design Effect telemetry around operator-useful boundaries, span own
 
 ## Constraints
 
-- Effect v4 native OTLP modules live under `effect/observability`; the SDK bridge lives in `@effect/opentelemetry`. These integrations are unstable surfaces.
+- Native OTLP modules live under `effect/observability`; the SDK bridge lives in `@effect/opentelemetry`. These integrations are unstable surfaces.
 - Never export secrets, credentials, raw prompts, bodies, transcripts, or unbounded user/model content by default. Review automatically recorded exceptions and HTTP attributes too.
 - Metric attributes must have bounded cardinality; span and log attributes still require privacy, retention, and cost review.
 - Exporter outages must not fail ordinary business operations unless observability administration is the feature. Best-effort export is not durable audit storage.
@@ -44,7 +44,7 @@ Decision inputs:
 ## Patterns
 
 - Use direct Effect OTLP modules when Effect-native export is sufficient; use the SDK bridge for existing OpenTelemetry processors, readers, exporters, or context integration.
-- Use an effect region for an operation span, a scope for a resource-lifetime span, and stream instrumentation for consumption. Do not span only the construction of deferred work.
+- Use an effect region for an operation span, `Layer.span` for a Layer-scope parent span, and stream instrumentation for consumption. Do not span only the construction of deferred work.
 - Continue a trace with a parent only when the work belongs to that operation; use links for independent work with causal relationships.
 - Define metrics centrally and update them at behavior boundaries with bounded outcome, method, provider class, or phase attributes.
 - Log when it adds an operator action or contextual event, not just to repeat a failure already captured by a span.
@@ -60,8 +60,9 @@ Decision inputs:
 - A per-request provider can close before callbacks emit or spans end; keep the exporter alive through all emitting work and close it afterward.
 - A successful flush does not prove collector delivery: native export is best-effort and may be disabled after failures. Keep audit durability separate.
 - Testing only span names misses wrong parents, cancellation classification, sensitive exception data, and dropped shutdown payloads; assert those semantics at their respective seams.
+- A root span created during Layer construction does not prove the handler receives the tracer/logger runtime contribution; choose dependency visibility for downstream execution as well as construction, and inspect handler children and logs before generalizing a `provideMerge` recipe.
 
 ## References
 
 - [`references/instrumentation-semantics.md`](./references/instrumentation-semantics.md): Read when: choosing span ownership, propagation, stream boundaries, metric attributes, or correlated logs.
-- [`references/exporters-and-testing.md`](./references/exporters-and-testing.md): Read when: choosing native OTLP versus SDK integration, exporter lifetime, flush policy, or deterministic telemetry tests.
+- [`references/exporters-and-testing.md`](./references/exporters-and-testing.md): Read when: choosing native OTLP versus SDK integration, runtime contribution visibility, exporter lifetime, flush policy, or deterministic telemetry tests.

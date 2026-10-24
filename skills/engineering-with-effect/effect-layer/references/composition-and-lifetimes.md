@@ -62,3 +62,21 @@ Operation-local provision is appropriate for deliberate activation or lifetime p
 An ordinary layer recipe defers effectful acquisition, not arbitrary JavaScript used to create the recipe. `Layer.suspend(() => recipe)` defers recipe creation; `Layer.unwrap(effectSelectingRecipe)` supports effectful selection. Their selection is shared with the resulting memoized layer, not repeated for every service-method invocation.
 
 Keep construction failures recoverable while a caller can select a fallback, report configuration, or retry startup. Convert them to defects only at a boundary where no caller can recover. `ManagedRuntime` caches a failed build as well as a successful one: repeating or retrying host calls will see that failure again. Apply recovery inside construction or dispose and create a new runtime.
+
+## Disabled branches and optional recovery
+
+Choose disabled behavior from the capability contract. `Layer.empty` fits additive infrastructure such as optional tracing, where the program needs no service supplied exclusively by that branch. If the program needs a client in both modes, select between implementations of that client. A no-op is appropriate only when doing nothing is valid product behavior; it is not a safe default for required authorization or persistence.
+
+Optionality also determines recovery ownership. Required infrastructure normally retains typed acquisition failures. For diagnostics that may be lost without changing product behavior, recover narrowly on the diagnostics Layer before providing it to the program. For example, if the policy deliberately tolerates all diagnostics construction causes:
+
+```ts
+const bestEffortDiagnostics = diagnosticsLive.pipe(
+  Layer.catchCause(() => Layer.empty)
+)
+
+const run = program.pipe(Effect.provide(bestEffortDiagnostics))
+```
+
+Prefer recovery for specific typed failures when defects are not part of the fallback policy. Cause-level recovery is a broader choice, not a requirement for optional infrastructure or a way to continue canceled work. Configuration validation can remain outside the recovered Layer when malformed configuration must still be reported.
+
+Putting recovery around `program.pipe(Effect.provide(diagnosticsLive))` also catches program failures and can turn a failed operation into success. Let ordinary provision preserve the program's success, typed failure, defects, and interruption; do not catch and reconstruct them merely to observe execution.

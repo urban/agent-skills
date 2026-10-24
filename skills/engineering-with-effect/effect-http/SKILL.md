@@ -13,7 +13,7 @@ description: Design Effect HTTP boundaries around shared contracts, status seman
 
 ## Constraints
 
-- In Effect v4, HTTP and HttpApi use `effect/http` and `effect/http-api`; these modules remain marked unstable.
+- HTTP and HttpApi use `effect/http` and `effect/http-api`; these modules are unstable.
 - Retry only operations and failure classes that are safe to repeat; idempotency is a protocol decision.
 - Do not bypass declared HttpApi error decoding with a blanket success-status filter.
 - Streaming bodies must preserve backpressure, interruption, and scope ownership across the HTTP boundary.

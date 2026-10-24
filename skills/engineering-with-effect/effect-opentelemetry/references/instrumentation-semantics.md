@@ -6,6 +6,8 @@ Instrument service operations, handlers, commands, durable steps, startup phases
 
 `Effect.withSpan` installs a child span for its region and ends it with the region's exit. `Effect.useSpan` gives a callback an automatically ended span without making it current. `Effect.makeSpanScoped` ends at scope closure but likewise does not install parent context. Use these distinctions to model ownership, not interchangeably as ways to obtain a span object. A manually created `Effect.makeSpan` needs an explicit completion owner; installing it with `withParentSpan` does not end it.
 
+When the intended span lifetime is the provided Layer's scope, `Layer.span` supplies the parent span and ends it with that scope's exit. Keep its parent contribution available to the wrapped invocation. This avoids manually capturing the program's exit, ending the span, and closing a child scope just to reproduce provision semantics; a host that truly owns an external lifetime may still need explicit scope management.
+
 For streams, span consumption rather than the effect that constructs the stream:
 
 ```ts
@@ -49,8 +51,8 @@ Effect log annotations support correlation without rebuilding a custom logger. T
 
 Both logger layers merge with existing loggers by default. Decide whether console and exported records are intentionally separate sinks or duplicate ingestion; replace existing loggers only deliberately. Exception messages and stack traces can be exported automatically from failed spans and log causes. Sanitizing only explicit attributes is therefore insufficient: keep sensitive payloads out of errors or provide a reviewed sanitization boundary.
 
-## Source anchors (Effect v4)
+## Source anchors
 
-- Ownership: `packages/effect/src/internal/effect.ts` (`useSpan`, `withSpan`, `makeSpanScoped`), `packages/effect/src/Channel.ts` (`withSpanImpl`), and `packages/effect/test/Tracer.test.ts`.
+- Ownership: `packages/effect/src/internal/effect.ts` (`useSpan`, `withSpan`, `makeSpanScoped`), `packages/effect/src/Layer.ts` (`span`), `packages/effect/src/Channel.ts` (`withSpanImpl`), and `packages/effect/test/Tracer.test.ts`.
 - Propagation: `packages/effect/src/http/HttpClient.ts`, `HttpMiddleware.ts`, `HttpTraceContext.ts`; `packages/opentelemetry/src/OtelTracer.ts` and `packages/opentelemetry/test/OtelTracer.test.ts` (JavaScript re-entry, active SDK parents, sampling, interruption).
 - Series and logging: `packages/effect/src/Metric.ts`, `packages/effect/src/observability/OtlpLogger.ts`, and `packages/opentelemetry/src/OtelLogger.ts`.

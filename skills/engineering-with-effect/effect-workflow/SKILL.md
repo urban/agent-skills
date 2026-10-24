@@ -14,7 +14,7 @@ description: Design durable Effect workflows around deterministic identity, repl
 
 ## Constraints
 
-- This guidance targets Effect v4's unstable `effect/workflow` surface.
+- The `effect/workflow` surface is unstable.
 - Durable primitives inherit their guarantees from the engine and backing stores; an in-memory engine does not survive process loss.
 - Compensation is business reversal of a successful step after terminal workflow failure, not an atomic rollback or replay-safety mechanism.
 - Use durable waits and external completion when execution may move or restart; process-local resources cannot represent persistent workflow state.

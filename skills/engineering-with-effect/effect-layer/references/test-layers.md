@@ -27,6 +27,7 @@ Use a shared block runtime only for intentionally shared expensive setup; keep m
 - For scope-owned resources, observe successful release and interruption cleanup. Synchronize on acquisition before interrupting so the assertion cannot pass without exercising cleanup.
 - When a dependent's finalizer needs its dependency, assert it runs while that dependency is usable. Do not assert a total ordering among parallel peers.
 - For an intentional sharing contract, assert one acquisition for a diamond graph using a stable dependency layer; contrast it with a fresh subtree. Assert release after the owner closes, not merely acquisition counts.
+- For conditional provision, a successful handler does not prove that disabled resources were absent. Observe acquisition through the real provision boundary; when bypass is the claim, distinguish no activation read from no resource acquisition. Completed release after that boundary exits establishes lifetime behavior that acquisition counts alone cannot show.
 - When sharing a memo map across scopes or runtimes, close one owner and prove the resource remains usable through the other; close the last owner and assert one release.
 - When fallback construction is important, fail after a resource is acquired and assert the failed branch releases it before fallback use.
 - `Layer.mock` supports partial services whose omitted members fail with `UnimplementedError` when used. Use this only for a narrow path where touching another capability should fail, not as a general replacement for a behaviorally faithful fake.

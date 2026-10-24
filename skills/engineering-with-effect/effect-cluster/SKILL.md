@@ -14,7 +14,7 @@ description: Design Effect Cluster entity identity, protocols, activation state,
 
 ## Constraints
 
-- This guidance targets Effect v4's unstable `effect/cluster` surface.
+- The `effect/cluster` surface is unstable.
 - `ClusterSchema.Persisted` persists mailbox requests and replies, not entity memory, and requires a real `MessageStorage` implementation.
 - Durable delivery does not make external side effects exactly-once. Handlers must tolerate replay after defects, ownership changes, and transaction failures.
 - Discard sends do not report handler completion or business failure; volatile discard is not durable submission.

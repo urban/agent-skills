@@ -2,7 +2,7 @@
 
 ## Identity belongs to a registry
 
-In Effect v4, import core primitives from `effect/reactivity` (or subpaths such as `effect/reactivity/Atom`). An atom describes state; an `AtomRegistry` holds its current value and dependency graph. The same definition can hold different values in different registries.
+Import core primitives from `effect/reactivity` (or subpaths such as `effect/reactivity/Atom`). An atom describes state; an `AtomRegistry` holds its current value and dependency graph. The same definition can hold different values in different registries.
 
 `Atom.family` memoizes definitions, not durable values. It uses `MutableHashMap` equality: plain records and arrays compare structurally by default; custom `Equal`/`Hash` implementations can change identity. Do not assume fresh object literals necessarily miss the cache, or mutate keys after hashing.
 

@@ -78,6 +78,7 @@ Translate the application by semantic role:
 - If every feature function becomes a service, construction noise hides the domain and transaction-scoped values acquire false global identity; keep values ordinary until runtime ownership justifies context.
 - If one public facade is imposed by convention, unrelated callers become coupled and the facade turns into an application-wide method catalog; group only capabilities with a coherent caller-facing contract.
 - If public access functions rebuild long-lived dependencies internally, callers cannot share one graph or replace it coherently; provide them once at the owning composition boundary and nest only bounded scoped capabilities.
+- If handler-only infrastructure is activated before invocation selection, help, version, completion, or parse failures can read configuration or acquire resources unnecessarily; activate it around the selected invocation unless those earlier paths intentionally need it.
 - If Layer construction embeds business branching, alternate provision paths can change application policy and runtime wiring becomes a second application layer; keep Layers focused on construction and lifetime.
 - If Layer output includes every construction requirement, private adapters become reachable and tests start depending on internals; hide requirements and expose only intentional capabilities.
 - If a transaction-current view is installed as a long-lived service, its validity can outlive the transaction that produced it; pass it as an ordinary scoped value unless context is an enforced part of the transaction API.
@@ -87,6 +88,6 @@ Translate the application by semantic role:
 ## References
 
 - [`references/services-values-and-facades.md`](./references/services-values-and-facades.md): Read when: deciding whether a module is an ordinary value, effectful function, private service, or public facade.
-- [`references/composition-roots-and-layer-graphs.md`](./references/composition-roots-and-layer-graphs.md): Read when: translating dependency direction into a Layer graph, resolving configuration, or choosing composition roots and scope.
+- [`references/composition-roots-and-layer-graphs.md`](./references/composition-roots-and-layer-graphs.md): Read when: translating dependency direction into a Layer graph, resolving configuration precedence, or choosing invocation activation boundaries and scope.
 - [`references/feature-and-transaction-ownership.md`](./references/feature-and-transaction-ownership.md): Read when: deciding how private feature requirements, transaction-scoped values, or resource lifetimes appear in the Effect graph.
 - [`references/entrypoints-and-public-exports.md`](./references/entrypoints-and-public-exports.md): Read when: providing an entrypoint Effect program, choosing public Layer outputs, or hiding requirements and internal modules.

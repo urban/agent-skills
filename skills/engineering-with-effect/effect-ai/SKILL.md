@@ -13,7 +13,7 @@ description: Design Effect AI capabilities with domain-owned behavior, provider 
 
 ## Constraints
 
-- This guidance targets Effect v4: shared AI modules are under `effect/ai`; provider implementations are separate packages. The AI surface is unstable.
+- Shared AI modules are under `effect/ai`; provider implementations are separate packages. The AI surface is unstable.
 - Never allow a model to authorize its own sensitive read, mutation, external side effect, or high-cost action.
 - Retry and provider fallback require semantic equivalence and must not duplicate non-idempotent tool effects.
 - Raw prompts, outputs, credentials, and tool payloads require explicit privacy and telemetry decisions.
