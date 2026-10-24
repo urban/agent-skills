@@ -1,10 +1,11 @@
 ---
 name: capture-decisions
-description: Capture project decisions in a durable Markdown decision log with rationale, consequences, and risks. Use when a user asks to record, document, preserve, capture, or update decisions made during planning, design, implementation, reviews, or trade-off discussions.
+description: Capture non-engineering decisions in a durable Markdown log with rationale, consequences, and risks. Use when preserving product direction, business, operational-process, organizational, or other non-engineering workflow decisions; not for engineering ADRs.
 ---
 
 ## Rules
 
+- Capture non-engineering choices; architectural and engineering decisions belong in ADRs rather than this generic log.
 - Treat decisions as durable project memory because future agents and contributors need rationale, not just the final choice.
 - Use the project root `DECISIONS.md` by default because the decision log should be easy to discover without knowing project-specific docs conventions.
 - Keep each decision entry self-contained because readers may encounter it without the original conversation.
@@ -18,6 +19,7 @@ description: Capture project decisions in a durable Markdown decision log with r
 
 - Default target path is `<project-root>/DECISIONS.md`.
 - Resolve `<project-root>` as the nearest Git root when available; otherwise use the current working directory.
+- Do not record engineering architecture, APIs, schemas, infrastructure, dependency, or technical-tooling choices in this log; preserve them through the project's ADR process.
 - Do not create one large catch-all decision when the conversation contains multiple independent choices.
 - Do not invent alternatives, risks, consequences, dates, owners, or status values that are not supported by the conversation or repository evidence.
 - Do not remove or materially rewrite existing decision entries unless the user explicitly asks to revise or supersede them.
@@ -31,24 +33,17 @@ Inputs:
 - Known consequences and risks, if available.
 - Optional target path when the user does not want the default `DECISIONS.md`.
 
-Outputs:
-
-- A created or updated Markdown decision log.
-- One entry per durable decision.
-- A concise summary of what was recorded and where.
-- `TODO: Confirm` markers for high-impact missing fields that could not be clarified.
-
 In scope:
 
-- product, architecture, domain, workflow, tooling, process, and implementation-scope decisions
-- explicit rejections such as “do not add X in MVP” when the rejection prevents future re-litigation
-- updates that supersede or amend earlier decisions
+- non-engineering product direction, business priorities, organizational policies, collaboration practices, and operational-process decisions
+- explicit non-engineering scope rejections such as “do not add X in MVP” when the rejection prevents future re-litigation
+- updates that supersede or amend earlier non-engineering decisions
 
 Out of scope:
 
 - generic meeting notes, transient TODOs, or implementation progress logs
 - glossary-only terminology unless the term choice is itself a durable decision
-- replacing a full ADR process unless the user asks for ADR-style files
+- engineering decisions and ADR authoring, even when they arise in the same conversation as non-engineering choices
 
 Decision field meanings:
 
@@ -65,12 +60,12 @@ Decision field meanings:
    - If an existing target file is present, read it before editing.
 
 2. **Extract decision candidates**
-   - Identify each independent decision from the conversation, plan, spec, diff, or user instruction.
+   - Identify each independent non-engineering decision from the conversation, product/process plan, review, or user instruction.
    - Keep separate choices separate, even when they were made in the same discussion.
-   - Ignore transient implementation steps unless they create durable constraints or future-facing rationale.
+   - In mixed discussions, leave engineering choices for ADRs and report that boundary; do not relocate or rewrite historical engineering entries without authorization.
 
 3. **Check for missing high-impact fields**
-   - If the decision, why, consequences, or risks are missing and the user is available, ask a focused clarification question.
+   - If high-impact decision context is missing and the user is available, present related clarification questions together with any supported recommendations.
    - If the user asked you to proceed without interruption, write the entry with `TODO: Confirm` under the missing field.
    - Prefer a clear `TODO: Confirm` over filling gaps with generic speculation.
 
@@ -122,3 +117,11 @@ Decision field meanings:
 - If you rewrite old entries while adding new ones, you erase decision history and make diffs noisy. Append by default and mark supersession explicitly.
 - If consequences only repeat the decision, readers still do not know what changes downstream. Write consequences as effects, obligations, or behavior changes.
 - If risks are written as generic “may be buggy” warnings, they do not help future reconsideration. Tie each risk to a concrete failure mode or uncertainty.
+- If a mixed conversation puts architecture choices into the business decision log, future engineers lose the ADR history. Separate non-engineering choices and leave technical decisions to the project's ADR process.
+
+## Deliverables
+
+- A created or updated non-engineering decision log with one self-contained entry per durable choice.
+- Supported rationale, consequences, and risks, with `TODO: Confirm` for unresolved high-impact context instead of invented detail.
+- Preserved prior entries and explicit supersession where authorized.
+- A concise report of the path, decision titles, and unresolved context; engineering choices are identified as outside this log's scope.
