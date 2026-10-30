@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interface-first design"
+  short_description: "Interactive UX/UI prototypes and design references"
+  default_prompt: "Use $interface-first-design to develop and review an interactive interface for this project, then capture its behavior, visual decisions, and implementation handoff."
