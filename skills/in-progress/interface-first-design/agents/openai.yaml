@@ -1,4 +1,6 @@
 interface:
   display_name: "Interface-first design"
-  short_description: "Interactive UX/UI prototypes and design references"
-  default_prompt: "Use $interface-first-design to develop and review an interactive interface for this project, then capture its behavior, visual decisions, and implementation handoff."
+  short_description: "Interface behavior, annotated flows, and design fidelity"
+  default_prompt: "Use $interface-first-design to refine the selected experience with annotated screens and an operable preview where needed."
+policy:
+  allow_implicit_invocation: true
