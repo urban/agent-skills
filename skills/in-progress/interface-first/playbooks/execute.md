@@ -13,4 +13,4 @@
 5. Run required integration/completion gates and demonstrate the operable slice against its accepted target. Verify design-record placement, inventory links, review-only production exclusions and applicable checks. Repeat checks only for changes, failures or unresolved risks; bound automation and retries.
 6. Present the integrated result for required human review. Implementation completion does not establish acceptance. Refine feedback within scope; close the slice only when required work, record updates and actual user acceptance are satisfied.
 
-**Deliver:** verified outcome and task/artifact links, real/simulated boundaries, exact checks and limits, and the pending acceptance or next actionable work. Do not infer acceptance from worker completion or passing tests.
+**Deliver:** outcome and task/artifact links, real/simulated boundaries, and exact checks and limits. Report implementation completion, verified behavior and human acceptance separately under the [review contract](../references/review-contract.md), with pending acceptance or next actionable work explicit. Do not infer acceptance from worker completion or passing tests.
