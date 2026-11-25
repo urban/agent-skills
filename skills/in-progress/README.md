@@ -9,5 +9,6 @@ Skills that are being drafted or evaluated before graduating to a stable categor
 - [prototyping](./prototyping/SKILL.md) — Bounded architecture, UX, and feasibility experiments with reusable findings.
 - [testing-strategy](./testing-strategy/SKILL.md) — Fewer, higher-value black-box tests, faithful boundaries, and fast, trustworthy feedback.
 - [to-spec](./to-spec/SKILL.md) — Reviewed product/feature contracts, batched decisions, evidence, acceptance, and execution handoffs.
+- [vision](./vision/SKILL.md) — Evidence-grounded project vision refined through hypothetical changes and owner reasoning.
 - [write-adr](./write-adr/SKILL.md) — Engineering decision records with alternatives, evidence, consequences, and explicit supersession.
-- [typescript-project-hygiene](./typescript-project-hygiene/SKILL.md) — Strict compiler settings, imports and exports, cohesive files, safety escape hatches, parsed configuration, and isolated module effects.
+- [typescript-project-hygiene](./typescript-project-hygiene/SKILL.md) — Compiler configuration, diagnostic policy, imports and exports, cohesive files, and isolated module effects.

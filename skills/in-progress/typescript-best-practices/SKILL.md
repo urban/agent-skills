@@ -16,7 +16,7 @@ description: Apply personal TypeScript preferences for functional code, precise 
 
 ## Constraints
 
-- Do not introduce `any`; narrow `unknown` or improve the generic constraint. Assertions require a verified boundary invariant.
+- Do not introduce `any` or non-null assertions; narrow `unknown`, branch on absence, or improve the generic constraint. Other than `as const`, assertions require a verified boundary invariant.
 - Do not introduce domain `null`; use `undefined`, optional fields, or explicit variants. Adapt external `null` at boundaries.
 - Return typed results for expected failures; adapt throwing APIs at boundaries rather than using exceptions for domain control flow.
 - Use ordinary named parameters for fixed-arity APIs; reserve rest parameters for genuinely variadic calls.

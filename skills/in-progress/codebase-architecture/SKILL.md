@@ -82,5 +82,5 @@ Failure modes this knowledge helps avoid:
 
 - [`references/modules-and-dependencies.md`](./references/modules-and-dependencies.md): Read when: deciding module depth, domain versus application ownership, class use, dependency injection, or split criteria.
 - [`references/adapters-and-persistence.md`](./references/adapters-and-persistence.md): Read when: reusing or creating an adapter, shaping consumer dependencies, designing repositories, or recording a seam decision.
-- [`references/composition-and-runtime-ownership.md`](./references/composition-and-runtime-ownership.md): Read when: assembling an executable or runtime, deciding who constructs configuration and resources, or hiding infrastructure behind a public application surface.
+- [`references/composition-and-runtime-ownership.md`](./references/composition-and-runtime-ownership.md): Read when: assembling a runtime, decoding configuration and secrets, assigning resource lifetimes and cleanup, or hiding infrastructure behind a public application surface.
 - [`references/entrypoints-transactions-and-idempotency.md`](./references/entrypoints-transactions-and-idempotency.md): Read when: sharing behavior across entrypoints, placing authorization, selecting transactions versus workflows, or making retries safe.

@@ -10,6 +10,12 @@ Keep invocation parsing and result publication at the entrypoint edge, and keep 
 
 Construct long-lived dependencies once per sharing domain. When one invocation makes several application calls, provide the same configured graph around that flow rather than rebuilding it per call. Use nested provision for bounded request-, run-, tenant-, job-, or framework-owned lifetimes. Public operations should not select fixed long-lived production adapters, read hidden global configuration, or open process-lifetime resources internally.
 
+## Configuration ownership
+
+Read environment or deployment input at the composition boundary, decode it into typed configuration once per owning runtime scope, and inject it before constructing application modules. Reusable modules should not read `process.env` directly. Distinguish missing values, malformed values, unsupported combinations, and startup dependency failures.
+
+Wrap credentials, API keys, passwords, and tokens in a redacted type at decode time. Keep them wrapped through application composition and unwrap only inside the adapter constructor or request that requires the raw value. Startup failures should identify the configuration key or subsystem without revealing secrets.
+
 ## Modules and ordinary values
 
 Construct and inject a dependency-bearing module when a cohesive capability needs runtime configuration, replaceable infrastructure, shared state, or resource ownership. Keep schemas, immutable domain values, pure policy, comparators, mutation intents, and operation-local or transaction-scoped values as ordinary values and functions unless they have an independent runtime identity.
@@ -21,6 +27,8 @@ Do not promote every helper, command, callback, or transaction value into a cons
 Apply the same boundary to non-storage infrastructure as to persistence. Concrete adapters own provider protocols, filesystem and process access, network clients, queues, telemetry transports, vendor representations, failure translation, and their acquisition or release semantics. The composition boundary configures and connects those adapters; application modules depend on narrow caller-meaningful capabilities.
 
 Make lifetime ownership explicit. The adapter defines what acquisition, sharing, freshness, and cleanup mean, while the composition boundary determines the scope in which that resource is available.
+
+The code that creates a connection, process, subscription, server, or timer owns its release or explicitly transfers that ownership. Cleanup must cover success, failure, and cancellation where supported. Construct shared mutable state at its request, tenant, test, process, or application owner rather than relying on implicit global state.
 
 ## Public surface
 

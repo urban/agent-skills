@@ -23,7 +23,7 @@ The list below highlights available skills, including drafts.
 ### Engineering
 
 - `typescript` — pragmatic functional TypeScript style and constraints.
-- `typescript-project-hygiene` — compiler, module, configuration, and type-safety hygiene.
+- `typescript-project-hygiene` — compiler configuration, diagnostic policy, and module hygiene.
 
 ### Engineering with Effect
 
@@ -54,6 +54,7 @@ Effect skills are knowledge skills: they teach current Effect-native authoring s
 - `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.
 - `testing-strategy` — fewer, higher-value black-box tests and fast, trustworthy feedback.
 - `to-spec` — reviewed product/feature contracts and execution handoffs.
+- `vision` — project vision refined through evidence, hypothetical changes, and owner reasoning.
 - `write-adr` — engineering decisions, alternatives, evidence, and supersession.
 
 ## What is specific to this repo
