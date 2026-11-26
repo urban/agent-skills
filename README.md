@@ -7,8 +7,7 @@ This repo contains agent skills that follow the [Agent Skills specification](htt
 Skills are grouped by category under `skills/`:
 
 - `skills/productivity/` — general workflow skills that are not code-specific.
-- `skills/engineering/` — general coding, design, review, and documentation skills.
-- `skills/engineering-with-effect/` — Effect-specific knowledge skills for current Effect-native TypeScript standards.
+- `skills/engineering/` — coding, design, review, and documentation skills, including Effect-specific standards.
 - `skills/in-progress/` — tracked draft skills that are not yet in a stable category.
 
 ## Skills
@@ -22,30 +21,9 @@ The list below highlights available skills, including drafts.
 
 ### Engineering
 
+- [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) — Effect-specific design judgment, with selectively loaded principles and topics. Extends `typescript-best-practices`; API details stay in the Effect repository.
 - `typescript` — pragmatic functional TypeScript style and constraints.
 - `typescript-project-hygiene` — compiler configuration, diagnostic policy, and module hygiene.
-
-### Engineering with Effect
-
-Effect skills are knowledge skills: they teach current Effect-native authoring standards and focused package patterns.
-
-- `effect-ai` — Effect AI integrations, providers, tools, structured output, streaming, and tests.
-- `effect-application-architecture` — whole-application Effect topology across services, Layer graphs, composition roots, scopes, and public exports.
-- `effect-atom` — Effect Atom state modules, async lifecycles, React integration, optimistic updates, and tests.
-- `effect-client-wrapper` — wrappers for third-party Promise-based SDK clients with Effect services, typed errors, tracing, and dependency injection.
-- `effect-cluster` — Effect Cluster entities, RPC protocols, runners, persistence, proxies, and tests.
-- `effect-core` — core computation, failure/defect, Cause, interruption, and fiber semantics, plus routing for ambiguous Effect tasks.
-- `effect-fast-check` — property-based tests for Effect code.
-- `effect-http` — Effect HTTP APIs, clients, schema bodies, status/error mapping, and in-process tests.
-- `effect-layer` — Effect Layer composition, dependency wiring, scoped resources, sharing, and test layers.
-- `effect-opentelemetry` — spans, metrics, logs, OTLP/OpenTelemetry layers, attributes, and telemetry tests.
-- `effect-optic` — immutable reads and updates with Effect Optic.
-- `effect-platform` — filesystem, process, terminal, socket, runtime, and other platform boundaries.
-- `effect-schema` — runtime validation, codecs, tagged errors, transformations, HTTP contracts, and schema tests.
-- `effect-service` — Context.Service boundaries, contracts, layers, errors, and test services.
-- `effect-stream` — lazy back-pressured streams, adapters, protocols, cleanup, and stream tests.
-- `effect-testing` — @effect/vitest, layer replacement, deterministic concurrency, typed errors, and integration seams.
-- `effect-workflow` — durable Effect workflows, activities, deferreds, queues, compensation, proxies, and tests.
 
 ### In progress
 
@@ -71,7 +49,7 @@ These skills follow a few strong conventions:
 
 - Read a skill's `SKILL.md` first.
 - If you want the clearest picture of this repo's conventions, start with `skills/productivity/build-a-skill/`.
-- For Effect work, choose one primary skill from `skills/engineering-with-effect/README.md`; add another only for a separate, substantive decision in its scope.
+- For Effect work, use [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) alongside [`typescript-best-practices`](skills/in-progress/typescript-best-practices/SKILL.md). Read the applicable principles and the topic owning the current decision; get API facts from the project's Effect checkout.
 
 ## License
 
