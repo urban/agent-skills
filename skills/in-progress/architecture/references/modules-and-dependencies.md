@@ -58,4 +58,15 @@ type UsersForPasswordReset = {
 
 A wider `PostgresUsers` adapter can satisfy this shape structurally. The consumer stays narrow without forcing one-method adapter proliferation.
 
-Use a named interface or type when it communicates a stable seam. Inline a tiny shape when naming it would add no domain meaning. A narrow shape must still be semantically complete: include the failure, consistency, transaction, and lifecycle behavior the caller relies on, not only the method signature.
+Use a named interface or type when it communicates a stable seam. Inline a tiny shape when naming it would add no domain meaning.
+
+## Caller-visible contracts
+
+Resolve the contract before filling in implementation. Use the existing operation/type and a few concrete examples; a separate contract document is unnecessary when the code and task already express the decision.
+
+- Define accepted inputs and outputs, with boundary schemas for untrusted representations and shared authoritative types where useful.
+- Name recoverable failures and observable effects, including what callers may safely retry and what remains true after a failure.
+- Make required capabilities and resource ownership explicit. Specify consistency, ordering, cancellation, cleanup, or transaction guarantees only where they affect callers.
+- Keep provider wire formats and framework types behind their owning adapter. Composition chooses implementations and lifetimes; application policy remains in the production capability.
+
+Derive expected examples from requirements or protocol specifications, not by running the implementation to calculate its own expected result. Contract independence is semantic independence; it does not require different agents, duplicate implementations, or new packages. A fixture and production adapter may share a type while disagreeing on behavior, so type compatibility alone does not establish substitutability.

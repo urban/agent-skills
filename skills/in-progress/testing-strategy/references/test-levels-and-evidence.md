@@ -2,21 +2,23 @@
 
 ## Choose from the confidence question
 
-Start with a compact set of high-value black-box scenarios covering meaningful user/operational flows and consequential failures. Exercise real production composition through a public UI, CLI, API, or application interface; full deployment is needed only when deployment interactions are part of the confidence question.
+Choose the closest public production boundary that can expose a consequential error in the claim. Usually this is a service or application capability with real internal composition and supplied external dependencies. Black-box describes the observation, not the number of processes or the size of the environment.
 
-Black-box describes what the test observes, not how many processes it starts. An in-process application harness with real internal collaborators can provide broad behavioral confidence with fast, deterministic feedback.
+Use the existing narrow executable check before building another harness. Choose additional evidence for distinct gaps, not as a mandatory testing pyramid:
 
-Add integration/contract checks or focused unit/property tests only for important gaps that these scenarios cannot cover reliably or economically. A pure function is not automatically entitled to its own test file. Test count, assertion count, and coverage percentage are not goals.
-
-| Confidence needed | Useful boundary |
+| Claim | Sufficient evidence to consider |
 | --- | --- |
-| Critical flow works across deployed components | End-to-end |
-| Modules compose and real infrastructure semantics matter | In-process or local integration |
-| One adapter honors a remote or persistence protocol | Contract or adapter integration |
-| Important invariant has unrepresented cases that broad scenarios cannot cover economically | Focused example or property supplement |
-| One deep module's stable contract has a distinct confidence gap | Public-interface unit supplement |
+| Application policy, validation, or typed failure handling | Production capability with real internal collaborators and controlled external responses |
+| Adapter request encoding, response decoding, or error mapping | Production adapter with independent protocol request/reply fixtures or a focused local protocol harness |
+| Persistence constraints, transactions, native-process lifecycle, restart, or shutdown | Focused integration with the relevant real local runtime/resource owner |
+| Model factuality, template fidelity, or provider quality/drift | Separately invoked, bounded live evaluation against stated criteria |
+| Routing, serialization, middleware, or UI interaction | The public entrypoint and composition that own that behavior |
+| A critical deployed journey or deployment interaction | Selected end-to-end evidence |
+| A distinct pure invariant or domain law | Focused examples or a non-vacuous property with independent expectations |
 
-Preserve routing, serialization, middleware, runtime lifecycle, database constraints, transaction isolation, or concurrency when those semantics are the behavior. Use a focused boundary for a pure value rule only when doing so adds meaningful missing confidence or improves feedback cost without losing needed composition evidence.
+These are alternatives selected by risk; a change does not owe evidence at every row. A service fixture cannot establish adapter compatibility, a map cannot establish database constraints, and a model-shaped fixture cannot establish model truth. Keep the actual owner real when its behavior is the claim.
+
+Protocol fixtures should encode the external specification or a known raw exchange independently of the production serializer. Shared contract checks are useful when multiple implementations must preserve the same semantics, but are not a mandatory harness for every interface.
 
 ## Confidence per test
 
@@ -42,6 +44,8 @@ An exact interaction is observable when the interaction is the product or protoc
 
 ## Suite roles
 
-Keep live external checks separately named and scheduled as smoke or compatibility tests. They provide evidence about credentials, deployment, provider behavior, and network integration but should not make the normal suite nondeterministic.
+Keep live external checks separately named and explicitly invoked; routine test, check, and build commands should remain deterministic and should not download models or corpus inputs. Live checks provide evidence about credentials, deployment, provider compatibility, and model quality. Name the question, cases, evaluation criteria, and run/time limit before running them. A smoke test establishes connectivity or compatibility, not broad output quality.
+
+Unknown provider feasibility warrants an early bounded probe of the disputed real mechanism. Do not defer that uncertainty behind fixtures until final verification. Exhausting an evaluation limit leaves an explicit evidence gap; it does not make acceptance pass or justify silently expanding the experiment.
 
 When a regression is found, first see whether an existing black-box scenario can be strengthened to detect it. Add a focused reproducer only when it captures a distinct risk or makes feedback materially more reliable/economical. Name the broken behavior and assert the stable outcome; avoid freezing incidental implementation that happened to be present in the fix.

@@ -28,9 +28,10 @@ The list below highlights available skills, including drafts.
 ### In progress
 
 - `capture-decisions` — non-engineering decisions with rationale, consequences, and risks.
-- `codebase-architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
+- `architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 - `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.
-- `testing-strategy` — fewer, higher-value black-box tests and fast, trustworthy feedback.
+- `testing-strategy` — contract-focused evidence through real internal composition and controlled external dependencies.
+- `tdd` — deliberately selected red-green-refactor cycles and cheap regression reproductions.
 - `to-spec` — reviewed product/feature contracts and execution handoffs.
 - `vision` — project vision refined through evidence, hypothetical changes, and owner reasoning.
 - `write-adr` — engineering decisions, alternatives, evidence, and supersession.

@@ -1,5 +1,5 @@
 ---
-name: codebase-architecture
+name: architecture
 description: Design framework-neutral TypeScript architecture around deep domain and application modules, narrow dependency seams, cohesive adapters, explicit composition roots, persistence boundaries, thin entrypoints, and transaction or idempotency policy. Use when deciding framework-neutral module boundaries, dependency seams, runtime assembly, persistence ownership, or transaction policy.
 ---
 
@@ -10,6 +10,7 @@ description: Design framework-neutral TypeScript architecture around deep domain
 - Build deep modules that hide meaningful behavior and invariants behind a cohesive, low-burden interface.
 - Let public application operations expose the meaningful order of domain decisions; extract helpers only when they own one coherent I/O, decoding, or policy concern rather than to satisfy a size metric.
 - Keep domain modules focused on valid values and pure behavior; keep application modules focused on capabilities that coordinate dependencies and effects.
+- Establish the caller-visible contract before filling in implementation: valid inputs and outputs, recoverable failures, observable effects, and dependency ownership. Include retry, cancellation, consistency, and lifetime guarantees when callers rely on them.
 - Let a consumer depend on the smallest meaningful capability it uses while allowing a wider concrete adapter to satisfy that structural shape.
 - Audit existing adapters before creating one: reuse when possible, extend when the capability remains cohesive, and create a new adapter only for a genuinely separate reason to change.
 - Keep transport, framework, ORM, and provider representations at their owning edge; parse them into domain values before application logic uses them.
@@ -21,6 +22,7 @@ description: Design framework-neutral TypeScript architecture around deep domain
 - Do not force a broad architecture migration while delivering an unrelated local change.
 - Do not keep a database transaction open across a network call, human wait, timer, or other long-running operation.
 - Do not create an adapter per table, SDK method, or call site unless those are genuinely cohesive capabilities.
+- Contract-first does not require separate packages, agents, interface files, or services for every operation. Keep one authoritative schema/type where sharing is useful; separate provider implementation details from caller obligations.
 - Do not duplicate business or authorization rules across HTTP handlers, resolvers, CLI commands, and workers.
 - A retryable state change must have idempotency or deduplication, unless the operation is demonstrably repeat-safe by its semantics.
 
@@ -28,7 +30,7 @@ description: Design framework-neutral TypeScript architecture around deep domain
 
 Applies to:
 
-- deep module and seam placement
+- caller-visible contracts, deep module and seam placement
 - domain versus application module responsibilities
 - dependency shape, adapter reuse, and persistence design
 - composition roots, runtime dependency assembly, and resource ownership
@@ -80,7 +82,7 @@ Failure modes this knowledge helps avoid:
 
 ## References
 
-- [`references/modules-and-dependencies.md`](./references/modules-and-dependencies.md): Read when: deciding module depth, domain versus application ownership, class use, dependency injection, or split criteria.
+- [`references/modules-and-dependencies.md`](./references/modules-and-dependencies.md): Read when: defining a capability contract, module depth, domain versus application ownership, dependency injection, or split criteria.
 - [`references/adapters-and-persistence.md`](./references/adapters-and-persistence.md): Read when: reusing or creating an adapter, shaping consumer dependencies, designing repositories, or recording a seam decision.
 - [`references/composition-and-runtime-ownership.md`](./references/composition-and-runtime-ownership.md): Read when: assembling a runtime, decoding configuration and secrets, assigning resource lifetimes and cleanup, or hiding infrastructure behind a public application surface.
 - [`references/entrypoints-transactions-and-idempotency.md`](./references/entrypoints-transactions-and-idempotency.md): Read when: sharing behavior across entrypoints, placing authorization, selecting transactions versus workflows, or making retries safe.

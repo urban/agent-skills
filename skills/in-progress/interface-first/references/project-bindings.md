@@ -9,7 +9,7 @@ Keep a concise **Workflow integration** section in that map, linking existing op
 | Records          | Design map, implementing owners, accepted targets, ADR numbering, slice IDs, evidence locations and approval provenance            |
 | UI modules       | Named-element convention, semantic entry filenames, supported imports, review colocation/discovery and runtime exclusions          |
 | Review operation | Selected tooling skill, launch/readiness/health instructions, scenario IDs, fixtures, reset paths, isolation and cleanup ownership |
-| Verification     | Focused checks and required completion gates; what they establish and what still needs live or human review                        |
+| Verification     | Exact required checks, their claims, stop/escalation conditions, and bounded live or human acceptance gaps                        |
 | Tasks            | Available backend/skill, hierarchy, IDs, executors, claim/readback rules and final review requirement                              |
 | Execution        | Concurrency, fresh-worker policy, writable ownership, commit policy and human feedback checkpoints                                 |
 

@@ -1,14 +1,14 @@
 ---
 name: testing-strategy
-description: Choose a small, high-value black-box-first test strategy for TypeScript systems. Use when deciding acceptance evidence, test levels, suite reduction, collaborator fidelity, persistence setup, property testing, or readable test design.
+description: Choose the smallest sufficient public-contract evidence for TypeScript systems with real internal composition and controlled external dependencies. Use when deciding acceptance evidence, test levels, suite reduction, collaborator fidelity, persistence setup, property testing, or readable test design.
 ---
 
 ## Rules
 
-- Prefer the smallest reliable set of high-value black-box tests that demonstrates agreed behavior and catches consequential regressions; optimize development speed and confidence, not test count or coverage percentage.
-- Default to real application, API, CLI, or UI boundaries that exercise meaningful behavior across internal composition. Black-box does not require a fully deployed environment.
+- Choose the closest public boundary that can expose a consequential mistake in the claimed contract. Prefer a small reliable set of scenarios; optimize feedback cost and confidence rather than test count or coverage percentage.
+- Exercise the production capability with real internal composition. Supply substitutes at genuine external boundaries; use application, API, CLI, or UI entrypoints when the claim depends on their behavior, rather than escalating every service check to a full-stack journey.
 - Assert caller- or user-observable outcomes rather than private implementation, call choreography, or incidental counts.
-- Add focused lower-level tests only when they provide important confidence that higher-level tests cannot provide reliably or economically.
+- Add another test level only for a distinct uncovered risk. A focused contract test need not be supplemented by a larger test proving the same behavior.
 - Keep deterministic, inexpensive in-process collaborators real; replace external, destructive, expensive, or nondeterministic boundaries.
 - Match each substitute's fidelity to the contract, including relevant transport, persistence, ordering, concurrency, retry, and lifecycle semantics.
 - Keep scenario-defining setup, action, and expected outcome visible together, even when that requires controlled repetition.
@@ -29,7 +29,7 @@ description: Choose a small, high-value black-box-first test strategy for TypeSc
 
 Applies to:
 
-- selecting high-value black-box/end-to-end coverage and justified integration, contract, focused, property, or unit supplements
+- selecting contract, adapter, local-runtime, end-to-end, or live-evaluation evidence by the claim and distinct risk
 - evaluating redundant coverage, feedback cost, assertion strength, and failure diagnostics
 - choosing seams, substitutes, observable evidence, and justified interaction assertions
 - protocol and persistence fidelity, deterministic boundary control, and test-data construction
@@ -50,7 +50,7 @@ Decision inputs:
 
 ## Patterns
 
-- Start from consequential user journeys and failure risks, then choose a compact set of scenarios through real public boundaries. Several related acceptance criteria can share one scenario when failures remain diagnosable.
+- Start from the caller-visible contract, consequential journeys, and failure risks. Derive expected values independently from requirements or protocol specifications. Several related acceptance criteria can share one scenario when failures remain diagnosable.
 - Before adding a test, identify the distinct confidence it adds; strengthen an existing scenario when that answers the same question without obscuring it.
 - Observe returned values or failures, persisted state, emitted messages, rendered responses, or captured records at a boundary-owned fake.
 - Choose a fake for simple semantics, a scripted substitute for response sequences, and a simulator or local service when protocol or runtime behavior matters.
@@ -64,7 +64,7 @@ Decision inputs:
 - If every collaborator is mocked, the test proves that configured return values flow through configured expectations, not that production composition works. Keep real internal collaborators and replace only true edges.
 - If assertions target private call order, harmless refactors look like regressions. Assert the stable result, state transition, message, or protocol request instead.
 - If a substitute omits relevant validation, ordering, uniqueness, transactions, retries, or cleanup, impossible production behavior passes. Raise fidelity or strengthen the substitute.
-- If black-box-first becomes a separate full-stack journey for every assertion, setup and flakiness overwhelm development. Consolidate related acceptance evidence, use deterministic application-level black-box harnesses, and add focused tests only for important remaining gaps.
+- If public-contract testing becomes a full-stack journey for every assertion, setup and flakiness overwhelm development. Use the closest useful production composition with controlled external dependencies; broaden only when a named guarantee crosses that seam.
 - If every discovered function earns a unit test, suite size grows without equivalent confidence and refactors become expensive. Require a distinct risk or contract that existing black-box coverage does not already establish.
 - If tests construct branded or stateful values with casts, they can exercise states production cannot create. Use production constructors or schema-derived arbitraries.
 - If a test sleeps to coordinate work, scheduler load turns correctness into timing luck. Expose readiness and control the clock or synchronization point.
