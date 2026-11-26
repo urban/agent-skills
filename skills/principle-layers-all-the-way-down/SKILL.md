@@ -26,6 +26,8 @@ Use the default when it fits. When supported configuration is insufficient, step
 
 Test: can consumers replace the default arrangement through supported pieces without copying its implementation or breaking its guarantees?
 
+When choosing executable evidence for that guarantee, use `principle-test-capabilities` when available, resolved by name through host discovery. Exercise the relevant production composition rather than replacing each layer with a mock.
+
 ## Gotchas
 
 - Special-case flags obscure the default; offer recomposition for divergent requirements.

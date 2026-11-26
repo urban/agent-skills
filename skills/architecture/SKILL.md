@@ -42,6 +42,8 @@ Does not cover:
 - test-level selection and mocking policy
 - framework-specific API syntax or a step-by-step architecture migration
 
+When available, use `project-hygiene` for compiler and analyzer policy, imports, exports, and module initialization; use `principle-test-capabilities` for test boundaries, substitutes, and evidence for the architecture's guarantees. Resolve companion skills by name through host discovery.
+
 Decision inputs:
 
 - established project vocabulary and module conventions

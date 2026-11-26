@@ -28,9 +28,9 @@ Principles are required inputs; other standards are selected by the decision. Th
 | --- | --- |
 | `architecture` | Module depth, state ownership, contracts, dependencies, or composition need examination. |
 | `typescript-best-practices` | TypeScript readability, domain representations, inference, or failures matter. |
-| `typescript-project-hygiene` | Imports, exports, module evaluation, compiler policy, or diagnostics matter. |
+| `project-hygiene` | Module ownership, initialization, compiler or analyzer policy, or diagnostics matter in any language. |
 | `effect-best-practices` | Effect capability, lifetime, failure, replay, or evidence decisions matter. |
-| `testing-strategy` | Coverage value, substitute fidelity, reproducibility, or verification cost matters. |
+| `principle-test-capabilities` | Test boundaries, production composition, substitute fidelity, or verification cost matters. |
 
 Resolve these skill names to their actual `SKILL.md` through host discovery or the available library inventory, rather than assuming a category or absolute path. Inspect directory entries and resolve symlinks before reporting a skill missing; a file search that skips symlinked directories is not an availability check. Read the selected entrypoints and only their applicable leaves. Use additional project-specific skills where relevant; verify API facts against installed guidance/source when those facts affect a recommendation.
 

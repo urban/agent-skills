@@ -26,6 +26,8 @@ description: Apply personal TypeScript preferences for functional code, precise 
 
 Applies to TypeScript implementation and domain types. Use the task's domain invariants and existing API contracts to choose representations. Project setup, application architecture, and testing strategy remain outside this skill.
 
+When available, use `project-hygiene` for compiler and diagnostic policy, module ownership, initialization, and Node type-stripping compatibility; use `principle-test-capabilities` for behavioral evidence and test composition. Resolve companion skills by name through host discovery.
+
 ## Patterns
 
 | Decision | Default |

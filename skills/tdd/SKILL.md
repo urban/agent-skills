@@ -32,6 +32,8 @@ In scope: deliberate red-green-refactor work, cheap behavior-first regression te
 
 Out of scope: universal test-first mandates, implementation-detail tests, coverage targets, broad benchmarking, and creating an expensive test environment for a small fix.
 
+When available, use `principle-test-capabilities` for test boundaries, production composition, substitute fidelity, and evidence selection; this skill owns the selected red-green-refactor cycle. Resolve the companion skill by name through host discovery.
+
 Read only the reference owning the current question:
 
 | Question | Reference |

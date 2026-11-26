@@ -17,4 +17,6 @@ If a binding is missing, inspect the relevant implementation, existing scripts a
 
 Map foundational UI, product interaction, domain/capability and host responsibilities onto the actual architecture. Neither package names nor TypeScript, React, Storybook, a specific tracker or model roster are imposed by this skill. Use available tool-specific skills when relevant; otherwise use the project's existing mechanics and state any inspection limits.
 
+For code-level decisions, use `principle-test-capabilities` for test boundaries and real versus simulated evidence, or `project-hygiene` for module ownership, initialization, and compiler or analyzer policy, when available through host skill discovery. These complement the project's bindings and the UI review contract; they do not add mandatory workflow steps.
+
 For portable installation, keep this skill's internal files together and resolve their links relative to the file containing them. Project paths are resolved according to the project's records. No principle requires a sibling skill. A host that ignores invocation metadata or eagerly bundles references still needs explicit reads of the selected playbook and principle leaves.

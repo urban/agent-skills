@@ -17,3 +17,5 @@ Make the compiler reject impossible states, mismatched semantic values, and unha
 Verify important rejected combinations with compile-time checks. Static completeness does not establish runtime validity or visual correctness.
 
 For TypeScript syntax, see the **typescript-best-practices** skill.
+
+For compiler and analyzer policy or intentional rejection tests, use `project-hygiene` when available, resolved by name through host discovery. Domain representation decisions remain here.

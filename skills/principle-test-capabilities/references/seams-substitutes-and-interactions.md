@@ -1,5 +1,13 @@
 # Seams, substitutes, and interactions
 
+## Domain capabilities and production composition
+
+Name the domain action and its promised result before choosing dependencies to replace. Keep the domain rules, application orchestration, and internal collaborators that implement that promise inside the test. A supported pure domain operation can be tested directly when it owns a distinct law; an internal helper does not become a separate contract merely because it is exported.
+
+In an effect system or dependency-injection graph, assemble the relevant production layers and supply controlled implementations at true external edges. Replace a clock, provider, or persistence capability when externality, cost, destructiveness, or nondeterminism warrants it. Do not replace every injectable service or introduce a new layer solely to make mocking convenient.
+
+Retain the resource owner and runtime semantics when the claim involves acquisition, interruption, cancellation, finalization, retries, or concurrent state. A fake success value cannot establish that production composition releases a resource or classifies a failure correctly. Assert the failure variant callers handle; assert message text only when that text is itself a contract.
+
 ## Prefer explicit seams
 
 Useful test seams include:
@@ -11,6 +19,8 @@ Useful test seams include:
 - local protocol simulators
 - boundary-owned fakes with an observation harness
 - explicit clock, random, scheduler, or ID-generator capabilities
+
+Control synchronization through readiness signals or explicit scheduling points; do not use sleeps to coordinate a deterministic test.
 
 Module replacement with `vi.mock` or `jest.mock` patches dependency lookup after design. It obscures the production graph, can depend on import order and module caching, and encourages tests to mirror private calls. Prefer an explicit seam that production also uses.
 

@@ -1,5 +1,7 @@
 # Testing
 
+When available, use `principle-test-capabilities` for general test-boundary and evidence decisions, resolving it by name through host discovery. This topic specializes those decisions for Effect ownership, interruption, layer sharing, and generated evaluations.
+
 Exercise caller-visible behavior through the closest useful public composition. Replace genuine external uncertainty rather than every collaborator. A fake should preserve the ordering, uniqueness, transactions, failure, or cancellation semantics relevant to the claim; omitted behavior remains unproven.
 
 Treat test sharing as an explicit ownership choice. Isolate mutable state and identity-specific dependencies unless sharing is part of the contract. For asynchronous behavior, identify the application milestone that makes the next assertion meaningful; elapsed time is not evidence of that milestone. Assert resource release only after its owner has actually closed.

@@ -4,11 +4,10 @@ This repo contains agent skills that follow the [Agent Skills specification](htt
 
 ## Structure
 
-Skills are grouped by category under `skills/`:
+Skills live in two directories:
 
-- `skills/productivity/` — general workflow skills that are not code-specific.
-- `skills/engineering/` — coding, design, review, and documentation skills, including Effect-specific standards.
-- `skills/in-progress/` — tracked draft skills that are not yet in a stable category.
+- `skills/` — ready-to-use skills and principles.
+- `in-progress/` — tracked draft skills.
 
 ## Skills
 
@@ -21,18 +20,18 @@ The list below highlights available skills, including drafts.
 
 ### Engineering
 
-- [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) — Effect-specific design judgment, with selectively loaded principles and topics. Extends `typescript-best-practices`; API details stay in the Effect repository.
-- `typescript-project-hygiene` — compiler configuration, diagnostic policy, and module hygiene.
+- [`effect-best-practices`](skills/effect-best-practices/SKILL.md) — Effect-specific design judgment, with selectively loaded principles and topics. Extends `typescript-best-practices`; API details stay in the Effect repository.
+- [`project-hygiene`](skills/project-hygiene/SKILL.md) — language-neutral compiler and analyzer policy, module ownership, and initialization boundaries, with TypeScript and Node guidance.
+- [`principle-test-capabilities`](skills/principle-test-capabilities/SKILL.md) — observable contracts through real production composition and controlled external dependencies.
 
-### In progress
+### Other skills and drafts
 
-- [`continuous-improvement`](skills/in-progress/continuous-improvement/SKILL.md) — codebase review and development retrospectives producing one prioritized improvement backlog.
+- [`continuous-improvement`](skills/continuous-improvement/SKILL.md) — codebase review and development retrospectives producing one prioritized improvement backlog.
 - `capture-decisions` — non-engineering decisions with rationale, consequences, and risks.
 - `architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 - `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.
-- `testing-strategy` — contract-focused evidence through real internal composition and controlled external dependencies.
 - `tdd` — deliberately selected red-green-refactor cycles and cheap regression reproductions.
-- [`typescript-best-practices`](skills/in-progress/typescript-best-practices/SKILL.md) — concise personal defaults for functional code, domain types, inference, and explicit failures.
+- [`typescript-best-practices`](skills/typescript-best-practices/SKILL.md) — concise personal defaults for functional code, domain types, inference, and explicit failures.
 - `to-spec` — reviewed product/feature contracts and execution handoffs.
 - `vision` — project vision refined through evidence, hypothetical changes, and owner reasoning.
 - `write-adr` — engineering decisions, alternatives, evidence, and supersession.
@@ -50,8 +49,8 @@ These skills follow a few strong conventions:
 ## Where to start
 
 - Read a skill's `SKILL.md` first.
-- If you want the clearest picture of this repo's conventions, start with `skills/productivity/build-a-skill/`.
-- For Effect work, use [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) alongside [`typescript-best-practices`](skills/in-progress/typescript-best-practices/SKILL.md). Read the applicable principles and the topic owning the current decision; get API facts from the project's Effect checkout.
+- If you want the clearest picture of this repo's conventions, start with `in-progress/build-a-skill/`.
+- For Effect work, use [`effect-best-practices`](skills/effect-best-practices/SKILL.md) alongside [`typescript-best-practices`](skills/typescript-best-practices/SKILL.md). Read the applicable principles and the topic owning the current decision; get API facts from the project's Effect checkout.
 
 ## License
 

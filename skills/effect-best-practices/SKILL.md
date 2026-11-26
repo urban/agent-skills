@@ -24,6 +24,8 @@ Effect itself owns API facts. Start with the consuming project's `.dotai/repos/e
 
 General TypeScript style belongs to `typescript-best-practices`; framework-neutral architecture and project execution policy belong to their existing owners. These standards apply inside implementation, review, and design tasks without introducing an ordered procedure.
 
+When available, use `project-hygiene` for compiler and diagnostic policy, module ownership, and Node type-stripping compatibility; use `principle-test-capabilities` for general test boundaries, composition, and substitute fidelity. Resolve companion skills by name through host discovery; the testing topic here specializes evidence for Effect semantics.
+
 ## Patterns
 
 ### Select internal principles
