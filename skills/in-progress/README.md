@@ -9,6 +9,7 @@ Skills that are being drafted or evaluated before graduating to a stable categor
 - [prototyping](./prototyping/SKILL.md) — Bounded architecture, UX, and feasibility experiments with reusable findings.
 - [testing-strategy](./testing-strategy/SKILL.md) — Contract-focused evidence, real internal composition, controlled external dependencies, and distinct adapter/runtime checks.
 - [tdd](./tdd/SKILL.md) — Deliberately selected red-green-refactor cycles and cheap regression reproductions.
+- [typescript-best-practices](./typescript-best-practices/SKILL.md) — Concise personal TypeScript defaults for functional code, domain types, inference, and explicit failures.
 - [to-spec](./to-spec/SKILL.md) — Reviewed product/feature contracts, batched decisions, evidence, acceptance, and execution handoffs.
 - [vision](./vision/SKILL.md) — Evidence-grounded project vision refined through hypothetical changes and owner reasoning.
 - [write-adr](./write-adr/SKILL.md) — Engineering decision records with alternatives, evidence, consequences, and explicit supersession.

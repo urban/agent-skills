@@ -2,6 +2,6 @@
 
 General engineering skills.
 
-## Sibling skills
+## Related skills
 
-- [typescript](./typescript/SKILL.md) — Pragmatic functional TypeScript style with expression-oriented code, strong inference, explicit domain types, immutable defaults, and no `any`, `null`, or exception-driven expected failures.
+- [typescript-best-practices](../in-progress/typescript-best-practices/SKILL.md) — Concise personal TypeScript defaults for functional code, domain types, inference, and explicit failures.

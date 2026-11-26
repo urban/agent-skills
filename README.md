@@ -22,7 +22,6 @@ The list below highlights available skills, including drafts.
 ### Engineering
 
 - [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) — Effect-specific design judgment, with selectively loaded principles and topics. Extends `typescript-best-practices`; API details stay in the Effect repository.
-- `typescript` — pragmatic functional TypeScript style and constraints.
 - `typescript-project-hygiene` — compiler configuration, diagnostic policy, and module hygiene.
 
 ### In progress
@@ -32,6 +31,7 @@ The list below highlights available skills, including drafts.
 - `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.
 - `testing-strategy` — contract-focused evidence through real internal composition and controlled external dependencies.
 - `tdd` — deliberately selected red-green-refactor cycles and cheap regression reproductions.
+- [`typescript-best-practices`](skills/in-progress/typescript-best-practices/SKILL.md) — concise personal defaults for functional code, domain types, inference, and explicit failures.
 - `to-spec` — reviewed product/feature contracts and execution handoffs.
 - `vision` — project vision refined through evidence, hypothetical changes, and owner reasoning.
 - `write-adr` — engineering decisions, alternatives, evidence, and supersession.
