@@ -21,12 +21,12 @@ The list below highlights available skills, including drafts.
 
 ### Engineering
 
-- [`continuous-improvement`](skills/engineering/continuous-improvement/SKILL.md) — codebase review and development retrospectives producing one prioritized improvement backlog.
 - [`effect-best-practices`](skills/engineering/effect-best-practices/SKILL.md) — Effect-specific design judgment, with selectively loaded principles and topics. Extends `typescript-best-practices`; API details stay in the Effect repository.
 - `typescript-project-hygiene` — compiler configuration, diagnostic policy, and module hygiene.
 
 ### In progress
 
+- [`continuous-improvement`](skills/in-progress/continuous-improvement/SKILL.md) — codebase review and development retrospectives producing one prioritized improvement backlog.
 - `capture-decisions` — non-engineering decisions with rationale, consequences, and risks.
 - `architecture` — deep modules, adapter and persistence seams, entrypoints, transactions, and idempotency.
 - `prototyping` — bounded experiments and reusable architecture, UX, or feasibility findings.

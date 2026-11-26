@@ -4,6 +4,7 @@ Skills that are being drafted or evaluated before graduating to a stable categor
 
 ## Sibling skills
 
+- [continuous-improvement](./continuous-improvement/SKILL.md) — Codebase review and development retrospectives producing one prioritized improvement backlog.
 - [architecture](./architecture/SKILL.md) — Deep domain and application modules, narrow dependency seams, adapter reuse, persistence boundaries, thin entrypoints, transactions, and idempotency.
 - [capture-decisions](./capture-decisions/SKILL.md) — Non-engineering decision logs with rationale, consequences, and risks.
 - [prototyping](./prototyping/SKILL.md) — Bounded architecture, UX, and feasibility experiments with reusable findings.
