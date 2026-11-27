@@ -1,0 +1,3 @@
+interface:
+  display_name: "Work Mode"
+  short_description: "Recover context and carry scoped work to completion"

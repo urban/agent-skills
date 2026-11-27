@@ -2,7 +2,7 @@
 
 **Apply when:** a novel interaction or consequential product tradeoff lacks an established direction.
 
-Build meaningfully different, inexpensive alternatives that resolve a named decision. Use an isolated scratch harness with actual UI modules and existing preview tooling so exploration stays cheap without changing unrelated consumers. Compare labeled variants against the current or accepted baseline under equivalent conditions through a shared switcher. Recommend a direction from observed behavior, user need and project principles. Follow the [design alternatives loop](../playbooks/design.md#explore-alternatives-when-direction-is-unresolved) for the procedure.
+Inspect and operate the existing interface's supported options first. When a consequential choice remains unresolved, build meaningfully different, inexpensive alternatives that resolve that named decision. Use an isolated scratch harness with actual UI modules and existing preview tooling so exploration stays cheap without changing unrelated consumers. Compare labeled variants against the current or accepted baseline under equivalent conditions through a shared switcher. Recommend a direction from observed behavior, user need and project principles. Follow the [design alternatives loop](../playbooks/design.md#explore-alternatives-when-direction-is-unresolved) for the procedure.
 
 **Example:** switch between the current notice, an inline alternative and an overlay in the same reading workspace, with shared content and resettable state, to assess continuity, recovery and dismissal.
 

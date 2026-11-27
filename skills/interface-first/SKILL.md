@@ -10,12 +10,14 @@ Choose the current decision, make it operable, and carry its accepted direction 
 ## Invariants
 
 - Preserve the running application, unrelated work, accepted behavior outside the requested change, and existing authorization. Ask only about material unresolved choices; recording or handing off an approved decision does not require another approval.
-- Use actual application components and styles for proposals. Supply controlled dependencies through existing seams; label simulations. Simulated operation does not establish provider feasibility, persistence, device behavior, or production acceptance.
+- Inspect and operate the existing interface before creating a variant or separate component. Try its supported states, styles, configuration and compositions first; name the unmet requirement that justifies an addition. Use actual application components and styles for proposals. Supply controlled dependencies through existing seams; label simulations. Simulated operation does not establish provider feasibility, persistence, device behavior, or production acceptance.
 - Follow the [workflow contract](references/workflow-contract.md) for named units, semantic interfaces, ownership and review coverage. Apply project-specific filenames, package boundaries and tooling without inventing public exports or machines for every state.
 - Maintain the owning design and decision records under the [design-record convention](references/design-records.md). Preserve exact approval scope and revision. Design approval, implemented behavior, verification, and human acceptance are separate facts.
 - Use the [review contract](references/review-contract.md) for comparisons and feedback. Evidence supports a decision; passing automated checks alone does not establish fidelity.
 
-## Select internal principles
+## Select principles
+
+Before choosing a new variant, component, wrapper or review tool, locate and read `principle-reuse-before-reinventing` when available through host discovery or the library inventory. Resolve its actual `SKILL.md` rather than assuming a sibling installation path. The invariant above remains applicable when this skill is installed alone.
 
 Read each applicable leaf before applying it. Use principles together with project guidance and contextual tradeoffs. Explain a consequential choice they changed, rather than listing names or assigning binary principle scores.
 
