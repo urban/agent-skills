@@ -1,8 +1,8 @@
-# Shared interface-first workflow contract
+# UI ownership and review contract
 
-This contract defines named units, semantic interfaces and review coverage across the playbooks. Read only the affected inventory entries and follow deeper links for the current question. Project instructions select concrete filenames, package boundaries and tooling through [project bindings](project-bindings.md).
+This contract defines named units, semantic interfaces and review coverage for UI iteration, fidelity and review readiness. Read only the affected inventory entries and follow deeper links for the current question. Project instructions select concrete filenames, package boundaries and tooling through [project bindings](project-bindings.md).
 
-Root `DESIGN.md`, or the project’s existing design entry point, is a complete usable map of names, relationships, behavior, ownership, known guidance and review entries. It is not a setup assessment or run log. Setup establishes it from the existing project; planning, design and execution maintain affected entries and supported rationale. Missing historical motives do not block its use and must not be invented. Follow [design records](design-records.md) for owning targets/ADRs and [review contract](review-contract.md) for comparisons, feedback and status.
+Root `DESIGN.md`, or the project’s existing design entry point, is a complete usable map of names, relationships, behavior, ownership, known guidance and review entries. It is not a setup assessment or run log. A requested UI foundation establishes supported coverage from the existing project; focused iteration/fidelity maintains affected entries and supported rationale. A focused assignment need not inventory unrelated UI first. Missing historical motives do not block its use and must not be invented. Follow [design records](design-records.md) for owning targets/ADRs and [review contract](review-contract.md) for comparisons, feedback and status.
 
 ## Inventory record
 
@@ -29,4 +29,4 @@ Review scenarios operate the actual production element through that interface wi
 
 Keep review-only fixtures, service simulations and test utilities out of production interfaces and runtime dependency paths. Verify discoverability, reset paths, important states and in-context behavior with the selected tooling. Preserve the running application’s behavior, dependency direction and lifetime ownership while moving files and updating imports.
 
-Setup creates this coverage for the existing named interface. Planning identifies affected/new modules and states; design uses and maintains their review scenarios for exploration and accepted targets; tasks includes implementation, inventory links and verification in handoffs. Renaming, splitting or moving an element updates its module, review coverage, consumers and affected `DESIGN.md` links together. Record material boundary decisions in the owning references/ADRs with their actual status; code-discoverable path changes need no new ADR.
+UI review readiness establishes this coverage for the assigned surface; design iteration and fidelity maintain it for affected modules/states. Return new or missing coverage and accepted-target implications to the calling workflow for its plan, tasks or integration. Renaming, splitting or moving an element updates its module, review coverage, consumers and affected `DESIGN.md` links together. Record material boundary decisions in the owning references/ADRs with their actual status; code-discoverable path changes need no new ADR.

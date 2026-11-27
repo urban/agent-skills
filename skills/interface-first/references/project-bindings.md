@@ -1,17 +1,16 @@
 # Bind the workflow to a project
 
-Read project instructions first. Find its existing design entry point, normally root `DESIGN.md`, and use the overview plus affected entries. Reuse established locations and conventions. When absent, setup creates a usable root map linked from `AGENTS.md`; it does not install a new review platform or task system by implication.
+Read project instructions first. Find its existing design entry point, normally root `DESIGN.md`, and use the overview plus affected entries. Reuse established locations and conventions. When absent, establish the affected design/review entries through [review readiness](review-readiness.md), proportional to the assignment. A broad foundation is conditional, not a prerequisite to every refinement.
 
 Keep a concise **Workflow integration** section in that map, linking existing operational instructions rather than copying them. Record only observed commands, reachable entries and accepted policy:
 
 | Binding          | Resolve from the project                                                                                                           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Records          | Design map, implementing owners, accepted targets, ADR numbering, slice IDs, evidence locations and approval provenance            |
+| Records          | Design map, implementing owners, accepted targets, ADR numbering, evidence locations and approval provenance            |
 | UI modules       | Named-element convention, semantic entry filenames, supported imports, review colocation/discovery and runtime exclusions          |
 | Review operation | Selected tooling skill, launch/readiness/health instructions, scenario IDs, fixtures, reset paths, isolation and cleanup ownership |
 | Verification     | Exact required checks, their claims, stop/escalation conditions, and bounded live or human acceptance gaps                        |
-| Tasks            | Available backend/skill, hierarchy, IDs, executors, claim/readback rules and final review requirement                              |
-| Execution        | Concurrency, fresh-worker policy, writable ownership, commit policy and human feedback checkpoints                                 |
+| Execution        | Permitted source edits, writable ownership, commit policy and applicable human feedback checkpoints                                 |
 
 If a binding is missing, inspect the relevant implementation, existing scripts and accepted decisions before asking. Report material gaps and continue independent work. Do not invent commands, model availability or past design intent. A focused revision does not require completing unrelated bindings.
 

@@ -21,5 +21,5 @@ The direction addresses the recovered problem, alternatives/tradeoffs informed t
 ## Conditional transitions
 
 - A consequential factual uncertainty may call for [bounded prototyping](bounded-prototyping.md) or targeted research; reuse adequate evidence first and check authorization.
-- A requested spec or engineering decision record routes to `to-spec` or `write-adr`. UI-specific design routes to `interface-first` using the existing context.
+- A requested spec or engineering decision record routes to `to-spec` or `write-adr`. For UI-specific iteration, discover/read `interface-first` through [skill routing](../references/skill-routing.md), supplying the open interaction/visual decision, actual sources, settled choices and permitted edits. Consume its comparison, proposed/accepted direction, evidence/limits and unresolved questions, then resume convergence on the original direction.
 - Continue to implementation when it is already authorized and the relevant decisions are settled. Design-only work ends with its actual approval state and any proposed next action, not automatic execution.

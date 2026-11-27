@@ -1,26 +1,10 @@
-# Delegate focused work
+# Coordinate UI alternatives and critique
 
-The coordinator owns playbook selection, product tradeoffs, user feedback, the integrated demonstration and final canonical updates. Use fresh agents by default for bounded ticketed work to preserve context capacity. The coordinator may choose reuse or local execution when the task and available context make it better, within project policy; small direct changes can stay local. Respect host permissions and existing authorization.
+Use workers only when host/project policy permits and isolated alternatives or independent inspection improve the UI assignment. Direct use can stay with one agent. General work assignment/integration policy belongs to the caller, not this specialist.
 
-## Assign roles and ownership
+- Give a source reader a bounded question and actual source/state pointers; give candidate builders separate outputs, the unresolved decision, fixed surrounding choices and permitted edits. A critic receives exact target/running revisions, equivalent review conditions and report-only or explicit repair scope.
+- Pass relevant project instructions, selected UI procedure/principle paths, actual approval scope, dependencies and expected evidence/limits. State that others may be working in the project; preserve their edits and accommodate their interfaces. Naming a skill does not load it for a worker.
+- Use one driver for a shared app/browser unless instances are proven isolated. One assigned owner updates the canonical target/map/decision records and reconciles scoped feedback. Independent candidates must not concurrently alter those shared authorities or unrelated production consumers.
+- Inspect actual proposals/findings and their provenance rather than treating a worker summary as evidence of fidelity. Return source/revision/artifact references, observed behavior/checks, simulations/limits, decision state and unresolved questions. Reuse valid evidence for unchanged conditions; another reader does not add an approval gate.
 
-| Role                  | Suitable work                                                          | Ownership                                                         |
-| --------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Source reader         | Existing states, affected consumers, paths, feasibility or likely gaps | Read-only; concise findings with source pointers                  |
-| Candidate builder     | A meaningfully different proposal resolving an open decision           | Separate output directory/worktree; explicit affected modules     |
-| Critic/verifier       | Independent inspection of a concrete comparison or implementation      | Read-only unless a repair scope is explicitly assigned            |
-| Implementation worker | One actionable ticket and its focused verification                     | Exact files/capability, claim ownership and project commit policy |
-
-Use the [worker-brief template](../assets/worker-brief-template.md). Give the goal, exact task, writable owner/exclusions, relevant project/target links, selected playbook and principle paths, real/simulated boundary, completion predicate, checks and result format. A worker must be able to start fresh without the coordinator's transcript. Explicitly say others are working in the codebase and their edits must be preserved. Do not paste the whole skill library or assume a parent invocation reaches a child.
-
-## Bound concurrency
-
-Parallelize independent reading, disjoint alternatives or authorized independent owners. Give writers separate outputs before launch. One coordinator or explicitly assigned writer updates shared design-map, current-target and global ADR records. One owner mutates tracker hierarchy. One driver operates a shared app/browser unless separate instances are proven isolated.
-
-Project policy governs implementation concurrency and worker reuse. Fresh workers per ticket are the default, with coordinator discretion where policy permits; where the project requires sequential work, inspect each ticket's result before the next dispatch. Do not turn hierarchy or sequential scheduling into fictional dependency edges. Use available models and tools through the host; do not hardcode model slugs or require a particular vendor.
-
-## Accept actual results
-
-Workers return `PASS`, `ISSUES` or `BLOCKED`, with changed artifact paths, checks/evidence, simulation limits and remaining decisions. Inspect the actual diff/output and consequential behavior before integration. Do not accept a confident summary or proxy demo as proof. Fresh workers inherit the stated acceptance bar; they do not add checks or review rounds. Reuse evidence for unchanged relevant code/configuration/inputs; rerun when a change, failure, or distinct integration risk makes it necessary.
-
-For critique, ask for actionable defects with evidence, not a full rewrite. For alternatives, compare the intended decision under equivalent states, explain the chosen parts and preserve rejected directions only as useful provenance. For execution, verify task status and evidence before dispatching dependent work. Bound retries and waits; surface blockers and continue only independent authorized work.
+The UI coordinator owns this comparison and its records. The calling workflow retains the original user outcome, production integration and overall completion.

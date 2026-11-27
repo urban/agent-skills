@@ -1,6 +1,6 @@
 interface:
-  display_name: "Interface-first"
-  short_description: "Prepare, shape, review, and deliver focused UI slices"
-  default_prompt: "Use $interface-first to select the appropriate playbook, make the requested UI outcome reviewable, and carry its accepted direction through the project's existing tools."
+  display_name: "Interface First"
+  short_description: "Iterate on UI design and assess implementation fidelity"
+  default_prompt: "Use $interface-first to operate the actual UI, compare the requested design or fidelity change, and return scoped findings and evidence."
 policy:
   allow_implicit_invocation: true

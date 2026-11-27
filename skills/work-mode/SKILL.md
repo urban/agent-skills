@@ -1,6 +1,6 @@
 ---
 name: work-mode
-description: Recover intent, decisions, constraints, and authorization from a prompt, conversation, or session evidence; select a playbook and carry scoped work through completion. Use when starting or resuming agent work through brainstorming, bounded prototypes, codebase reviews, or retrospectives, or routing authorized transitions to existing specialist workflows.
+description: Recover intent, decisions, constraints, and authorization from a prompt, conversation, or session evidence; select a playbook and carry scoped work through completion. Use when starting or resuming agent work through setup, brainstorming, planning, task creation, execution, bounded prototypes, codebase reviews, or retrospectives, with specialist calls where needed.
 ---
 
 ## Rules
@@ -16,7 +16,7 @@ description: Recover intent, decisions, constraints, and authorization from a pr
 
 - Do not expand scope through a transition, create tickets automatically, or infer approval from silence, a saved artifact, passing checks, or prototype success.
 - Do not ask again for approval already covering the work. Ask for a material unresolved decision or genuinely additional authorization; host and project permissions still apply.
-- Do not replace specialist workflows with a generic pipeline. Specifications route to `to-spec`, engineering decision records to `write-adr`, and UI-specific work to `interface-first` or its available focused skills.
+- Do not replace specialist workflows with a generic pipeline. Specifications route to `to-spec`, engineering decision records to `write-adr`, and UI design iteration and fidelity assessment to `interface-first`. Work Mode owns general setup, planning, task creation, execution and overall completion.
 - Do not require delegation or impose model, concurrency, worker-reuse, or scheduling policy over host/project rules. Local execution is valid.
 - Do not treat a source mention as access to its contents, a worker report as verified integration, or a missing tool as proof the underlying capability is absent.
 
@@ -27,12 +27,16 @@ A prompt, an ongoing/previous conversation, or session evidence identifying work
 ## Workflow
 
 1. **Recover context.** Use [context intake](references/context-and-handoff.md) to establish outcome, scope, decisions/rationale, authorization, evidence, open questions, and the actual current state. Inspect sources to answer named questions. Continue independent work while a dependent decision is pending.
-2. **Choose the next work.** Use the table below, respecting an explicit playbook choice. If the request is already executable and needs no listed playbook, execute directly with the applicable specialist guidance; do not force brainstorming first. Resolve external skills through [skill discovery](references/skill-routing.md).
-3. **Execute and follow through.** Read only the selected playbook(s) and their required resources. Use [coordination](references/coordination.md) when handing off or delegating. Evaluate transitions against the recovered current outcome and authorization, including explicit scope changes: continue when already covered, propose genuinely new work otherwise. A completed playbook is a milestone when the user authorized a larger outcome.
+2. **Choose the next work.** Use the table below, respecting an explicit playbook choice. If the request is already executable, select execution; do not force brainstorming, planning, setup or ticket creation first. Resolve external skills through [skill discovery](references/skill-routing.md).
+3. **Execute and follow through.** Read only the selected playbook(s) and their required resources. Invoke specialists at the step that needs them using the [call-and-return instructions](references/skill-routing.md#call-and-return-within-a-playbook), consume the result, and resume the owning playbook. This need not create a separate agent or chat. Use [coordination](references/coordination.md) when handing off or delegating. Evaluate transitions against the recovered current outcome and authorization, including explicit scope changes: continue when already covered, propose genuinely new work otherwise. A completed playbook is a milestone when the user authorized a larger outcome.
 4. **Close accurately.** Verify the actual result against the selected scope. End at completion, a genuine blocker, or a user decision; state which one. Preserve continuation context in the existing project record or a concise handoff when another executor needs it.
 
 | Current need | Read / route | Expected result |
 | --- | --- | --- |
+| Prepare a project or fill concrete readiness gaps | [Setup](playbooks/setup.md) | Proportionate workspace and run/check readiness |
+| Shape a deliverable and resolve its dependencies | [Planning](playbooks/planning.md) | Scoped plan with decisions, evidence and remaining uncertainty |
+| Create tracker handoffs from scoped work | [Create tasks](playbooks/create-tasks.md) | Read-back tasks and genuine prerequisites; no implementation |
+| Implement or repair authorized work, ticketed or direct | [Execute](playbooks/execute.md) | Integrated result and focused verification |
 | Resolve an open-ended idea or unsettled design direction | [Brainstorming](playbooks/brainstorming.md) | Reviewed direction, rationale, and explicit remaining decisions |
 | Obtain evidence about a specific uncertain choice | [Bounded prototyping](playbooks/bounded-prototyping.md) | Inspectable findings with limits and decision implications |
 | Assess existing codebase quality or ease of future change | [Codebase review](playbooks/codebase-review.md) | Prioritized improvements through `continuous-improvement`'s codebase lens |
@@ -49,7 +53,7 @@ Patch/PR review assesses a particular diff and its regressions; use the project'
 - If a prototype's success becomes adoption, shortcuts acquire production authority. Return evidence to the owning decision and continue only within authorization.
 - If a broad review follows only a recent diff, local observations masquerade as codebase coverage. Map the requested scope and disclose what was not inspected.
 - If a retrospective reads only source code, plausible delays and motives become invented history. Use actual session evidence and limit conclusions when it is missing.
-- If delegated completion closes the parent task, integration and verification can remain undone. Check the owned result against the original completion conditions.
+- If specialist or delegated completion closes the parent task, integration and verification can remain undone. Check the owned result against the original completion conditions.
 - If recording a decision creates a new approval gate or document hierarchy, preservation stalls authorized work. Update the owning record proportionately and preserve the existing authority.
 
 ## Deliverables

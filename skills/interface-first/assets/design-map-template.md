@@ -20,4 +20,4 @@ Capture known project guidance and provenance. Separate explicit accepted constr
 
 ## Workflow integration
 
-Link design/ADR/plan/evidence locations, UI-module conventions, review tooling/operating instructions, focused checks, task backend/hierarchy and execution/commit/review policy. Verify commands and reachable scenarios; label unavailable capabilities accurately.
+Link design/ADR/evidence locations, UI-module conventions, review tooling/operating instructions, focused checks and applicable edit/commit/review policy. Link caller-owned plans/tasks when relevant rather than duplicating their workflow. Verify commands and reachable scenarios; label unavailable capabilities accurately.

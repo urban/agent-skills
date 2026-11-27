@@ -21,6 +21,6 @@ The bounded question has an evidence-backed answer or an explicit inconclusive o
 ## Conditional transitions
 
 - Return findings to the owning design, spec, or ADR; link or update consumer documents only within authorization. Evidence may change a recommendation without accepting that choice.
-- Route unresolved design tradeoffs to [brainstorming](brainstorming.md), specs to `to-spec`, engineering decisions to `write-adr`, and UI refinement to `interface-first` when relevant.
+- Route unresolved design tradeoffs to [brainstorming](brainstorming.md), specs to `to-spec`, engineering decisions to `write-adr`, and UI refinement to `interface-first` when relevant. For that call, use [skill routing](../references/skill-routing.md), supply the experiment question/findings, actual UI sources and authorization, then consume its operable comparison, decision state and evidence/limits before resuming the experiment conclusion or owning decision.
 - A further experiment must remain within the authorized question/effort boundary or receive the additional decision it needs.
 - Production implementation or reuse of prototype code requires authorization and a separate assessment of correctness, security, maintainability, and delivery. Existing authorization may cover that next stage; prototype success alone does not.

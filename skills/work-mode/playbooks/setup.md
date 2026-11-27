@@ -1,0 +1,15 @@
+# Prepare the requested work
+
+**Enter when:** preparing a new or existing project/workspace, or filling a concrete readiness gap. An assessment stays read-only unless changes are authorized. Focused work needs only its missing prerequisites.
+
+**Read:** project instructions, current layout, manifests, scripts, runtime entrypoints and relevant existing architecture/decisions. Use [skill routing](../references/skill-routing.md) for expertise only where a decision needs it.
+
+## Prepare proportionately
+
+1. Recover the requested outcome and current readiness. Inspect existing conventions before scaffolding. Identify the minimum install/configuration, run/readiness, check and cleanup needs for this work; reuse working commands and records. Do not generate a standard document pack.
+2. Choose two composable dimensions: **workspace organization** (single package or monorepo) and **product surfaces** (library, CLI, UI, MCP, server/API/RPC). A project can have several surfaces in either organization. Prefer a monorepo when multiple cohesive packages are warranted, with actual dependency/runtime boundaries chosen for this project. Do not create a package merely for each label.
+3. Look actively for reusable core application capabilities with thin interfaces: CLI → core; MCP → the same core; client UI → server/RPC → core. Shared behavior and invariants belong in the core; edges translate transport and interaction. Reuse the existing architecture and, when relevant, discover/read `architecture` and `principle-layers-all-the-way-down` for boundary and composition judgment. Do not scaffold hypothetical interfaces or turn setup into an unrelated migration.
+4. Fill only relevant readiness gaps. For a library, establish supported consumption and its meaningful checks; for a CLI, invocation/input/output/failure paths; for MCP or server/API/RPC, connection/readiness, protocol boundaries and controlled dependencies. For UI, establish access to the actual components/styles, running interface and existing review tools. When UI review preparation needs specialist judgment, discover/read `interface-first` and assign the affected surface, current conventions, authorization and readiness question. Expect runnable review/record requirements, usable entries or concrete gaps, and evidence/limits; consume them into the setup result. Interface First owns UI design-map, component-review and target requirements. None apply to a CLI/library solely because this playbook was selected.
+5. Verify the applicable run/readiness and focused check paths. Record observed commands and material limits in existing project instructions/records only as needed. If preparation becomes substantial, return the uncovered scope to [planning](planning.md); do not invent tickets or claim readiness while dependencies remain unavailable. Continue already authorized work once its prerequisites are ready.
+
+**Deliver:** usable preparation or assessment findings, observed run/check instructions, relevant organization/surface decisions, remaining gaps and their effect. A successful UI preview does not establish backend feasibility or production completion.

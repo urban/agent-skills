@@ -4,13 +4,23 @@ Resolve skill names through host discovery and the available project/library inv
 
 Routing to another skill chooses its methodology; it does not authorize all of its possible outputs, tools, or side effects. Existing user choices override generic defaults. Preserve the Work Mode contract through the specialist workflow and return to the original outcome afterward.
 
+## Call and return within a playbook
+
+These are instructions at the step that needs expertise, not a required agent/chat protocol. The caller retains ownership of the original outcome.
+
+1. Locate and read the specialist entrypoint. Supply the relevant recovered goal, current state, settled choices/rationale, authorization, source/target references, concrete question and expected result. Read only its applicable procedure/resources.
+2. Follow the specialist's procedure within that assignment. Return the actual decision/approval state, source/revision/artifact references, evidence and simulations/limits, unresolved questions and next implications in proportion to the task. Reuse existing owning records; no universal schema or handoff file is required.
+3. Resume the caller's playbook. Assess what the result establishes, incorporate it into the owned plan/task/change, resolve remaining dependencies and continue covered work. A blocked specialist may leave independent caller work possible. Specialist success does not expand authorization or replace overall integration/verification.
+
+For example, planning asks Interface First to resolve one flow, consumes its proposed or accepted design and limits, then finishes scope/dependencies. Execution asks for fidelity against the accepted target, consumes findings or authorized repairs, then completes integration and verification. Direct use of Interface First ends at its requested UI result unless the user also authorized broader work.
+
 ## Specialist boundaries
 
 | Decision / requested result | Route |
 | --- | --- |
 | Product/feature contract or specification | `to-spec`; consume existing design and experiment findings rather than restarting discovery |
 | Consequential engineering rationale, alternatives, acceptance, supersession | `write-adr`; keep proposed and accepted records distinct |
-| UI scope, interaction/visual design, interface implementation, or fidelity | `interface-first`; select its relevant playbook. Libraries with split skills may expose `interface-first-planning`, `interface-first-design`, and `interface-first-tasks`; select the actual scope and preserve their boundaries |
+| UI design iteration, matched comparison, scoped feedback, UI review readiness or fidelity assessment/repair | `interface-first`; return its result to the calling playbook. General setup, planning, task creation and execution stay in Work Mode |
 | Codebase quality or development-process improvement | `continuous-improvement`; select the codebase-review or retrospective lens as directed by the Work Mode playbook |
 | Patch/PR regressions and correctness | Project/host patch-review guidance; no automatic codebase-review transition |
 | Creating or changing a skill | `build-a-skill` or host skill-authoring guidance directly; it remains a separate workflow |
