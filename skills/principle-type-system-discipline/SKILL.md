@@ -1,6 +1,6 @@
 ---
 name: principle-type-system-discipline
-description: 'Apply when designing types, reviewing component APIs or function signatures, or parsing external data in a statically typed language. Encode valid states, distinguish semantic values, derive types from authoritative contracts, and handle variants exhaustively.'
+description: 'Use when designing types, reviewing component APIs or function signatures, or parsing external data in a statically typed language. Encode valid states, distinguish semantic values, derive types from authoritative contracts, and handle variants exhaustively.'
 disable-model-invocation: true
 ---
 
